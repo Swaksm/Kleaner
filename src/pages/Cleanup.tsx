@@ -31,6 +31,7 @@ export function Cleanup() {
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<CleanReport[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showEmpty, setShowEmpty] = useState(false);
 
   /// Sans risque et utile : niveau safe, quelque chose à gagner, rien qui bloque.
   const selectable = (c: Cleaner, map: Map<string, CleanReport>) => {
@@ -120,9 +121,14 @@ export function Cleanup() {
           <button className="btn" disabled={running || chosen.length === 0} onClick={() => setSelected(new Set())}>
             {t("cleanup.selectNone")}
           </button>
-          <button className="btn" disabled={running} onClick={load}>
-            {t("cleanup.refresh")}
+          <button className="btn" disabled={running || !estimates} onClick={load}>
+            {estimates ? t("cleanup.refresh") : t("cleanup.estimating")}
           </button>
+          {!estimates && (
+            <span className="loading" role="status">
+              <span className="spinner" aria-hidden /> {t("cleanup.estimating")}
+            </span>
+          )}
         </div>
         {error && <StatusPill status="danger">{error}</StatusPill>}
       </Card>
@@ -171,11 +177,23 @@ export function Cleanup() {
         </Card>
       )}
 
+      {estimates && (
+        <label className="check">
+          <input type="checkbox" checked={showEmpty} onChange={(e) => setShowEmpty(e.target.checked)} />
+          {t("cleanup.showEmpty")}
+        </label>
+      )}
+
       {GROUPS.map((g) => {
-        const items = view.cleaners.filter((c) => c.group === g && c.level === "safe");
-        if (items.length === 0) return null;
+        const all = view.cleaners.filter((c) => c.group === g && c.level === "safe");
+        // Logiciel absent ou cache déjà vide : masqué, sauf si l'utilisateur veut tout voir.
+        // Les éléments admin non estimés restent visibles (on ne sait pas encore s'ils sont vides).
+        const empty = (c: Cleaner) => !!estimates && !(c.admin && !view.elevated) && (estimates.get(c.id)?.bytes ?? 0) === 0;
+        const items = showEmpty ? all : all.filter((c) => !empty(c));
+        if (all.length === 0) return null;
         return (
           <Card key={g} title={t(`group.${g}` as Key)}>
+            {items.length === 0 && <p className="muted">{t("cleanup.nothing")}</p>}
             {items.map((c) => (
               <CleanerCard
                 key={c.id}

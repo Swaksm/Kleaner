@@ -27,14 +27,14 @@ pub enum GuardError {
 impl fmt::Display for GuardError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match self {
-            Self::Relative => "chemin relatif",
-            Self::ParentDir => "chemin contenant '..'",
-            Self::NotLocal => "chemin réseau ou non local",
-            Self::NotFound => "chemin introuvable",
-            Self::Link => "lien ou jonction sur le chemin",
-            Self::OutsideRoots => "hors des emplacements autorisés",
-            Self::Protected => "emplacement protégé",
-            Self::SystemFile => "fichier système",
+            Self::Relative => "relative path",
+            Self::ParentDir => "path containing '..'",
+            Self::NotLocal => "network or non-local path",
+            Self::NotFound => "path not found",
+            Self::Link => "link or junction on the path",
+            Self::OutsideRoots => "outside allowed locations",
+            Self::Protected => "protected location",
+            Self::SystemFile => "system file",
         };
         f.write_str(msg)
     }

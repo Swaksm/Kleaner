@@ -5,7 +5,7 @@ import { Donut } from "../components/Donut";
 import { SizeBar } from "../components/SizeBar";
 import { StatusPill } from "../components/StatusPill";
 import { ReportDialog } from "../components/ReportDialog";
-import { SortBar } from "../components/SortBar";
+import { SortHeader, type HeaderCell } from "../components/SortHeader";
 import { TrashConfirm } from "../components/TrashConfirm";
 import { useT, type Key } from "../i18n/useT";
 import {
@@ -141,11 +141,12 @@ export function Analyse() {
   const dirs = sortBy(r.top_dirs, dirSort, itemGetters);
   const chosen = r.top_files.filter((i) => selected.has(i.path));
   const chosenBytes = chosen.reduce((s, i) => s + i.size, 0);
-  const sortOptions: Record<ItemKey, [string, boolean]> = {
-    size: [t("sort.size"), true],
-    name: [t("sort.name"), false],
-    date: [t("sort.date"), true],
-  };
+  const headerCells = (first: string): HeaderCell<ItemKey>[] => [
+    { sorts: [["name", first, false]] },
+    { sorts: [["date", t("sort.date"), true]] },
+    { sorts: [["size", t("sort.size"), true]], end: true },
+    null,
+  ];
   const showAllButton = (r.top_files.length > 50 || r.top_dirs.length > 50) && (
     <button className="btn" onClick={() => setShowAll(!showAll)}>
       {showAll ? t("analyse.showLess") : t("analyse.showAll")}
@@ -213,8 +214,8 @@ export function Analyse() {
 
       <Card title={t("analyse.topFiles")}>
         <p className="muted">{t("analyse.topFilesHint")}</p>
-        <SortBar options={sortOptions} value={fileSort} onChange={setFileSort} />
-        <ul className="items">
+        <ul className="items grid-4">
+          <SortHeader cells={headerCells(t("sort.name"))} value={fileSort} onChange={setFileSort} />
           {files.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <label className="check path" title={i.path}>
@@ -222,7 +223,7 @@ export function Analyse() {
                 <span>{i.path}</span>
               </label>
               <span className="muted small">{formatDay(i.modified, lang)}</span>
-              <span className="num">{formatBytes(i.size, lang)}</span>
+              <span className="num end">{formatBytes(i.size, lang)}</span>
               <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
                 {t("analyse.open")}
               </button>
@@ -243,15 +244,15 @@ export function Analyse() {
       </Card>
 
       <Card title={t("analyse.topDirs")}>
-        <SortBar options={sortOptions} value={dirSort} onChange={setDirSort} />
-        <ul className="items">
+        <ul className="items grid-4">
+          <SortHeader cells={headerCells(t("sort.folder"))} value={dirSort} onChange={setDirSort} />
           {dirs.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <span className="path" title={i.path}>
                 {i.path}
               </span>
               <span className="muted small">{formatDay(i.modified, lang)}</span>
-              <span className="num">{formatBytes(i.size, lang)}</span>
+              <span className="num end">{formatBytes(i.size, lang)}</span>
               <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
                 {t("analyse.open")}
               </button>

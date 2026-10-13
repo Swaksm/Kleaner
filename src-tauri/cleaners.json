@@ -158,7 +158,7 @@
     },
     "mode": "command",
     "level": "heavy",
-    "command": "SHEmptyRecycleBinW (API Windows)"
+    "command": "SHEmptyRecycleBinW (Windows API)"
   },
   {
     "id": "browser-chrome",
@@ -669,7 +669,7 @@
     "admin": true,
     "mode": "command",
     "level": "safe",
-    "command": "suppression de %SystemRoot%\\MEMORY.DMP"
+    "command": "delete %SystemRoot%\\MEMORY.DMP"
   },
   {
     "id": "delivery-optimization",
@@ -723,7 +723,7 @@
     ],
     "mode": "command",
     "level": "safe",
-    "command": "Stop-Service wuauserv,bits ; vider SoftwareDistribution\\Download ; Start-Service wuauserv,bits"
+    "command": "Stop-Service wuauserv,bits ; empty SoftwareDistribution\\Download ; Start-Service wuauserv,bits"
   },
   {
     "id": "cbs-logs",
@@ -783,7 +783,7 @@
     ],
     "mode": "command",
     "level": "heavy",
-    "command": "takeown /F <dossier> /R /A ; icacls <dossier> /grant Administrateurs:F /T ; suppression ; rd /S /Q <dossier>"
+    "command": "takeown /F <folder> /R /A ; icacls <folder> /grant Administrators:F /T ; delete ; rd /S /Q <folder>"
   },
   {
     "id": "component-store",
@@ -855,6 +855,312 @@
     "admin": true,
     "mode": "command",
     "level": "heavy",
-    "command": "Get-CimInstance Win32_ShadowCopy | (tous sauf le plus récent) | Remove-CimInstance"
+    "command": "Get-CimInstance Win32_ShadowCopy | (all but the most recent) | Remove-CimInstance"
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "browser-vivaldi",
+    "group": "browsers",
+    "label": {
+      "fr": "Vivaldi : cache",
+      "en": "Vivaldi: cache"
+    },
+    "what": {
+      "fr": "Copies locales des pages, scripts et shaders déjà chargés.",
+      "en": "Local copies of pages, scripts and shaders already loaded."
+    },
+    "why": {
+      "fr": "Vivaldi les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.",
+      "en": "Vivaldi downloads them again when needed. Cookies, passwords and history are untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.",
+      "en": "You stay logged in. Sites load a little slower the first time."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Vivaldi\\User Data\\*\\Cache",
+      "%LOCALAPPDATA%\\Vivaldi\\User Data\\*\\Code Cache",
+      "%LOCALAPPDATA%\\Vivaldi\\User Data\\*\\GPUCache",
+      "%LOCALAPPDATA%\\Vivaldi\\User Data\\ShaderCache",
+      "%LOCALAPPDATA%\\Vivaldi\\User Data\\GrShaderCache"
+    ],
+    "close": [
+      "vivaldi.exe"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "browser-chromium",
+    "group": "browsers",
+    "label": {
+      "fr": "Chromium : cache",
+      "en": "Chromium: cache"
+    },
+    "what": {
+      "fr": "Copies locales des pages, scripts et shaders déjà chargés.",
+      "en": "Local copies of pages, scripts and shaders already loaded."
+    },
+    "why": {
+      "fr": "Chromium les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.",
+      "en": "Chromium downloads them again when needed. Cookies, passwords and history are untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.",
+      "en": "You stay logged in. Sites load a little slower the first time."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Chromium\\User Data\\*\\Cache",
+      "%LOCALAPPDATA%\\Chromium\\User Data\\*\\Code Cache",
+      "%LOCALAPPDATA%\\Chromium\\User Data\\*\\GPUCache",
+      "%LOCALAPPDATA%\\Chromium\\User Data\\ShaderCache",
+      "%LOCALAPPDATA%\\Chromium\\User Data\\GrShaderCache"
+    ],
+    "close": [
+      "chrome.exe"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "game-steam",
+    "group": "apps",
+    "label": {
+      "fr": "Steam : cache web et shaders",
+      "en": "Steam: web and shader cache"
+    },
+    "what": {
+      "fr": "Pages de la boutique déjà vues et shaders compilés pour tes jeux.",
+      "en": "Store pages already viewed and shaders compiled for your games."
+    },
+    "why": {
+      "fr": "Steam les recrée tout seul. Tes jeux et sauvegardes ne sont pas touchés.",
+      "en": "Steam rebuilds them automatically. Your games and saves are untouched."
+    },
+    "effect": {
+      "fr": "Les jeux peuvent saccader un peu au premier lancement.",
+      "en": "Games may stutter a little the first time they start."
+    },
+    "paths": [
+      "%ProgramFiles(x86)%\\Steam\\appcache\\httpcache",
+      "%ProgramFiles(x86)%\\Steam\\steamapps\\shadercache"
+    ],
+    "close": [
+      "steam.exe"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "game-epic",
+    "group": "apps",
+    "label": {
+      "fr": "Epic Games Launcher : cache web",
+      "en": "Epic Games Launcher: web cache"
+    },
+    "what": {
+      "fr": "Pages et images de la boutique déjà chargées par le launcher.",
+      "en": "Store pages and images already loaded by the launcher."
+    },
+    "why": {
+      "fr": "Le launcher les retélécharge au besoin. Tes jeux ne sont pas touchés.",
+      "en": "The launcher downloads them again when needed. Your games are untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. La boutique charge un peu plus lentement une fois.",
+      "en": "You stay logged in. The store loads a little slower once."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache*"
+    ],
+    "close": [
+      "EpicGamesLauncher.exe"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "app-adobe-media-cache",
+    "group": "apps",
+    "label": {
+      "fr": "Adobe : cache média",
+      "en": "Adobe: media cache"
+    },
+    "what": {
+      "fr": "Fichiers d’aperçu audio et vidéo créés par Premiere Pro, After Effects et Media Encoder.",
+      "en": "Audio and video preview files built by Premiere Pro, After Effects and Media Encoder."
+    },
+    "why": {
+      "fr": "Les applis Adobe les recréent à partir de tes médias d’origine. Les projets ne sont pas touchés.",
+      "en": "Adobe apps rebuild them from your original media. Projects are untouched."
+    },
+    "effect": {
+      "fr": "Les projets mettent plus de temps à s’ouvrir la première fois.",
+      "en": "Projects take longer to open the first time (re-conforming)."
+    },
+    "paths": [
+      "%APPDATA%\\Adobe\\Common\\Media Cache Files",
+      "%APPDATA%\\Adobe\\Common\\Media Cache"
+    ],
+    "close": [
+      "Adobe Premiere Pro.exe",
+      "AfterFX.exe",
+      "Adobe Media Encoder.exe"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "dev-maven",
+    "group": "dev",
+    "label": {
+      "fr": "Maven : cache",
+      "en": "Maven: cache"
+    },
+    "what": {
+      "fr": "Paquets et résultats de build déjà téléchargés par Maven.",
+      "en": "Packages and build outputs already downloaded by Maven."
+    },
+    "why": {
+      "fr": "Maven les retélécharge ou les recalcule au besoin. Tes projets ne sont pas touchés.",
+      "en": "Maven downloads or rebuilds them when needed. Your projects are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%USERPROFILE%\\.m2\\repository"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "dev-go",
+    "group": "dev",
+    "label": {
+      "fr": "Go : cache",
+      "en": "Go: cache"
+    },
+    "what": {
+      "fr": "Paquets et résultats de build déjà téléchargés par Go.",
+      "en": "Packages and build outputs already downloaded by Go."
+    },
+    "why": {
+      "fr": "Go les retélécharge ou les recalcule au besoin. Tes projets ne sont pas touchés.",
+      "en": "Go downloads or rebuilds them when needed. Your projects are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\go-build",
+      "%USERPROFILE%\\go\\pkg\\mod"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "dev-bun",
+    "group": "dev",
+    "label": {
+      "fr": "Bun : cache",
+      "en": "Bun: cache"
+    },
+    "what": {
+      "fr": "Paquets et résultats de build déjà téléchargés par Bun.",
+      "en": "Packages and build outputs already downloaded by Bun."
+    },
+    "why": {
+      "fr": "Bun les retélécharge ou les recalcule au besoin. Tes projets ne sont pas touchés.",
+      "en": "Bun downloads or rebuilds them when needed. Your projects are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%USERPROFILE%\\.bun\\install\\cache"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "dev-composer",
+    "group": "dev",
+    "label": {
+      "fr": "Composer : cache",
+      "en": "Composer: cache"
+    },
+    "what": {
+      "fr": "Paquets et résultats de build déjà téléchargés par Composer.",
+      "en": "Packages and build outputs already downloaded by Composer."
+    },
+    "why": {
+      "fr": "Composer les retélécharge ou les recalcule au besoin. Tes projets ne sont pas touchés.",
+      "en": "Composer downloads or rebuilds them when needed. Your projects are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Composer"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "dev-pub",
+    "group": "dev",
+    "label": {
+      "fr": "Dart/Flutter (pub) : cache",
+      "en": "Dart/Flutter (pub): cache"
+    },
+    "what": {
+      "fr": "Paquets et résultats de build déjà téléchargés par Dart/Flutter (pub).",
+      "en": "Packages and build outputs already downloaded by Dart/Flutter (pub)."
+    },
+    "why": {
+      "fr": "Dart/Flutter (pub) les retélécharge ou les recalcule au besoin. Tes projets ne sont pas touchés.",
+      "en": "Dart/Flutter (pub) downloads or rebuilds them when needed. Your projects are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Pub\\Cache"
+    ]
+  },
+  {
+    "mode": "delete",
+    "level": "safe",
+    "id": "driver-leftovers",
+    "group": "system",
+    "admin": true,
+    "label": {
+      "fr": "Installeurs de pilotes graphiques",
+      "en": "Graphics driver installers"
+    },
+    "what": {
+      "fr": "Paquets de pilotes extraits par les installeurs NVIDIA et AMD (C:\\NVIDIA, C:\\AMD, téléchargements NVIDIA).",
+      "en": "Driver packages extracted by NVIDIA and AMD installers (C:\\NVIDIA, C:\\AMD, NVIDIA downloader)."
+    },
+    "why": {
+      "fr": "Ils ne servent que pendant l’installation. Le pilote installé est ailleurs.",
+      "en": "They are only used during installation. The installed driver is elsewhere."
+    },
+    "effect": {
+      "fr": "Rien. Une réinstallation du pilote les retélécharge.",
+      "en": "Nothing. A driver reinstall downloads them again."
+    },
+    "paths": [
+      "%SystemDrive%\\NVIDIA",
+      "%SystemDrive%\\AMD",
+      "%ProgramData%\\NVIDIA Corporation\\Downloader"
+    ]
   }
 ]

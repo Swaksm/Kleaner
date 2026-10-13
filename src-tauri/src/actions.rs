@@ -16,10 +16,10 @@ pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir:
     let mut checked = Vec::with_capacity(paths.len());
     let mut bytes = 0;
     for p in paths {
-        let c = guard::check_trash(p, protected).map_err(|e| format!("Refusé : {} ({e})", p.display()))?;
+        let c = guard::check_trash(p, protected).map_err(|e| format!("Refused: {} ({e})", p.display()))?;
         let m = std::fs::metadata(&c).map_err(|e| format!("{} : {e}", p.display()))?;
         if !m.is_file() {
-            return Err(format!("Refusé : {} (seuls les fichiers peuvent être envoyés à la Corbeille)", p.display()));
+            return Err(format!("Refused: {} (only files can be sent to the Recycle Bin)", p.display()));
         }
         bytes += m.len();
         checked.push(c);
@@ -33,7 +33,7 @@ pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir:
     if let Err(e) = &result {
         entry.error = Some(e.clone());
     }
-    journal::append(journal_dir, &entry).map_err(|e| format!("Journal : {e}"))?;
+    journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
     result.map(|_| ActionReport { files: entry.files, bytes })
 }
 
@@ -46,7 +46,7 @@ pub fn save_report(content: &str, data_dir: &Path) -> Result<PathBuf, String> {
     std::fs::write(&path, content).map_err(|e| e.to_string())?;
     entry.paths = vec![path.display().to_string()];
     entry.bytes = content.len() as u64;
-    journal::append(data_dir, &entry).map_err(|e| format!("Journal : {e}"))?;
+    journal::append(data_dir, &entry).map_err(|e| format!("Log: {e}"))?;
     Ok(path)
 }
 
@@ -56,15 +56,15 @@ pub fn check_media(path: &Path) -> Result<PathBuf, String> {
     use crate::scan::{Category, category};
     use std::os::windows::fs::MetadataExt;
     if !matches!(category(path), Category::Videos | Category::Images) {
-        return Err(format!("Pas une photo ni une vidéo : {}", path.display()));
+        return Err(format!("Not a photo or video: {}", path.display()));
     }
     // Chemin local uniquement (pas de partage réseau).
     if !path.is_absolute() || path.to_string_lossy().starts_with(r"\\") {
-        return Err(format!("Chemin non local : {}", path.display()));
+        return Err(format!("Not a local path: {}", path.display()));
     }
     let m = std::fs::symlink_metadata(path).map_err(|e| format!("{} : {e}", path.display()))?;
     if !m.is_file() || m.file_attributes() & 0x400 != 0 {
-        return Err(format!("Pas un fichier ordinaire : {}", path.display()));
+        return Err(format!("Not a regular file: {}", path.display()));
     }
     Ok(path.to_path_buf())
 }
@@ -80,7 +80,7 @@ pub fn open_media(path: &Path) -> Result<(), String> {
     let r = unsafe {
         ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL)
     };
-    if r as isize > 32 { Ok(()) } else { Err("Aucune application pour ouvrir ce fichier.".into()) }
+    if r as isize > 32 { Ok(()) } else { Err("No app can open this file.".into()) }
 }
 
 #[cfg(test)]
@@ -100,7 +100,7 @@ mod tests {
         let d = temp("protected");
         let win = PathBuf::from(std::env::var_os("SystemRoot").unwrap()).join("win.ini");
         let err = trash_files(&[win], &guard::Protected::from_env(), &d).unwrap_err();
-        assert!(err.starts_with("Refusé"), "{err}");
+        assert!(err.starts_with("Refused"), "{err}");
         assert!(journal::read_last(&d, 10).unwrap().is_empty());
         fs::remove_dir_all(&d).unwrap();
     }
@@ -123,7 +123,7 @@ mod tests {
         let exe = d.join("virus.exe");
         fs::write(&exe, b"x").unwrap();
         assert!(check_media(&photo).is_ok());
-        assert!(check_media(&exe).unwrap_err().starts_with("Pas une photo"));
+        assert!(check_media(&exe).unwrap_err().starts_with("Not a photo"));
         assert!(check_media(&d.join("absent.mp4")).is_err());
         assert!(check_media(Path::new(r"\\serveur\partage\film.mp4")).is_err());
         assert!(check_media(Path::new("relatif.mp4")).is_err());
@@ -138,7 +138,7 @@ mod tests {
         let dir = d.join("folder");
         fs::create_dir(&dir).unwrap();
         let err = trash_files(&[ok.clone(), dir], &guard::Protected::from_env(), &d).unwrap_err();
-        assert!(err.contains("seuls les fichiers"), "{err}");
+        assert!(err.contains("only files"), "{err}");
         assert!(ok.exists(), "le fichier valide ne doit pas avoir bougé");
         fs::remove_dir_all(&d).unwrap();
     }

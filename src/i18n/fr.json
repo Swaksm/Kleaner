@@ -87,7 +87,7 @@
   "admin.off": "Mode utilisateur",
   "admin.why": "Les nettoyages système et certains dossiers demandent les droits admin.",
   "admin.button": "Analyse complète (admin)",
-  "programs.intro": "Programmes installés, triés par la place qu’ils prennent réellement sur le disque quand Kleaner trouve leur dossier, sinon par la taille qu’ils déclarent. Kleaner lance seulement leur désinstalleur officiel.",
+  "programs.intro": "Programmes installés. Taille mesurée : place réelle du dossier d’installation sur le disque. Taille déclarée : ce que le programme annonce à Windows (souvent absente ou fausse). Kleaner lance seulement leur désinstalleur officiel.",
   "programs.search": "Rechercher un programme",
   "programs.uninstall": "Désinstaller",
   "programs.confirm": "Kleaner va lancer le désinstalleur officiel de ce programme. Suis ses instructions, puis rafraîchis la liste.",
@@ -138,5 +138,15 @@
   "viewer.zoom": "Cliquer pour agrandir à 100 %",
   "viewer.fit": "Cliquer pour ajuster à la fenêtre",
   "viewer.openDefault": "Ouvrir avec le lecteur par défaut",
-  "viewer.unsupported": "Ce format ne peut pas être affiché dans Kleaner (MKV, AVI, HEIC, RAW…)."
+  "viewer.unsupported": "Ce format ne peut pas être affiché dans Kleaner (MKV, AVI, HEIC, RAW…).",
+  "cleanup.estimating": "Estimation en cours…",
+  "cleanup.showEmpty": "Afficher aussi les éléments vides ou non installés",
+  "cleanup.nothing": "Rien à nettoyer ici pour l’instant.",
+  "programs.measured": "Taille mesurée",
+  "programs.declaredCol": "Taille déclarée",
+  "programs.showMeasured": "Afficher la taille mesurée",
+  "programs.showDeclared": "Afficher la taille déclarée",
+  "media.display": "Affichage",
+  "media.list": "Liste",
+  "media.grid": "Grille"
 }

@@ -278,11 +278,11 @@ pub fn estimate(entry: &Cleaner) -> CleanReport {
 /// Supprime et journalise. Refuse une entrée admin si Kleaner n'est pas élevé.
 pub fn execute(entry: &Cleaner, journal_dir: &Path) -> Result<CleanReport, String> {
     if entry.admin && !crate::elevation::is_elevated() {
-        return Err("Droits admin requis : lance l'analyse complète.".into());
+        return Err("Admin rights required: run the full scan.".into());
     }
     let mut report = walk(entry, false);
     if !report.blocked_by.is_empty() {
-        report.error = Some(format!("À fermer d'abord : {}", report.blocked_by.join(", ")));
+        report.error = Some(format!("Close first: {}", report.blocked_by.join(", ")));
     }
     let mut j = journal::Entry::new(format!("clean:{}", entry.id));
     j.paths = entry.paths.clone();
@@ -291,7 +291,7 @@ pub fn execute(entry: &Cleaner, journal_dir: &Path) -> Result<CleanReport, Strin
     j.skipped = report.skipped;
     j.error = report.error.clone();
     j.output = report.output.clone();
-    journal::append(journal_dir, &j).map_err(|e| format!("Journal : {e}"))?;
+    journal::append(journal_dir, &j).map_err(|e| format!("Log: {e}"))?;
     Ok(report)
 }
 
@@ -401,7 +401,7 @@ mod commands {
                     let res = guard::check_delete(&file, &[PathBuf::from(root)])
                         .map_err(|e| e.to_string())
                         .and_then(|f| std::fs::remove_file(f).map_err(|e| e.to_string()));
-                    steps.push((res.is_ok(), format!("suppression de {} : {res:?}", file.display())));
+                    steps.push((res.is_ok(), format!("delete {}: {res:?}", file.display())));
                 }
             }
             "delivery-optimization" => steps.push(powershell("Delete-DeliveryOptimizationCache -Force")),
@@ -434,7 +434,7 @@ mod commands {
             }
             "hibernation" => steps.push(exec("powercfg", &["/hibernate", "off"])),
             "restore-points" => steps.push(powershell(
-                "$s=@(Get-CimInstance Win32_ShadowCopy | Sort-Object InstallDate); if ($s.Count -gt 1) { $s | Select-Object -First ($s.Count-1) | Remove-CimInstance }; \"$($s.Count) point(s), le plus récent est gardé\"",
+                "$s=@(Get-CimInstance Win32_ShadowCopy | Sort-Object InstallDate); if ($s.Count -gt 1) { $s | Select-Object -First ($s.Count-1) | Remove-CimInstance }; \"$($s.Count) point(s), most recent one kept\"",
             )),
             _ => {}
         }
@@ -443,7 +443,7 @@ mod commands {
         r.files = before.files.saturating_sub(after.files);
         r.output = Some(steps.iter().map(|s| s.1.as_str()).collect::<Vec<_>>().join("\n\n"));
         if check_result && steps.iter().any(|s| !s.0) {
-            r.error = Some("Une commande a échoué, voir la sortie.".into());
+            r.error = Some("A command failed, see the output.".into());
         }
         r
     }
@@ -626,7 +626,16 @@ mod tests {
 
     // ---- Validation du vrai catalogue ----
 
-    const ALLOWED_VARS: [&str; 7] = ["%TEMP%", "%LOCALAPPDATA%", "%APPDATA%", "%USERPROFILE%", "%SystemRoot%", "%ProgramData%", "%SystemDrive%"];
+    const ALLOWED_VARS: [&str; 8] = [
+        "%TEMP%",
+        "%LOCALAPPDATA%",
+        "%APPDATA%",
+        "%USERPROFILE%",
+        "%SystemRoot%",
+        "%ProgramData%",
+        "%SystemDrive%",
+        "%ProgramFiles(x86)%",
+    ];
     const ADMIN_VARS: [&str; 3] = ["%SystemRoot%", "%ProgramData%", "%SystemDrive%"];
     /// Ce qui garde l'utilisateur connecté : jamais dans un chemin du catalogue.
     const FORBIDDEN: [&str; 11] = [
@@ -691,6 +700,10 @@ mod tests {
             if c.mode == Mode::Command {
                 assert!(commands::IDS.contains(&c.id.as_str()), "{} : commande non implémentée", c.id);
                 assert!(c.command.is_some(), "{} : commande à afficher manquante", c.id);
+                let cmd = c.command.as_deref().unwrap_or("");
+                // Un « % » suivi d'une lettre sans « \ » = variable collée au chemin (échappement perdu).
+                assert!(!cmd.contains("%SystemRoot%M") && !cmd.contains("SoftwareDistributionDownload"), "{} : {cmd}", c.id);
+                assert!(!cmd.chars().any(char::is_control), "{} : caractère de contrôle", c.id);
             }
             if c.level == Level::Heavy && c.id != "recycle-bin" {
                 assert!(c.admin, "{} : heavy système sans admin", c.id);

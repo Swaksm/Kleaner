@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { SortBar } from "../components/SortBar";
+import { SortHeader } from "../components/SortHeader";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
 import { listPrograms, programSizes, uninstallProgram, type Program } from "../lib/api";
@@ -17,7 +17,12 @@ export function Programs() {
   const { t, lang } = useT();
   const [programs, setPrograms] = useState<Program[] | null>(null);
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortState<"size" | "name" | "date" | "publisher">>({ key: "size", dir: "desc" });
+  const [sort, setSort] = useState<SortState<"measured" | "declared" | "name" | "date" | "publisher">>({
+    key: "measured",
+    dir: "desc",
+  });
+  const [showDeclared, setShowDeclared] = useState(true);
+  const [showMeasured, setShowMeasured] = useState(true);
   const [target, setTarget] = useState<Program | null>(null);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
 
@@ -31,7 +36,8 @@ export function Programs() {
     programSizes().then((s) => setReal(new Map(s.map((r) => [r.id, r.bytes]))), () => setReal(new Map()));
   }
 
-  const size = (p: Program) => real?.get(p.id) ?? p.bytes;
+  // Taille mesurée inconnue : -1 pour la ranger après les tailles connues.
+  const measured = (p: Program) => real?.get(p.id) ?? -1;
 
   useEffect(load, []);
 
@@ -53,7 +59,7 @@ export function Programs() {
     sortBy(
       programs.filter((p) => !q || `${p.name} ${p.publisher}`.toLowerCase().includes(q)),
       sort,
-      { size, name: (p) => p.name, date: (p) => p.install_date, publisher: (p) => p.publisher },
+      { measured, declared: (p) => p.bytes, name: (p) => p.name, date: (p) => p.install_date, publisher: (p) => p.publisher },
     );
 
   return (
@@ -72,24 +78,66 @@ export function Programs() {
             {t("cleanup.refresh")}
           </button>
         </div>
-        <SortBar
-          options={{
-            size: [t("sort.size"), true],
-            name: [t("sort.name"), false],
-            date: [t("sort.date"), true],
-            publisher: [t("sort.publisher"), false],
-          }}
-          value={sort}
-          onChange={setSort}
-        />
+        <div className="row">
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={showMeasured}
+              disabled={showMeasured && !showDeclared}
+              onChange={(e) => {
+                setShowMeasured(e.target.checked);
+                if (!e.target.checked && sort.key === "measured") setSort({ key: "declared", dir: "desc" });
+              }}
+            />
+            {t("programs.showMeasured")}
+          </label>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={showDeclared}
+              disabled={showDeclared && !showMeasured}
+              onChange={(e) => {
+                setShowDeclared(e.target.checked);
+                if (!e.target.checked && sort.key === "declared") setSort({ key: "measured", dir: "desc" });
+              }}
+            />
+            {t("programs.showDeclared")}
+          </label>
+        </div>
         {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
       </Card>
 
       <Card>
+        {real === null && (
+          <span className="loading" role="status">
+            <span className="spinner" aria-hidden /> {t("programs.measuring")}
+          </span>
+        )}
         {!shown ? (
           <p className="muted">…</p>
         ) : (
-          <ul className="items programs">
+          <ul className="items programs grid-programs">
+            <SortHeader
+              cells={[
+                {
+                  sorts: [
+                    ["name", t("sort.name"), false],
+                    ["publisher", t("sort.publisher"), false],
+                    ["date", t("sort.date"), true],
+                  ],
+                },
+                {
+                  sorts: [
+                    ...(showMeasured ? [["measured", t("programs.measured"), true] as ["measured", string, boolean]] : []),
+                    ...(showDeclared ? [["declared", t("programs.declaredCol"), true] as ["declared", string, boolean]] : []),
+                  ],
+                  end: true,
+                },
+                null,
+              ]}
+              value={sort}
+              onChange={setSort}
+            />
             {shown.map((p) => (
               <li key={p.id}>
                 <div className="program">
@@ -103,17 +151,21 @@ export function Programs() {
                     </span>
                   )}
                 </div>
-                <span className="size-cell">
-                  <span className="num">{size(p) > 0 ? formatBytes(size(p), lang) : "—"}</span>
-                  <span className="muted small">
-                    {real === null
-                      ? t("programs.measuring")
-                      : real.has(p.id)
-                        ? t("programs.real")
-                        : p.bytes > 0
-                          ? t("programs.declared")
-                          : ""}
-                  </span>
+                <span className="sizes">
+                  {showMeasured && (
+                    <span className="size-cell">
+                      <span className="num">
+                        {real === null ? "…" : real.has(p.id) ? formatBytes(real.get(p.id)!, lang) : "—"}
+                      </span>
+                      <span className="muted small">{t("programs.real")}</span>
+                    </span>
+                  )}
+                  {showDeclared && (
+                    <span className="size-cell">
+                      <span className="num">{p.bytes > 0 ? formatBytes(p.bytes, lang) : "—"}</span>
+                      <span className="muted small">{t("programs.declared")}</span>
+                    </span>
+                  )}
                 </span>
                 <button className="btn btn-small" onClick={() => setTarget(p)}>
                   {t("programs.uninstall")}

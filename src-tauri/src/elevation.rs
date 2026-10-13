@@ -78,7 +78,7 @@ pub fn relaunch_as_admin() -> Result<(), String> {
         )
     };
     // ShellExecute renvoie une valeur > 32 en cas de succès.
-    if r as isize > 32 { Ok(()) } else { Err("Droits admin refusés ou indisponibles.".into()) }
+    if r as isize > 32 { Ok(()) } else { Err("Admin rights refused or unavailable.".into()) }
 }
 
 #[cfg(test)]

@@ -13,7 +13,8 @@ function initialLang(): Lang {
     const saved = localStorage.getItem("lang");
     if (saved === "fr" || saved === "en") return saved;
   } catch {}
-  return navigator.language.startsWith("fr") ? "fr" : "en";
+  // English first : le français se choisit dans les Paramètres.
+  return "en";
 }
 
 let lang = initialLang();

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card } from "../components/Card";
-import { SortBar } from "../components/SortBar";
+import { SortHeader } from "../components/SortHeader";
+import { Thumb } from "../components/Thumb";
 import { StatusPill } from "../components/StatusPill";
 import { MediaViewer } from "../components/MediaViewer";
 import { TrashConfirm } from "../components/TrashConfirm";
@@ -13,6 +14,15 @@ import { baseName, sortBy, type SortState } from "../lib/sort";
 type Kind = "videos" | "images";
 type Key = "size" | "name" | "date" | "folder";
 const PAGE = 300;
+type View = "list" | "grid";
+
+function savedView(): View {
+  try {
+    return localStorage.getItem("mediaView") === "grid" ? "grid" : "list";
+  } catch {
+    return "list";
+  }
+}
 
 const getters: Record<Key, (i: Item) => string | number> = {
   size: (i) => i.size,
@@ -32,6 +42,14 @@ export function Media() {
   const [confirming, setConfirming] = useState<Item[]>([]);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
   const [viewing, setViewing] = useState<number | null>(null);
+  const [view, setView] = useState<View>(savedView);
+
+  function changeView(v: View) {
+    setView(v);
+    try {
+      localStorage.setItem("mediaView", v);
+    } catch {}
+  }
 
   if (!scan) {
     return (
@@ -106,16 +124,13 @@ export function Media() {
               setLimit(PAGE);
             }}
           />
-          <SortBar
-            options={{
-              size: [t("sort.size"), true],
-              name: [t("sort.name"), false],
-              date: [t("sort.date"), true],
-              folder: [t("sort.folder"), false],
-            }}
-            value={sort}
-            onChange={setSort}
-          />
+          <div className="segmented" role="group" aria-label={t("media.display")}>
+            {(["list", "grid"] as View[]).map((v) => (
+              <button key={v} className={view === v ? "btn btn-active" : "btn"} aria-pressed={view === v} onClick={() => changeView(v)}>
+                {t(v === "list" ? "media.list" : "media.grid")}
+              </button>
+            ))}
+          </div>
         </div>
         {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
       </Card>
@@ -138,27 +153,87 @@ export function Media() {
         <p className="muted">
           {filtered.length.toLocaleString(lang)} {t("media.results")} · {formatBytes(total(filtered), lang)}
         </p>
-        <ul className="items media-list">
-          {visible.map((i, idx) => (
-            <li key={i.path}>
-              <label className="check media-name" title={i.path}>
-                <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
-                <span className="media-text">
-                  <strong>{baseName(i.path)}</strong>
-                  <span className="muted path">{i.path.slice(0, i.path.lastIndexOf("\\"))}</span>
+        {view === "list" && (
+          <ul className="items media-list grid-media">
+            <SortHeader
+              cells={[
+                { sorts: [["name", t("sort.name"), false], ["folder", t("sort.folder"), false]] },
+                { sorts: [["date", t("sort.date"), true]] },
+                { sorts: [["size", t("sort.size"), true]], end: true },
+                null,
+              ]}
+              value={sort}
+              onChange={setSort}
+            />
+            {visible.map((i, idx) => (
+              <li key={i.path}>
+                <label className="check media-name" title={i.path}>
+                  <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
+                  <span className="media-text">
+                    <strong>{baseName(i.path)}</strong>
+                    <span className="muted path">{i.path.slice(0, i.path.lastIndexOf("\\"))}</span>
+                  </span>
+                </label>
+                <span className="muted small">{formatDay(i.modified, lang)}</span>
+                <span className="num end">{formatBytes(i.size, lang)}</span>
+                <span className="row-actions">
+                <button className="btn btn-small btn-active" onClick={() => setViewing(idx)}>
+                  {t(kind === "videos" ? "viewer.play" : "viewer.view")}
+                </button>
+                <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
+                  {t("analyse.open")}
+                </button>
                 </span>
-              </label>
-              <span className="muted small">{formatDay(i.modified, lang)}</span>
-              <span className="num">{formatBytes(i.size, lang)}</span>
-              <button className="btn btn-small btn-active" onClick={() => setViewing(idx)}>
-                {t(kind === "videos" ? "viewer.play" : "viewer.view")}
-              </button>
-              <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
-                {t("analyse.open")}
-              </button>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        )}
+        {view === "grid" && (
+          <>
+            <ul className="items sort-only">
+              <SortHeader
+                cells={[
+                  {
+                    sorts: [
+                      ["size", t("sort.size"), true],
+                      ["name", t("sort.name"), false],
+                      ["date", t("sort.date"), true],
+                      ["folder", t("sort.folder"), false],
+                    ],
+                  },
+                ]}
+                value={sort}
+                onChange={setSort}
+              />
+            </ul>
+            <ul className="media-grid">
+              {visible.map((i, idx) => (
+                <li key={i.path} className={selected.has(i.path) ? "tile selected" : "tile"}>
+                  <button className="tile-open" onClick={() => setViewing(idx)} title={i.path}>
+                    {kind === "images" ? (
+                      <Thumb path={i.path} alt={baseName(i.path)} />
+                    ) : (
+                      <div className="thumb">
+                        <span className="thumb-icon" aria-hidden>
+                          ▶
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                  <label className="check tile-info">
+                    <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
+                    <span className="media-text">
+                      <strong>{baseName(i.path)}</strong>
+                      <span className="muted small">
+                        <span className="num">{formatBytes(i.size, lang)}</span> · {formatDay(i.modified, lang)}
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
         {filtered.length > limit && (
           <button className="btn" onClick={() => setLimit(limit + PAGE)}>
             {t("media.more")} ({(filtered.length - limit).toLocaleString(lang)})

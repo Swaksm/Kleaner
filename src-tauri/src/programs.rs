@@ -218,18 +218,18 @@ pub fn split_command(cmd: &str) -> Option<(String, String)> {
 /// Lance le désinstalleur officiel du programme `id`. Ne supprime rien soi-même.
 /// ShellExecute (et non CreateProcess) pour que Windows affiche l'UAC si le désinstalleur l'exige.
 pub fn uninstall(id: &str, journal_dir: &Path) -> Result<(), String> {
-    let (prefix, key_name) = id.split_once('\\').ok_or("Identifiant invalide")?;
-    let root = open(prefix).ok_or("Programme introuvable")?;
-    let program = read(prefix, &root, key_name).ok_or("Programme introuvable")?;
+    let (prefix, key_name) = id.split_once('\\').ok_or("Invalid id")?;
+    let root = open(prefix).ok_or("Program not found")?;
+    let program = read(prefix, &root, key_name).ok_or("Program not found")?;
     let cmd: String = root.open_subkey(key_name).and_then(|k| k.get_value("UninstallString")).map_err(|e| e.to_string())?;
-    let (exe, args) = split_command(&cmd).ok_or("Commande de désinstallation illisible")?;
+    let (exe, args) = split_command(&cmd).ok_or("Unreadable uninstall command")?;
 
     let mut entry = journal::Entry::new("uninstall");
     entry.paths = vec![program.name.clone(), cmd.clone()];
     entry.bytes = program.bytes;
     let result = shell_open(&exe, &args);
     entry.error = result.as_ref().err().cloned();
-    journal::append(journal_dir, &entry).map_err(|e| format!("Journal : {e}"))?;
+    journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
     result
 }
 
@@ -241,7 +241,7 @@ fn shell_open(exe: &str, args: &str) -> Result<(), String> {
     let r = unsafe {
         ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), params.as_ptr(), std::ptr::null(), SW_SHOWNORMAL)
     };
-    if r as isize > 32 { Ok(()) } else { Err(format!("Impossible de lancer le désinstalleur ({exe})")) }
+    if r as isize > 32 { Ok(()) } else { Err(format!("Could not start the uninstaller ({exe})")) }
 }
 
 #[cfg(test)]

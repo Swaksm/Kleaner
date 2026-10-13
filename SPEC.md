@@ -271,3 +271,12 @@ En admin, l'analyse active le privilège de sauvegarde de Windows (`SeBackupPriv
 - **Tri partout** : taille, nom, date (et dossier ou éditeur selon la liste). Un second clic inverse le sens.
 - **Graphiques** : anneau de répartition par type (Analyse) et d'espace récupérable par type de nettoyage (Nettoyage), barres des 10 plus gros dossiers. Couleurs catégorielles fixées par entité, palette validée (daltonisme, contraste) en clair et sombre, légende toujours accompagnée de la valeur et du pourcentage.
 - **Visionneuse** : « Voir » (photo, clic pour 100 %) et « Lire » (vidéo) dans Kleaner, ← → pour naviguer. Le protocole `asset` de Tauri est actif avec une portée **vide** : chaque fichier n'est autorisé qu'au moment où on l'ouvre, et seulement si c'est une photo ou une vidéo locale (`check_media`). Formats non lisibles par WebView2 (MKV, AVI, HEIC, RAW…) : bouton « Ouvrir avec le lecteur par défaut » (ShellExecute, mêmes vérifications).
+
+## Révision 3 (retours de test)
+
+- **English first** : l'interface démarre en anglais ; le français se choisit dans Settings. README en anglais d'abord. Messages d'erreur Rust en anglais.
+- **Catalogue général** (42 entrées) : ajout Vivaldi, Chromium, Steam, Epic Games, Adobe (cache média), Maven, Go, Bun, Composer, Dart/Flutter, restes d'installeurs NVIDIA/AMD. Les éléments vides ou non installés sont masqués (case « afficher aussi les éléments vides »).
+- **Tri par en-têtes de colonnes** (clic = tri, re-clic = sens inverse) dans Analyse, Photos & vidéos et Programmes.
+- **Programmes** : colonnes « taille mesurée » et « taille déclarée », chacune masquable.
+- **Photos & vidéos** : affichage Liste (défaut) ou Grille avec miniatures chargées à l'affichage ; choix mémorisé.
+- **Nettoyage** : indicateur « Estimating… » pendant le rafraîchissement.

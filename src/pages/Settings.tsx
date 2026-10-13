@@ -30,8 +30,8 @@ export function Settings() {
         <label>
           {t("settings.language")}{" "}
           <select value={lang} onChange={(e) => setLang(e.target.value as Lang)}>
-            <option value="fr">Français</option>
             <option value="en">English</option>
+            <option value="fr">Français</option>
           </select>
         </label>
       </Card>

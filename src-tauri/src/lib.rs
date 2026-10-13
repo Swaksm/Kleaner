@@ -35,7 +35,7 @@ fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
     let webview = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
     let named = |p: &Path, name: &str| p.is_absolute() && p.file_name().is_some_and(|n| n == name);
     if !named(&ours, "Kleaner") || !named(&webview, &app.config().identifier) {
-        return Err("Dossiers de données inattendus, rien n'a été supprimé.".into());
+        return Err("Unexpected data folders, nothing was deleted.".into());
     }
     // WebView2 verrouille ses fichiers tant que l'appli tourne : on supprime 2 s après la fermeture.
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
@@ -70,7 +70,7 @@ struct ScanProgress {
 #[tauri::command]
 fn start_scan(app: tauri::AppHandle, state: State<ScanState>) -> Result<(), String> {
     if state.running.swap(true, Relaxed) {
-        return Err("Analyse déjà en cours".into());
+        return Err("A scan is already running".into());
     }
     state.cancel.store(false, Relaxed);
     let (cancel, running) = (state.cancel.clone(), state.running.clone());
@@ -147,7 +147,7 @@ async fn run_cleaners(ids: Vec<String>) -> Result<Vec<catalog::CleanReport>, Str
         let dir = journal::data_dir();
         ids.iter()
             .map(|id| match catalog::get(id) {
-                None => catalog::CleanReport { id: id.clone(), error: Some("Entrée inconnue".into()), ..Default::default() },
+                None => catalog::CleanReport { id: id.clone(), error: Some("Unknown item".into()), ..Default::default() },
                 Some(c) => catalog::execute(c, &dir).unwrap_or_else(|e| catalog::CleanReport {
                     id: id.clone(),
                     error: Some(e),
