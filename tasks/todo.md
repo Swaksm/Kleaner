@@ -104,7 +104,7 @@
   - `ci.yml` : à chaque push ou PR, lint, tests, clippy et cargo test, sautés tant que `package.json` n'existe pas. `release.yml` : sur un tag `v*`, build de l'exe portable (`--no-bundle`), calcul du SHA-256 et publication dans la Release.
   - Files : `.github/workflows/ci.yml`, `.github/workflows/release.yml`
 
-- [ ] **T17 : README et check-list** (CI déjà faite en T0, à vérifier avec un tag `v0.1.0-rc1`)
+- [x] **T17 : README et check-list** (CI déjà faite en T0, à vérifier avec un tag `v0.1.0-rc1`)
   - Acceptance : un workflow GitHub Actions (windows-latest) exécute tests, clippy et build sur chaque PR. Sur un tag `v*`, il publie l'exe et son SHA-256 dans Releases. Le README, en FR et en EN, explique ce que fait Kleaner, la liste du catalogue, l'absence de réseau, SmartScreen et la vérification du hash. `docs/release-checklist.md` est rempli.
   - Verify : un tag `v0.1.0-rc1` produit la release. Exe téléchargé, puis lancé sur une VM vierge.
   - Files : `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `README.md`, `docs/release-checklist.md`
