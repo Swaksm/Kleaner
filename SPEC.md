@@ -99,7 +99,7 @@ Chaque entrée contient :
 ## Stack technique
 
 - **Tauri 2** (cœur en Rust) + **React 19 + TypeScript + Vite**, **Recharts** pour les graphiques.
-- Crates Rust : `jwalk` (parcours parallèle), `trash` (Corbeille), `winreg` (lecture des programmes installés), `windows` (élévation, vidage de la Corbeille, processus, attributs), `serde` et `serde_json`, `globset`.
+- Crates Rust : `rayon` (parcours parallèle maison, `read_dir` donne les tailles sans appel système en plus), `trash` (Corbeille), `winreg` (lecture des programmes installés), `windows-sys` (disques, élévation, vidage de la Corbeille, processus), `serde` et `serde_json`, `globset`.
 - i18n : deux fichiers `fr.json` / `en.json` et un petit hook React, sans librairie.
 - Polices Archivo et IBM Plex Sans/Mono **embarquées** dans l'exe, sans Google Fonts.
 - Pas de framework CSS : variables CSS du style guide.

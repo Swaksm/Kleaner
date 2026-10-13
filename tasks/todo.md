@@ -33,7 +33,7 @@
 
 ## P2 — Analyse
 
-- [ ] **T6 : `scan.rs`**
+- [x] **T6 : `scan.rs`**
   - Acceptance : le scan parcourt tous les disques fixes avec `jwalk`, fichiers cachés compris. Il émet des événements de progression, peut être annulé, et produit le top 50 des fichiers, le top 50 des dossiers et la taille par type (vidéos, images, archives, installeurs, autres). Les dossiers sans accès sont comptés à part.
   - Verify : `cargo test scan`, puis mesure sur la machine réelle (temps et RAM) consignée dans le PR.
   - Files : `src-tauri/src/scan.rs`, `src-tauri/src/main.rs`
