@@ -19,7 +19,7 @@
   - Verify : `cargo test guard`. Les tests créent une vraie jonction dans un dossier temporaire.
   - Files : `src-tauri/src/guard.rs`
 
-- [ ] **T4 : `journal.rs`**
+- [x] **T4 : `journal.rs`**
   - Acceptance : ajout d'une ligne JSON par action dans `%LOCALAPPDATA%\Kleaner\journal.log`, et lecture des N dernières lignes.
   - Verify : `cargo test journal`
   - Files : `src-tauri/src/journal.rs`
