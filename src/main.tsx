@@ -10,10 +10,10 @@ import "@fontsource/ibm-plex-mono/600.css";
 import "./styles/tokens.css";
 import "./styles/app.css";
 import App from "./App";
-import { applyTheme, initialTheme } from "./lib/theme";
+import { applyThemeChoice, savedThemeChoice } from "./lib/theme";
 
 // Avant le rendu pour éviter un flash de mauvais thème ; on ne mémorise que les choix explicites.
-applyTheme(initialTheme(), false);
+applyThemeChoice(savedThemeChoice(), false);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

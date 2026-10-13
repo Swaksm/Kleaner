@@ -14,7 +14,7 @@ import { StatusPill } from "./StatusPill";
 
 /** Génère le rapport pour une IA, l'affiche en aperçu, puis copie ou enregistre. Rien n'est envoyé. */
 export function ReportDialog({ scan, onClose }: { scan: ScanResult; onClose: () => void }) {
-  const { t, lang } = useT();
+  const { t, tl } = useT();
   const ref = useRef<HTMLDialogElement>(null);
   const [content, setContent] = useState<string | null>(null);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
@@ -28,10 +28,10 @@ export function ReportDialog({ scan, onClose }: { scan: ScanResult; onClose: () 
         const programs = list
           .map((p) => ({ ...p, bytes: real.get(p.id) ?? p.bytes }))
           .sort((a, b) => b.bytes - a.bytes);
-        setContent(buildReport({ scan, cleaners: view.cleaners, estimates, elevated: view.elevated, programs, lang }));
+        setContent(buildReport({ scan, cleaners: view.cleaners, estimates, elevated: view.elevated, programs, lang: tl }));
       })
       .catch((e) => setMessage({ status: "danger", text: String(e) }));
-  }, [scan, lang]);
+  }, [scan, tl]);
 
   async function copy() {
     if (!content) return;

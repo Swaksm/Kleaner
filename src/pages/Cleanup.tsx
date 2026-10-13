@@ -21,7 +21,7 @@ const GROUPS = ["windows", "browsers", "apps", "dev", "system"] as const;
 const CHART_GROUPS = ["windows", "browsers", "apps", "dev", "system", "heavy"] as const;
 
 export function Cleanup() {
-  const { t, lang } = useT();
+  const { t, lang, tl } = useT();
   const [view, setView] = useState<CleanersView | null>(null);
   const [estimates, setEstimates] = useState<Map<string, CleanReport> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -157,7 +157,7 @@ export function Cleanup() {
           <ul className="items">
             {results.map((r) => (
               <li key={r.id}>
-                <span>{byId.get(r.id)?.label[lang] ?? r.id}</span>
+                <span>{byId.get(r.id)?.label[tl] ?? r.id}</span>
                 <span className="num">{formatBytes(r.bytes, lang)}</span>
                 <span>
                   {r.error ? (
@@ -237,7 +237,7 @@ export function Cleanup() {
         <ul className="paths">
           {chosen.map((c) => (
             <li key={c.id}>
-              {c.label[lang]} — {c.effect[lang]}
+              {c.label[tl]} — {c.effect[tl]}
             </li>
           ))}
         </ul>
@@ -245,7 +245,7 @@ export function Cleanup() {
 
       <ConfirmDialog
         open={heavy !== null}
-        title={heavy ? heavy.label[lang] : ""}
+        title={heavy ? heavy.label[tl] : ""}
         confirmLabel={t("cleanup.heavyRun")}
         cancelLabel={t("common.cancel")}
         danger
@@ -258,9 +258,9 @@ export function Cleanup() {
       >
         {heavy && (
           <>
-            <p>{heavy.what[lang]}</p>
+            <p>{heavy.what[tl]}</p>
             {heavy.command && <code>{heavy.command}</code>}
-            <p className="danger">{heavy.effect[lang]}</p>
+            <p className="danger">{heavy.effect[tl]}</p>
             <label className="check">
               <input type="checkbox" checked={heavyAck} onChange={(e) => setHeavyAck(e.target.checked)} />
               {t("cleanup.heavyAck")}

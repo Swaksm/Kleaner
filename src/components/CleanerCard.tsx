@@ -21,7 +21,7 @@ export function CleanerCard({
   onToggle?: () => void;
   children?: ReactNode;
 }) {
-  const { t, lang } = useT();
+  const { t, lang, tl } = useT();
   const size =
     report === undefined
       ? "…"
@@ -35,20 +35,20 @@ export function CleanerCard({
         {onToggle ? (
           <label className="check">
             <input type="checkbox" checked={!!checked} disabled={!!locked} onChange={onToggle} />
-            <strong>{cleaner.label[lang]}</strong>
+            <strong>{cleaner.label[tl]}</strong>
           </label>
         ) : (
-          <strong>{cleaner.label[lang]}</strong>
+          <strong>{cleaner.label[tl]}</strong>
         )}
         <span className="num">{size}</span>
       </div>
       <dl className="cleaner-info">
         <dt>{t("cleanup.what")}</dt>
-        <dd>{cleaner.what[lang]}</dd>
+        <dd>{cleaner.what[tl]}</dd>
         <dt>{t("cleanup.why")}</dt>
-        <dd>{cleaner.why[lang]}</dd>
+        <dd>{cleaner.why[tl]}</dd>
         <dt>{t("cleanup.effect")}</dt>
-        <dd>{cleaner.effect[lang]}</dd>
+        <dd>{cleaner.effect[tl]}</dd>
         {cleaner.command && (
           <>
             <dt>{t("cleanup.command")}</dt>

@@ -7,9 +7,11 @@ import { StatusPill } from "../components/StatusPill";
 import { ReportDialog } from "../components/ReportDialog";
 import { SortHeader, type HeaderCell } from "../components/SortHeader";
 import { TrashConfirm } from "../components/TrashConfirm";
+import { ExplainDialog, VerdictPill } from "../components/Verdict";
 import { useT, type Key } from "../i18n/useT";
 import {
   cancelScan,
+  explainPaths,
   listCleaners,
   moveToTrash,
   onScanDone,
@@ -17,6 +19,8 @@ import {
   revealInExplorer,
   startScan,
   type Category,
+  type Explanation,
+  type Verdict,
   type Item,
   type ScanProgress,
 } from "../lib/api";
@@ -32,12 +36,9 @@ type Phase =
   | { kind: "scanning"; progress: ScanProgress; start: number }
   | { kind: "done" };
 
-type ItemKey = "size" | "name" | "date";
-const itemGetters: Record<ItemKey, (i: Item) => string | number> = {
-  size: (i) => i.size,
-  name: (i) => baseName(i.path),
-  date: (i) => i.modified,
-};
+type ItemKey = "size" | "name" | "date" | "verdict";
+// Tri par verdict : du plus dangereux au plus sûr.
+const VERDICT_ORDER: Verdict[] = ["system", "breaks", "uninstall", "personal", "unknown", "cleanup", "safe"];
 
 type Message = { status: "ok" | "danger"; text: string };
 
@@ -53,6 +54,15 @@ export function Analyse() {
   const [fileSort, setFileSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const [dirSort, setDirSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const scan = useScanResult();
+  const [explanations, setExplanations] = useState<Map<string, Explanation>>(new Map());
+  const [explaining, setExplaining] = useState<Explanation | null>(null);
+
+  // Verdict « est-ce que ça casse ? » de chaque gros fichier et dossier, calculé une fois par analyse.
+  useEffect(() => {
+    if (!scan) return;
+    const paths = [...scan.top_files, ...scan.top_dirs].map((i) => i.path);
+    explainPaths(paths).then((list) => setExplanations(new Map(list.map((e) => [e.path, e]))), () => {});
+  }, [scan?.duration_ms, scan?.roots.join("|")]);
 
   useEffect(() => {
     listCleaners().then((v) => setElevated(v.elevated), () => {});
@@ -137,12 +147,20 @@ export function Analyse() {
 
   const r = scan;
   if (!r) return null;
+  const itemGetters: Record<ItemKey, (i: Item) => string | number> = {
+    size: (i) => i.size,
+    name: (i) => baseName(i.path),
+    date: (i) => i.modified,
+    verdict: (i) => VERDICT_ORDER.indexOf(explanations.get(i.path)?.verdict ?? "unknown"),
+  };
   const files = sortBy(r.top_files, fileSort, itemGetters);
   const dirs = sortBy(r.top_dirs, dirSort, itemGetters);
   const chosen = r.top_files.filter((i) => selected.has(i.path));
+  const free = r.drives.reduce((sum, d) => sum + d.free, 0);
   const chosenBytes = chosen.reduce((s, i) => s + i.size, 0);
   const headerCells = (first: string): HeaderCell<ItemKey>[] => [
     { sorts: [["name", first, false]] },
+    { sorts: [["verdict", t("verdict.col"), false]] },
     { sorts: [["date", t("sort.date"), true]] },
     { sorts: [["size", t("sort.size"), true]], end: true },
     null,
@@ -165,6 +183,14 @@ export function Analyse() {
             {r.roots.join(" ")} · {(r.duration_ms / 1000).toFixed(1)} s
           </span>
         </div>
+        {r.drives.map((d) => (
+          <SizeBar
+            key={d.root}
+            label={`${d.root} · ${formatBytes(d.free, lang)} ${t("analyse.freeOf")} ${formatBytes(d.total, lang)}`}
+            value={`${Math.round(((d.total - d.free) / Math.max(1, d.total)) * 100)} % ${t("analyse.used")}`}
+            ratio={(d.total - d.free) / Math.max(1, d.total)}
+          />
+        ))}
         <div className="row">
           {r.full_access && <StatusPill status="ok">{t("analyse.fullAccess")}</StatusPill>}
           {r.cancelled && <StatusPill status="warn">{t("analyse.cancelled")}</StatusPill>}
@@ -187,17 +213,21 @@ export function Analyse() {
       <Card title={t("analyse.categories")}>
         <Donut
           centerLabel={t("analyse.total")}
-          centerValue={formatBytes(r.bytes, lang)}
-          slices={[...r.categories]
-            .sort((a, b) => b.bytes - a.bytes)
-            .map((c) => ({
-              key: c.category,
-              label: t(`cat.${c.category}` as Key),
-              value: c.bytes,
-              display: formatBytes(c.bytes, lang),
-              // Couleur fixée par catégorie, pas par rang.
-              slot: CATEGORY_ORDER.indexOf(c.category) + 1,
-            }))}
+          centerValue={formatBytes(r.bytes + free, lang)}
+          slices={[
+            ...[...r.categories]
+              .sort((a, b) => b.bytes - a.bytes)
+              .map((c) => ({
+                key: c.category,
+                label: t(`cat.${c.category}` as Key),
+                value: c.bytes,
+                display: formatBytes(c.bytes, lang),
+                // Couleur fixée par catégorie, pas par rang.
+                slot: CATEGORY_ORDER.indexOf(c.category) + 1,
+              })),
+            // Espace libre en dernier, en gris neutre.
+            { key: "free", label: t("analyse.free"), value: free, display: formatBytes(free, lang), slot: 7 },
+          ]}
         />
       </Card>
 
@@ -214,7 +244,7 @@ export function Analyse() {
 
       <Card title={t("analyse.topFiles")}>
         <p className="muted">{t("analyse.topFilesHint")}</p>
-        <ul className="items grid-4">
+        <ul className="items grid-5">
           <SortHeader cells={headerCells(t("sort.name"))} value={fileSort} onChange={setFileSort} />
           {files.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
@@ -222,6 +252,7 @@ export function Analyse() {
                 <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
                 <span>{i.path}</span>
               </label>
+              <VerdictPill e={explanations.get(i.path)} onOpen={setExplaining} />
               <span className="muted small">{formatDay(i.modified, lang)}</span>
               <span className="num end">{formatBytes(i.size, lang)}</span>
               <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
@@ -244,13 +275,14 @@ export function Analyse() {
       </Card>
 
       <Card title={t("analyse.topDirs")}>
-        <ul className="items grid-4">
+        <ul className="items grid-5">
           <SortHeader cells={headerCells(t("sort.folder"))} value={dirSort} onChange={setDirSort} />
           {dirs.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <span className="path" title={i.path}>
                 {i.path}
               </span>
+              <VerdictPill e={explanations.get(i.path)} onOpen={setExplaining} />
               <span className="muted small">{formatDay(i.modified, lang)}</span>
               <span className="num end">{formatBytes(i.size, lang)}</span>
               <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
@@ -263,7 +295,8 @@ export function Analyse() {
       </Card>
 
       {report && <ReportDialog scan={r} onClose={() => setReport(false)} />}
-      <TrashConfirm items={confirming} onConfirm={trash} onCancel={() => setConfirming([])} />
+      {explaining && <ExplainDialog e={explaining} onClose={() => setExplaining(null)} />}
+      <TrashConfirm items={confirming} explanations={explanations} onConfirm={trash} onCancel={() => setConfirming([])} />
     </>
   );
 }

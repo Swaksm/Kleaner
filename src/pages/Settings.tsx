@@ -2,20 +2,19 @@ import { useState } from "react";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { StatusPill } from "../components/StatusPill";
-import { Switch } from "../components/Switch";
 import { setLang, useT, type Lang } from "../i18n/useT";
 import { removeKleanerData } from "../lib/api";
-import { applyTheme, initialTheme } from "../lib/theme";
+import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
 
 export function Settings() {
   const { t, lang } = useT();
-  const [dark, setDark] = useState(initialTheme() === "dark");
+  const [theme, setTheme] = useState<ThemeChoice>(savedThemeChoice());
   const [confirm, setConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function toggleTheme(next: boolean) {
-    setDark(next);
-    applyTheme(next ? "dark" : "light");
+  function changeTheme(next: ThemeChoice) {
+    setTheme(next);
+    applyThemeChoice(next);
   }
 
   function remove() {
@@ -26,7 +25,14 @@ export function Settings() {
   return (
     <>
       <Card title={t("settings.appearance")}>
-        <Switch checked={dark} onChange={toggleTheme} label={t("settings.darkTheme")} />
+        <label>
+          {t("settings.theme")}{" "}
+          <select value={theme} onChange={(e) => changeTheme(e.target.value as ThemeChoice)}>
+            <option value="system">{t("settings.themeSystem")}</option>
+            <option value="light">{t("settings.themeLight")}</option>
+            <option value="dark">{t("settings.themeDark")}</option>
+          </select>
+        </label>
         <label>
           {t("settings.language")}{" "}
           <select value={lang} onChange={(e) => setLang(e.target.value as Lang)}>

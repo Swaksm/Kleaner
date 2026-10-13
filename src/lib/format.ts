@@ -1,6 +1,6 @@
-import type { Lang } from "../i18n/useT";
+import type { Lang, TextLang } from "../i18n/useT";
 
-const units: Record<Lang, string[]> = {
+const units: Record<TextLang, string[]> = {
   fr: ["o", "Ko", "Mo", "Go", "To"],
   en: ["B", "KB", "MB", "GB", "TB"],
 };
@@ -9,12 +9,13 @@ const units: Record<Lang, string[]> = {
 export function formatBytes(bytes: number, lang: Lang): string {
   let v = bytes;
   let i = 0;
-  while (v >= 1024 && i < units[lang].length - 1) {
+  const u = units[lang === "fr" ? "fr" : "en"];
+  while (v >= 1024 && i < u.length - 1) {
     v /= 1024;
     i++;
   }
   const n = i === 0 ? String(v) : v.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  return `${n} ${units[lang][i]}`;
+  return `${n} ${u[i]}`;
 }
 
 export function formatDate(ts: number, lang: Lang): string {

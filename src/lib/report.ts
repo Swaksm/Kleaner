@@ -1,8 +1,8 @@
-import type { Lang } from "../i18n/useT";
+import type { TextLang } from "../i18n/useT";
 import type { Category, CleanReport, Cleaner, Item, Program, ScanResult } from "./api";
 import { formatBytes } from "./format";
 
-const PROMPT: Record<Lang, string> = {
+const PROMPT: Record<TextLang, string> = {
   fr: `Tu es un assistant qui m'aide à libérer de l'espace disque sur mon PC Windows. Ci-dessous, un rapport généré par Kleaner (logiciel de nettoyage open source) : tailles, dates de dernière modification, programmes installés et nettoyages disponibles.
 
 Comment procéder :
@@ -70,7 +70,7 @@ const T = {
     unknown: "unknown",
     cat: { videos: "Videos", images: "Images", audio: "Audio", archives: "Archives and disk images", installers: "Installers", other: "Other" },
   },
-} satisfies Record<Lang, unknown>;
+} satisfies Record<TextLang, unknown>;
 
 /** Masque le nom d'utilisateur : `C:\Users\marie\…` → `%USERPROFILE%\…`. */
 export function anonymize(path: string): string {
@@ -88,7 +88,7 @@ export type ReportInput = {
   estimates: CleanReport[];
   elevated: boolean;
   programs: Program[];
-  lang: Lang;
+  lang: TextLang;
   now?: Date;
 };
 

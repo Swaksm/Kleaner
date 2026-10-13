@@ -3,6 +3,7 @@ import fr from "./fr.json";
 import en from "./en.json";
 
 export type Lang = "fr" | "en";
+export type TextLang = "fr" | "en";
 export type Key = keyof typeof fr;
 
 // Le typage force EN à contenir toutes les clés FR.
@@ -38,5 +39,7 @@ function subscribe(fn: () => void) {
 
 export function useT() {
   const current = useSyncExternalStore(subscribe, () => lang);
-  return { lang: current, t: (key: Key) => dicts[current][key] };
+  // Textes du catalogue et des fiches : anglais et français seulement, anglais par défaut.
+  const tl: TextLang = current === "fr" ? "fr" : "en";
+  return { lang: current, tl, t: (key: Key) => dicts[current][key] };
 }

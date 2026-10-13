@@ -31,6 +31,7 @@ export type ScanResult = {
   top_dirs: Item[];
   videos: Item[];
   images: Item[];
+  drives: { root: string; total: number; free: number }[];
   categories: { category: Category; bytes: number; files: number }[];
 };
 export type ActionReport = { files: number; bytes: number };
@@ -92,4 +93,19 @@ export type Program = {
 };
 export const listPrograms = () => invoke<Program[]>("list_programs");
 export const uninstallProgram = (id: string) => invoke<void>("uninstall_program", { id });
-export const programSizes = () => invoke<{ id: string; bytes: number }[]>("program_sizes");
+export const programSizes = () => invoke<{ id: string; bytes: number; last_used: number }[]>("program_sizes");
+
+export type Verdict = "safe" | "cleanup" | "uninstall" | "breaks" | "personal" | "system" | "unknown";
+export type Explanation = {
+  path: string;
+  verdict: Verdict;
+  source: "rule" | "cleaner" | "program" | "unknown";
+  rule: string | null;
+  cleaner: string | null;
+  what: Text;
+  consequence: Text;
+  howto: Text;
+};
+/** Supprimer à la main est dangereux : confirmation renforcée. */
+export const isCritical = (v: Verdict) => v === "breaks" || v === "system" || v === "uninstall";
+export const explainPaths = (paths: string[]) => invoke<Explanation[]>("explain_paths", { paths });
