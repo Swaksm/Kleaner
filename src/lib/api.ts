@@ -1,5 +1,6 @@
 // Seul point de contact entre l'interface et le Rust.
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 
 export type JournalEntry = {
@@ -15,6 +16,29 @@ export type JournalEntry = {
 
 export type JournalView = { path: string; entries: JournalEntry[] };
 
+export type Category = "videos" | "images" | "audio" | "archives" | "installers" | "other";
+export type Item = { size: number; path: string };
+export type ScanProgress = { files: number; bytes: number; denied: number };
+export type ScanResult = {
+  roots: string[];
+  bytes: number;
+  files: number;
+  denied: number;
+  cancelled: boolean;
+  duration_ms: number;
+  top_files: Item[];
+  top_dirs: Item[];
+  categories: { category: Category; bytes: number; files: number }[];
+};
+export type ActionReport = { files: number; bytes: number };
+
 export const readJournal = (limit = 200) => invoke<JournalView>("read_journal", { limit });
 export const removeKleanerData = () => invoke<void>("remove_kleaner_data");
 export const revealInExplorer = (path: string) => revealItemInDir(path);
+
+export const startScan = () => invoke<void>("start_scan");
+export const cancelScan = () => invoke<void>("cancel_scan");
+export const onScanProgress = (fn: (p: ScanProgress) => void) => listen<ScanProgress>("scan-progress", (e) => fn(e.payload));
+export const onScanDone = (fn: (r: ScanResult) => void) => listen<ScanResult>("scan-done", (e) => fn(e.payload));
+
+export const moveToTrash = (paths: string[]) => invoke<ActionReport>("move_to_trash", { paths });

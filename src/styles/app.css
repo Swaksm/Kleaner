@@ -237,6 +237,105 @@ p { margin: 0; }
   cursor: pointer;
 }
 
+.ok { color: var(--ok); }
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page[hidden] {
+  display: none;
+}
+
+.big {
+  font-size: 24px;
+}
+
+.stats {
+  align-items: baseline;
+  gap: 24px;
+}
+
+.btn-small {
+  padding: 3px 10px;
+  font-size: 12px;
+}
+
+/* Size bars */
+.sizebar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sizebar-head {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sizebar-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sunken);
+  overflow: hidden;
+}
+
+.sizebar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+/* Item lists */
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.items li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.items li:last-child {
+  border-bottom: none;
+}
+
+.path {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.path span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.paths {
+  margin: 0;
+  padding: 8px 12px 8px 24px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--sunken);
+  border-radius: var(--radius-ctl);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  word-break: break-all;
+}
+
 /* Dialog */
 .dialog {
   max-width: 520px;

@@ -3,6 +3,7 @@ import { Card } from "./components/Card";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { StatusPill } from "./components/StatusPill";
 import { useT, type Key } from "./i18n/useT";
+import { Analyse } from "./pages/Analyse";
 import { Journal } from "./pages/Journal";
 import { Settings } from "./pages/Settings";
 
@@ -43,7 +44,13 @@ function App() {
       </nav>
       <main className="content">
         <h1>{t(`nav.${page}` as Key)}</h1>
-        {page === "journal" ? <Journal /> : page === "settings" ? <Settings /> : <Placeholder />}
+        {/* Analyse reste montée : le résultat du scan survit aux changements d'onglet. */}
+        <div className="page" hidden={page !== "analyse"}>
+          <Analyse />
+        </div>
+        {page === "journal" && <Journal />}
+        {page === "settings" && <Settings />}
+        {(page === "cleanup" || page === "programs") && <Placeholder />}
       </main>
     </div>
   );

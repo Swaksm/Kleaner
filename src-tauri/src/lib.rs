@@ -1,3 +1,4 @@
+pub mod actions;
 pub mod guard;
 pub mod journal;
 pub mod scan;
@@ -101,12 +102,18 @@ fn cancel_scan(state: State<ScanState>) {
     state.cancel.store(true, Relaxed);
 }
 
+#[tauri::command]
+fn move_to_trash(paths: Vec<String>) -> Result<actions::ActionReport, String> {
+    let paths: Vec<_> = paths.into_iter().map(std::path::PathBuf::from).collect();
+    actions::trash_files(&paths, &guard::Protected::from_env(), &journal::data_dir())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(ScanState::default())
-        .invoke_handler(tauri::generate_handler![read_journal, remove_kleaner_data, start_scan, cancel_scan])
+        .invoke_handler(tauri::generate_handler![read_journal, remove_kleaner_data, start_scan, cancel_scan, move_to_trash])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

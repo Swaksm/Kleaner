@@ -38,7 +38,7 @@
   - Verify : `cargo test scan`, puis mesure sur la machine réelle (temps et RAM) consignée dans le PR.
   - Files : `src-tauri/src/scan.rs`, `src-tauri/src/main.rs`
 
-- [ ] **T7 : Écran Analyse et actions sur les fichiers**
+- [x] **T7 : Écran Analyse et actions sur les fichiers**
   - Acceptance : bouton Analyser, barre de progression, bouton Annuler. Résultats en cartes et graphique Recharts. Sur un fichier : « Ouvrir dans l'Explorateur » et « Corbeille » (sélection multiple, confirmation, `guard::check_trash`, journal).
   - Verify : `npm test` (confirmation). Test manuel sur un fichier factice.
   - Files : `src/pages/Analyse.tsx`, `src/components/ConfirmDialog.tsx`, `src/lib/api.ts`, `src-tauri/src/actions.rs`
