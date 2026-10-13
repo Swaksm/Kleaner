@@ -3,6 +3,7 @@
 
 use crate::journal;
 use rayon::prelude::*;
+use std::collections::HashMap;
 use serde::Serialize;
 use std::os::windows::fs::MetadataExt;
 use std::path::{Path, PathBuf};
@@ -161,14 +162,65 @@ pub fn dir_size(dir: &Path) -> u64 {
 pub struct RealSize {
     pub id: String,
     pub bytes: u64,
+    /// Dernier lancement connu (secondes Unix), 0 si inconnu. Lu dans Prefetch : admin uniquement.
+    pub last_used: u64,
 }
 
-/// Taille réelle de chaque programme dont le dossier est connu. Lecture seule.
+/// Prefetch tronque le nom de l'exe à 29 caractères : « NOM.EXE-HASH.pf ».
+const PREFETCH_NAME_MAX: usize = 29;
+
+/// Nom d'exe (majuscules, tronqué) → dernier lancement, d'après C:\Windows\Prefetch.
+/// Vide sans droits admin (dossier illisible) ou si Prefetch est désactivé.
+fn prefetch_launches() -> HashMap<String, u64> {
+    let mut out = HashMap::new();
+    let Some(dir) = std::env::var_os("SystemRoot").map(|r| PathBuf::from(r).join("Prefetch")) else { return out };
+    let Ok(rd) = std::fs::read_dir(dir) else { return out };
+    for e in rd.flatten() {
+        let name = e.file_name().to_string_lossy().to_uppercase();
+        let Some(stem) = name.strip_suffix(".PF").and_then(|n| n.rsplit_once('-')).map(|(exe, _)| exe.to_string()) else {
+            continue;
+        };
+        let t = e.metadata().ok().and_then(|m| m.modified().ok()).and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok());
+        let secs = t.map_or(0, |d| d.as_secs());
+        let slot = out.entry(stem).or_insert(0);
+        *slot = (*slot).max(secs);
+    }
+    out
+}
+
+/// Noms des .exe d'un dossier d'installation (3 niveaux), au format Prefetch.
+fn exe_names(dir: &Path, depth: u32, out: &mut Vec<String>) {
+    let Ok(rd) = std::fs::read_dir(dir) else { return };
+    for e in rd.flatten() {
+        let Ok(m) = e.metadata() else { continue };
+        if m.is_dir() && depth > 0 && m.file_attributes() & 0x400 == 0 {
+            exe_names(&e.path(), depth - 1, out);
+        } else if m.is_file() {
+            let name = e.file_name().to_string_lossy().to_uppercase();
+            if name.ends_with(".EXE") {
+                out.push(name.chars().take(PREFETCH_NAME_MAX).collect());
+            }
+        }
+    }
+}
+
+/// Taille réelle et dernier lancement de chaque programme dont le dossier est connu. Lecture seule.
 pub fn real_sizes(programs: &[Program]) -> Vec<RealSize> {
+    let launches = prefetch_launches();
     programs
         .par_iter()
         .filter(|p| !p.location.is_empty())
-        .map(|p| RealSize { id: p.id.clone(), bytes: dir_size(Path::new(&p.location)) })
+        .map(|p| {
+            let dir = Path::new(&p.location);
+            let last_used = if launches.is_empty() {
+                0
+            } else {
+                let mut exes = Vec::new();
+                exe_names(dir, 3, &mut exes);
+                exes.iter().filter_map(|e| launches.get(e)).copied().max().unwrap_or(0)
+            };
+            RealSize { id: p.id.clone(), bytes: dir_size(dir), last_used }
+        })
         .collect()
 }
 

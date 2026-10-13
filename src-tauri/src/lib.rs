@@ -3,6 +3,7 @@ pub mod catalog;
 pub mod elevation;
 pub mod guard;
 pub mod journal;
+pub mod knowledge;
 pub mod programs;
 pub mod scan;
 
@@ -209,8 +210,17 @@ fn open_media(path: String) -> Result<(), String> {
     actions::open_media(Path::new(&path))
 }
 
+/// Verdict « qu'est-ce que c'est / est-ce que ça casse » pour un lot de chemins. Lecture seule.
+#[tauri::command]
+async fn explain_paths(paths: Vec<String>) -> Result<Vec<knowledge::Explanation>, String> {
+    tauri::async_runtime::spawn_blocking(move || knowledge::explain_all(&paths)).await.map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    if !elevation::single_instance() {
+        return;
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(ScanState::default())
@@ -230,7 +240,8 @@ pub fn run() {
             program_sizes,
             is_elevated,
             preview_media,
-            open_media
+            open_media,
+            explain_paths
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

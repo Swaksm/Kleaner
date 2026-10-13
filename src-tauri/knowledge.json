@@ -1,0 +1,1919 @@
+[
+  {
+    "id": "pagefile",
+    "match": [
+      "%SystemDrive%\\pagefile.sys"
+    ],
+    "verdict": "system",
+    "what": {
+      "en": "Windows virtual memory: used when RAM is full.",
+      "fr": "Mémoire virtuelle de Windows : utilisée quand la RAM est pleine."
+    },
+    "consequence": {
+      "en": "Windows recreates it at boot; removing it can make apps crash when memory runs out.",
+      "fr": "Windows le recrée au démarrage ; le retirer peut faire planter des applis quand la mémoire manque."
+    },
+    "howto": {
+      "en": "Leave it. To shrink it: System → About → Advanced system settings → Performance → Advanced → Virtual memory.",
+      "fr": "Laisse-le. Pour le réduire : Système → Informations système → Paramètres avancés → Performances → Avancé → Mémoire virtuelle."
+    }
+  },
+  {
+    "id": "swapfile",
+    "match": [
+      "%SystemDrive%\\swapfile.sys"
+    ],
+    "verdict": "system",
+    "what": {
+      "en": "Windows swap file for Store apps.",
+      "fr": "Fichier d’échange de Windows pour les applis du Store."
+    },
+    "consequence": {
+      "en": "Managed by Windows; it is recreated and usually small.",
+      "fr": "Géré par Windows ; il est recréé et reste en général petit."
+    },
+    "howto": {
+      "en": "Leave it.",
+      "fr": "Laisse-le."
+    }
+  },
+  {
+    "id": "hiberfil",
+    "match": [
+      "%SystemDrive%\\hiberfil.sys"
+    ],
+    "verdict": "cleanup",
+    "cleaner": "hibernation",
+    "what": {
+      "en": "Hibernation file: holds RAM content when the PC hibernates; also used by fast startup.",
+      "fr": "Fichier d’hibernation : contient la RAM quand le PC hiberne ; sert aussi au démarrage rapide."
+    },
+    "consequence": {
+      "en": "It cannot be deleted by hand while hibernation is on.",
+      "fr": "Impossible de le supprimer à la main tant que l’hibernation est active."
+    },
+    "howto": {
+      "en": "Kleaner Cleanup → Hibernation (powercfg /hibernate off). Hibernation and fast startup are turned off.",
+      "fr": "Nettoyage de Kleaner → Hibernation (powercfg /hibernate off). Hibernation et démarrage rapide sont désactivés."
+    }
+  },
+  {
+    "id": "memory-dump",
+    "match": [
+      "%SystemRoot%\\MEMORY.DMP",
+      "%SystemRoot%\\Minidump"
+    ],
+    "verdict": "safe",
+    "cleaner": "memory-dump",
+    "what": {
+      "en": "Memory dump written after a blue screen.",
+      "fr": "Copie de la mémoire écrite après un écran bleu."
+    },
+    "consequence": {
+      "en": "Nothing, unless someone needs to analyse that crash.",
+      "fr": "Rien, sauf si quelqu’un doit analyser ce plantage."
+    },
+    "howto": {
+      "en": "Kleaner Cleanup → Full memory dump / System crash reports (admin).",
+      "fr": "Nettoyage de Kleaner → Dump mémoire complet / Rapports de plantage système (admin)."
+    }
+  },
+  {
+    "id": "recycle-bin",
+    "match": [
+      "?:\\$Recycle.Bin"
+    ],
+    "verdict": "cleanup",
+    "cleaner": "recycle-bin",
+    "what": {
+      "en": "The Recycle Bin of this drive: files you already deleted.",
+      "fr": "La Corbeille de ce disque : fichiers que tu as déjà supprimés."
+    },
+    "consequence": {
+      "en": "Emptying it is irreversible.",
+      "fr": "La vider est irréversible."
+    },
+    "howto": {
+      "en": "Kleaner Cleanup → Recycle Bin, or right-click the Recycle Bin → Empty.",
+      "fr": "Nettoyage de Kleaner → Corbeille, ou clic droit sur la Corbeille → Vider."
+    }
+  },
+  {
+    "id": "system-volume-information",
+    "match": [
+      "?:\\System Volume Information"
+    ],
+    "verdict": "system",
+    "cleaner": "restore-points",
+    "what": {
+      "en": "Restore points and shadow copies of this drive.",
+      "fr": "Points de restauration et clichés instantanés de ce disque."
+    },
+    "consequence": {
+      "en": "Protected by Windows; deleting by hand is not possible and would break System Restore.",
+      "fr": "Protégé par Windows ; impossible à supprimer à la main, et ça casserait la restauration du système."
+    },
+    "howto": {
+      "en": "Kleaner Cleanup → Old restore points (keeps the latest), or System → System protection → Configure → max usage.",
+      "fr": "Nettoyage de Kleaner → Anciens points de restauration (garde le dernier), ou Système → Protection du système → Configurer → utilisation max."
+    }
+  },
+  {
+    "id": "windows-old",
+    "match": [
+      "%SystemDrive%\\Windows.old",
+      "%SystemDrive%\\$Windows.~BT",
+      "%SystemDrive%\\$Windows.~WS"
+    ],
+    "verdict": "cleanup",
+    "cleaner": "windows-old",
+    "what": {
+      "en": "Previous Windows version, kept after a major update.",
+      "fr": "Ancienne version de Windows, gardée après une mise à jour majeure."
+    },
+    "consequence": {
+      "en": "You can no longer roll back to the previous Windows version.",
+      "fr": "Tu ne pourras plus revenir à la version précédente de Windows."
+    },
+    "howto": {
+      "en": "Kleaner Cleanup → Previous Windows version (admin). Not deletable by hand: files belong to TrustedInstaller.",
+      "fr": "Nettoyage de Kleaner → Ancienne version de Windows (admin). Pas supprimable à la main : fichiers protégés par TrustedInstaller."
+    }
+  },
+  {
+    "id": "winsxs",
+    "match": [
+      "%SystemRoot%\\WinSxS"
+    ],
+    "verdict": "system",
+    "cleaner": "component-store",
+    "what": {
+      "en": "Windows component store. Its size is overstated: most files are shared with System32.",
+      "fr": "Magasin de composants de Windows. Sa taille est surestimée : la plupart des fichiers sont partagés avec System32."
+    },
+    "consequence": {
+      "en": "Deleting anything inside breaks Windows and its updates.",
+      "fr": "Supprimer quoi que ce soit dedans casse Windows et ses mises à jour."
+    },
+    "howto": {
+      "en": "Kleaner Cleanup → Old Windows components (DISM, admin) removes superseded versions safely.",
+      "fr": "Nettoyage de Kleaner → Anciens composants Windows (DISM, admin) retire les anciennes versions sans risque."
+    }
+  },
+  {
+    "id": "windows-installer",
+    "match": [
+      "%SystemRoot%\\Installer"
+    ],
+    "verdict": "system",
+    "what": {
+      "en": "Cached installers (.msi, .msp) of installed programs and their updates.",
+      "fr": "Installeurs en cache (.msi, .msp) des programmes installés et de leurs mises à jour."
+    },
+    "consequence": {
+      "en": "Programs can no longer be repaired, updated or uninstalled.",
+      "fr": "Les programmes ne pourront plus être réparés, mis à jour ni désinstallés."
+    },
+    "howto": {
+      "en": "Leave it. Uninstalling programs you no longer use shrinks it.",
+      "fr": "Laisse-le. Désinstaller les programmes inutiles le réduit."
+    }
+  },
+  {
+    "id": "driverstore",
+    "match": [
+      "%SystemRoot%\\System32\\DriverStore"
+    ],
+    "verdict": "system",
+    "what": {
+      "en": "Store of installed driver packages.",
+      "fr": "Magasin des pilotes installés."
+    },
+    "consequence": {
+      "en": "Devices can stop working or fail to reinstall.",
+      "fr": "Des périphériques peuvent cesser de fonctionner ou ne plus se réinstaller."
+    },
+    "howto": {
+      "en": "Leave it. Old graphics drivers can be removed with the vendor’s clean install option.",
+      "fr": "Laisse-le. Les anciens pilotes graphiques partent avec l’installation « propre » du fabricant."
+    }
+  },
+  {
+    "id": "windowsapps",
+    "match": [
+      "%ProgramFiles%\\WindowsApps",
+      "?:\\WindowsApps"
+    ],
+    "verdict": "system",
+    "what": {
+      "en": "Microsoft Store apps and games.",
+      "fr": "Applis et jeux du Microsoft Store."
+    },
+    "consequence": {
+      "en": "Protected folder; deleting by hand breaks the apps and the Store.",
+      "fr": "Dossier protégé ; supprimer à la main casse les applis et le Store."
+    },
+    "howto": {
+      "en": "Settings → Apps → Installed apps → uninstall the app.",
+      "fr": "Paramètres → Applications → Applications installées → désinstaller l’appli."
+    }
+  },
+  {
+    "id": "package-cache",
+    "match": [
+      "%ProgramData%\\Package Cache"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Installer cache of Visual Studio, .NET, Visual C++ and other bundles.",
+      "fr": "Cache d’installation de Visual Studio, .NET, Visual C++ et d’autres paquets."
+    },
+    "consequence": {
+      "en": "Those programs can no longer be repaired, updated or uninstalled cleanly.",
+      "fr": "Ces programmes ne pourront plus être réparés, mis à jour ni désinstallés proprement."
+    },
+    "howto": {
+      "en": "Leave it. Uninstall the programs you no longer need.",
+      "fr": "Laisse-le. Désinstalle les programmes dont tu n’as plus besoin."
+    }
+  },
+  {
+    "id": "search-index",
+    "match": [
+      "%ProgramData%\\Microsoft\\Search\\Data"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Windows Search index.",
+      "fr": "Index de la recherche Windows."
+    },
+    "consequence": {
+      "en": "Search breaks until the index is rebuilt.",
+      "fr": "La recherche ne marche plus jusqu’à la reconstruction de l’index."
+    },
+    "howto": {
+      "en": "Indexing Options → Advanced → Rebuild (smaller index), or remove big folders from indexed locations.",
+      "fr": "Options d’indexation → Avancé → Reconstruire (index plus petit), ou retire les gros dossiers des emplacements indexés."
+    }
+  },
+  {
+    "id": "recovery",
+    "match": [
+      "?:\\Recovery",
+      "%SystemDrive%\\$WinREAgent"
+    ],
+    "verdict": "system",
+    "what": {
+      "en": "Windows recovery environment files.",
+      "fr": "Fichiers de l’environnement de récupération de Windows."
+    },
+    "consequence": {
+      "en": "You may lose the ability to repair or reset Windows.",
+      "fr": "Tu peux perdre la possibilité de réparer ou réinitialiser Windows."
+    },
+    "howto": {
+      "en": "Leave it.",
+      "fr": "Laisse-le."
+    }
+  },
+  {
+    "id": "docker-vhdx",
+    "match": [
+      "%LOCALAPPDATA%\\Docker\\wsl\\**\\*.vhdx",
+      "%LOCALAPPDATA%\\Docker\\wsl"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Docker Desktop virtual disk: all your images, containers, volumes and build cache.",
+      "fr": "Disque virtuel de Docker Desktop : toutes tes images, conteneurs, volumes et cache de build."
+    },
+    "consequence": {
+      "en": "Breaks Docker: every container and the data in its volumes is lost.",
+      "fr": "Casse Docker : tous les conteneurs et les données de leurs volumes sont perdus."
+    },
+    "howto": {
+      "en": "docker system prune -a (unused images, stopped containers, build cache). The file only shrinks after compaction: quit Docker, wsl --shutdown, then Optimize-VHD -Path <file> -Mode Full. Everything: Docker Desktop → Troubleshoot → Clean / Purge data.",
+      "fr": "docker system prune -a (images inutilisées, conteneurs arrêtés, cache de build). Le fichier ne rétrécit qu’après compactage : quitte Docker, wsl --shutdown, puis Optimize-VHD -Path <fichier> -Mode Full. Tout effacer : Docker Desktop → Troubleshoot → Clean / Purge data."
+    }
+  },
+  {
+    "id": "wsl-distro",
+    "match": [
+      "%LOCALAPPDATA%\\Packages\\*\\LocalState\\ext4.vhdx",
+      "%LOCALAPPDATA%\\wsl\\**\\ext4.vhdx"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Virtual disk of a WSL Linux distribution (Ubuntu, Debian…) with all its files.",
+      "fr": "Disque virtuel d’une distribution Linux WSL (Ubuntu, Debian…) avec tous ses fichiers."
+    },
+    "consequence": {
+      "en": "Deletes that Linux system and everything in its home folder.",
+      "fr": "Efface ce Linux et tout ce qu’il y a dans son dossier personnel."
+    },
+    "howto": {
+      "en": "Free space inside Linux, then wsl --shutdown and Optimize-VHD to shrink the file. Remove a whole distro: wsl --unregister <name> (erases it).",
+      "fr": "Libère de la place dans Linux, puis wsl --shutdown et Optimize-VHD pour réduire le fichier. Supprimer une distro : wsl --unregister <nom> (efface tout)."
+    }
+  },
+  {
+    "id": "hyperv",
+    "match": [
+      "%ProgramData%\\Microsoft\\Windows\\Virtual Hard Disks",
+      "%PUBLIC%\\Documents\\Hyper-V\\Virtual hard disks"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Hyper-V virtual machine disks.",
+      "fr": "Disques de machines virtuelles Hyper-V."
+    },
+    "consequence": {
+      "en": "Deletes the virtual machine and its content.",
+      "fr": "Efface la machine virtuelle et son contenu."
+    },
+    "howto": {
+      "en": "Hyper-V Manager → delete the VM, then delete its disk. Shrink: Edit Disk → Compact.",
+      "fr": "Gestionnaire Hyper-V → supprimer la VM, puis son disque. Réduire : Modifier le disque → Compacter."
+    }
+  },
+  {
+    "id": "virtualbox",
+    "match": [
+      "%USERPROFILE%\\VirtualBox VMs\\*"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "VirtualBox virtual machine {1}.",
+      "fr": "Machine virtuelle VirtualBox {1}."
+    },
+    "consequence": {
+      "en": "Deletes the virtual machine and its content; VirtualBox shows it as inaccessible.",
+      "fr": "Efface la machine virtuelle et son contenu ; VirtualBox l’affiche comme inaccessible."
+    },
+    "howto": {
+      "en": "VirtualBox → right-click the VM → Remove → Delete all files.",
+      "fr": "VirtualBox → clic droit sur la VM → Supprimer → Supprimer tous les fichiers."
+    }
+  },
+  {
+    "id": "vmware",
+    "match": [
+      "%USERPROFILE%\\Documents\\Virtual Machines\\*"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "VMware virtual machine {1}.",
+      "fr": "Machine virtuelle VMware {1}."
+    },
+    "consequence": {
+      "en": "Deletes the virtual machine and its content.",
+      "fr": "Efface la machine virtuelle et son contenu."
+    },
+    "howto": {
+      "en": "VMware → right-click the VM → Manage → Delete from Disk.",
+      "fr": "VMware → clic droit sur la VM → Gérer → Supprimer du disque."
+    }
+  },
+  {
+    "id": "android-avd",
+    "match": [
+      "%USERPROFILE%\\.android\\avd"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Android emulators (virtual devices) and their data.",
+      "fr": "Émulateurs Android (appareils virtuels) et leurs données."
+    },
+    "consequence": {
+      "en": "Deletes the emulators and the apps installed in them.",
+      "fr": "Efface les émulateurs et les applis installées dedans."
+    },
+    "howto": {
+      "en": "Android Studio → Device Manager → delete unused devices, or Wipe Data.",
+      "fr": "Android Studio → Device Manager → supprime les appareils inutiles, ou Wipe Data."
+    }
+  },
+  {
+    "id": "android-sdk",
+    "match": [
+      "%LOCALAPPDATA%\\Android\\Sdk"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Android SDK: platforms, system images, build tools.",
+      "fr": "SDK Android : plateformes, images système, outils de build."
+    },
+    "consequence": {
+      "en": "Android builds and emulators stop working.",
+      "fr": "Les builds Android et les émulateurs ne fonctionnent plus."
+    },
+    "howto": {
+      "en": "Android Studio → SDK Manager → uncheck old platforms and system images.",
+      "fr": "Android Studio → SDK Manager → décoche les anciennes plateformes et images système."
+    }
+  },
+  {
+    "id": "claude-vm",
+    "match": [
+      "%APPDATA%\\Claude\\vm_bundles",
+      "%LOCALAPPDATA%\\Packages\\Claude_*\\LocalCache\\Roaming\\Claude\\vm_bundles"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Virtual machine image used by the Claude desktop app to run tools.",
+      "fr": "Image de machine virtuelle utilisée par l’appli Claude pour exécuter des outils."
+    },
+    "consequence": {
+      "en": "Claude’s tool features stop working until the image is downloaded again.",
+      "fr": "Les fonctions d’outils de Claude ne marchent plus jusqu’au retéléchargement de l’image."
+    },
+    "howto": {
+      "en": "Leave it while you use Claude. Seen twice? You may have two Claude installs (Store and classic): uninstall the one you don’t use.",
+      "fr": "Laisse-le tant que tu utilises Claude. Présent deux fois ? Tu as peut-être deux installations (Store et classique) : désinstalle celle que tu n’utilises pas."
+    }
+  },
+  {
+    "id": "steam-workshop",
+    "match": [
+      "**\\steamapps\\workshop"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Steam Workshop mods.",
+      "fr": "Mods du Workshop Steam."
+    },
+    "consequence": {
+      "en": "Mods disappear from your games (Steam may download them again).",
+      "fr": "Les mods disparaissent de tes jeux (Steam peut les retélécharger)."
+    },
+    "howto": {
+      "en": "Unsubscribe from mods you no longer use in the game’s Workshop page.",
+      "fr": "Désabonne-toi des mods inutiles sur la page Workshop du jeu."
+    }
+  },
+  {
+    "id": "steam-downloading",
+    "match": [
+      "**\\steamapps\\downloading",
+      "**\\steamapps\\temp"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Unfinished Steam downloads and updates.",
+      "fr": "Téléchargements et mises à jour Steam non terminés."
+    },
+    "consequence": {
+      "en": "The download starts over.",
+      "fr": "Le téléchargement recommence de zéro."
+    },
+    "howto": {
+      "en": "Steam → Downloads → cancel the download, or let it finish.",
+      "fr": "Steam → Téléchargements → annule le téléchargement, ou laisse-le finir."
+    }
+  },
+  {
+    "id": "steam-shadercache",
+    "match": [
+      "**\\steamapps\\shadercache"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Steam shader cache.",
+      "fr": "Cache de shaders de Steam."
+    },
+    "consequence": {
+      "en": "Games may stutter a little the first time.",
+      "fr": "Les jeux peuvent saccader un peu la première fois."
+    },
+    "howto": {
+      "en": "Steam → Settings → Downloads → Clear cache, or Kleaner Cleanup → Steam.",
+      "fr": "Steam → Paramètres → Téléchargements → Vider le cache, ou Nettoyage de Kleaner → Steam."
+    }
+  },
+  {
+    "id": "steam-game",
+    "match": [
+      "**\\steamapps\\common\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Steam game {1}.",
+      "fr": "Jeu Steam {1}."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks the game and Steam still thinks it is installed.",
+      "fr": "Supprimer à la main casse le jeu et Steam le croit toujours installé."
+    },
+    "howto": {
+      "en": "Steam → Library → right-click the game → Manage → Uninstall. Saves in Steam Cloud are kept.",
+      "fr": "Steam → Bibliothèque → clic droit sur le jeu → Gérer → Désinstaller. Les sauvegardes Steam Cloud sont gardées."
+    }
+  },
+  {
+    "id": "epic-game",
+    "match": [
+      "**\\Epic Games\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Epic Games {1}.",
+      "fr": "Epic Games : {1}."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks the game and confuses the launcher.",
+      "fr": "Supprimer à la main casse le jeu et perturbe le launcher."
+    },
+    "howto": {
+      "en": "Epic Games Launcher → Library → … on the game → Uninstall.",
+      "fr": "Epic Games Launcher → Bibliothèque → … sur le jeu → Désinstaller."
+    }
+  },
+  {
+    "id": "riot-game",
+    "match": [
+      "**\\Riot Games\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Riot Games: {1}.",
+      "fr": "Riot Games : {1}."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks the game and the Riot Client.",
+      "fr": "Supprimer à la main casse le jeu et le Riot Client."
+    },
+    "howto": {
+      "en": "Uninstall the game from the Programs tab (each Riot game has its own entry).",
+      "fr": "Désinstalle le jeu depuis l’onglet Programmes (chaque jeu Riot a sa propre entrée)."
+    }
+  },
+  {
+    "id": "ea-game",
+    "match": [
+      "**\\EA Games\\*",
+      "**\\Origin Games\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "EA game {1}.",
+      "fr": "Jeu EA {1}."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks the game.",
+      "fr": "Supprimer à la main casse le jeu."
+    },
+    "howto": {
+      "en": "EA app → Library → … on the game → Uninstall.",
+      "fr": "Appli EA → Bibliothèque → … sur le jeu → Désinstaller."
+    }
+  },
+  {
+    "id": "ubisoft-game",
+    "match": [
+      "**\\Ubisoft Game Launcher\\games\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Ubisoft game {1}.",
+      "fr": "Jeu Ubisoft {1}."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks the game.",
+      "fr": "Supprimer à la main casse le jeu."
+    },
+    "howto": {
+      "en": "Ubisoft Connect → Games → the game → Properties → Uninstall.",
+      "fr": "Ubisoft Connect → Jeux → le jeu → Propriétés → Désinstaller."
+    }
+  },
+  {
+    "id": "gog-game",
+    "match": [
+      "**\\GOG Galaxy\\Games\\*",
+      "**\\GOG Games\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "GOG game {1}.",
+      "fr": "Jeu GOG {1}."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks the game.",
+      "fr": "Supprimer à la main casse le jeu."
+    },
+    "howto": {
+      "en": "GOG Galaxy → the game → Manage installation → Uninstall.",
+      "fr": "GOG Galaxy → le jeu → Gérer l’installation → Désinstaller."
+    }
+  },
+  {
+    "id": "xbox-game",
+    "match": [
+      "?:\\XboxGames\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Xbox / Game Pass game {1}.",
+      "fr": "Jeu Xbox / Game Pass {1}."
+    },
+    "consequence": {
+      "en": "Protected folder; deleting by hand breaks the game.",
+      "fr": "Dossier protégé ; supprimer à la main casse le jeu."
+    },
+    "howto": {
+      "en": "Xbox app → the game → … → Manage → Uninstall.",
+      "fr": "Appli Xbox → le jeu → … → Gérer → Désinstaller."
+    }
+  },
+  {
+    "id": "battlenet-data",
+    "match": [
+      "%ProgramData%\\Battle.net",
+      "%ProgramData%\\Blizzard Entertainment"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Battle.net launcher data.",
+      "fr": "Données du launcher Battle.net."
+    },
+    "consequence": {
+      "en": "Battle.net and its games may need repairing.",
+      "fr": "Battle.net et ses jeux peuvent devoir être réparés."
+    },
+    "howto": {
+      "en": "Uninstall Blizzard games from Battle.net (gear icon → Uninstall).",
+      "fr": "Désinstalle les jeux Blizzard depuis Battle.net (roue dentée → Désinstaller)."
+    }
+  },
+  {
+    "id": "minecraft-saves",
+    "match": [
+      "%APPDATA%\\.minecraft\\saves"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "Your Minecraft worlds.",
+      "fr": "Tes mondes Minecraft."
+    },
+    "consequence": {
+      "en": "Worlds are lost for good.",
+      "fr": "Les mondes sont perdus définitivement."
+    },
+    "howto": {
+      "en": "Delete old worlds from Minecraft (Edit World → Delete), or back them up first.",
+      "fr": "Supprime les vieux mondes depuis Minecraft (Modifier le monde → Supprimer), ou sauvegarde-les d’abord."
+    }
+  },
+  {
+    "id": "minecraft",
+    "match": [
+      "%APPDATA%\\.minecraft"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Minecraft Java: game files, versions, mods and worlds.",
+      "fr": "Minecraft Java : fichiers du jeu, versions, mods et mondes."
+    },
+    "consequence": {
+      "en": "Breaks the game and deletes your worlds (saves folder).",
+      "fr": "Casse le jeu et efface tes mondes (dossier saves)."
+    },
+    "howto": {
+      "en": "Remove old versions in the launcher’s Installations tab; keep the saves folder.",
+      "fr": "Retire les anciennes versions dans l’onglet Installations du launcher ; garde le dossier saves."
+    }
+  },
+  {
+    "id": "game-saves",
+    "match": [
+      "%USERPROFILE%\\Saved Games",
+      "%USERPROFILE%\\Documents\\My Games"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "Game saves and settings.",
+      "fr": "Sauvegardes et réglages de jeux."
+    },
+    "consequence": {
+      "en": "Progress is lost unless it is synced to the cloud.",
+      "fr": "La progression est perdue si elle n’est pas synchronisée dans le cloud."
+    },
+    "howto": {
+      "en": "Delete only the folders of games you no longer play.",
+      "fr": "Ne supprime que les dossiers des jeux auxquels tu ne joues plus."
+    }
+  },
+  {
+    "id": "iphone-backup",
+    "match": [
+      "%APPDATA%\\Apple Computer\\MobileSync\\Backup",
+      "%USERPROFILE%\\Apple\\MobileSync\\Backup"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "iPhone / iPad backups.",
+      "fr": "Sauvegardes d’iPhone / iPad."
+    },
+    "consequence": {
+      "en": "If it is your only backup (no iCloud), your phone data cannot be restored.",
+      "fr": "Si c’est ta seule sauvegarde (pas d’iCloud), les données du téléphone ne pourront plus être restaurées."
+    },
+    "howto": {
+      "en": "Delete old backups in iTunes (Edit → Preferences → Devices) or the Apple Devices app (Manage Backups).",
+      "fr": "Supprime les vieilles sauvegardes dans iTunes (Édition → Préférences → Appareils) ou l’appli Appareils Apple (Gérer les sauvegardes)."
+    }
+  },
+  {
+    "id": "onedrive",
+    "match": [
+      "%USERPROFILE%\\OneDrive",
+      "%USERPROFILE%\\OneDrive - *"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "OneDrive folder: synced with the cloud.",
+      "fr": "Dossier OneDrive : synchronisé avec le cloud."
+    },
+    "consequence": {
+      "en": "Deleting here also deletes from OneDrive online and on your other devices.",
+      "fr": "Supprimer ici supprime aussi sur OneDrive en ligne et sur tes autres appareils."
+    },
+    "howto": {
+      "en": "Right-click → Free up space: the file stays in the cloud and leaves this PC.",
+      "fr": "Clic droit → Libérer de l’espace : le fichier reste dans le cloud et quitte ce PC."
+    }
+  },
+  {
+    "id": "cloud-sync",
+    "match": [
+      "%USERPROFILE%\\Dropbox",
+      "%USERPROFILE%\\Google Drive",
+      "%USERPROFILE%\\iCloudDrive"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "Cloud-synced folder.",
+      "fr": "Dossier synchronisé avec un cloud."
+    },
+    "consequence": {
+      "en": "Deleting here also deletes in the cloud and on your other devices.",
+      "fr": "Supprimer ici supprime aussi dans le cloud et sur tes autres appareils."
+    },
+    "howto": {
+      "en": "Use the app’s online-only option (Dropbox: Make online-only; Google Drive: stream files).",
+      "fr": "Utilise l’option « en ligne uniquement » de l’appli (Dropbox : Rendre en ligne uniquement ; Google Drive : diffusion)."
+    }
+  },
+  {
+    "id": "outlook-ost",
+    "match": [
+      "%LOCALAPPDATA%\\Microsoft\\Outlook\\*.ost"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Outlook offline copy of a mailbox.",
+      "fr": "Copie hors ligne d’une boîte mail Outlook."
+    },
+    "consequence": {
+      "en": "With Outlook closed, it is rebuilt by downloading mail again (slow). Unsent drafts in it are lost.",
+      "fr": "Outlook fermé, il est recréé en retéléchargeant les mails (long). Les brouillons non envoyés dedans sont perdus."
+    },
+    "howto": {
+      "en": "Outlook → Account settings → Change → lower « Download email for the past ».",
+      "fr": "Outlook → Paramètres du compte → Modifier → réduis « Télécharger les e-mails des derniers »."
+    }
+  },
+  {
+    "id": "outlook-pst",
+    "match": [
+      "**\\*.pst"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "Outlook mail archive (.pst).",
+      "fr": "Archive de mails Outlook (.pst)."
+    },
+    "consequence": {
+      "en": "It may be the only copy of these emails.",
+      "fr": "C’est peut-être la seule copie de ces mails."
+    },
+    "howto": {
+      "en": "Open it in Outlook, delete what you don’t need, then File → Account Settings → Data Files → Compact.",
+      "fr": "Ouvre-la dans Outlook, supprime l’inutile, puis Fichier → Paramètres du compte → Fichiers de données → Compacter."
+    }
+  },
+  {
+    "id": "spotify",
+    "match": [
+      "%LOCALAPPDATA%\\Spotify\\Storage",
+      "%LOCALAPPDATA%\\Packages\\SpotifyAB.SpotifyMusic_*\\LocalState\\Spotify\\Storage"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Spotify cache, including offline downloads.",
+      "fr": "Cache de Spotify, y compris les titres téléchargés hors ligne."
+    },
+    "consequence": {
+      "en": "Offline playlists must be downloaded again.",
+      "fr": "Les playlists hors ligne devront être retéléchargées."
+    },
+    "howto": {
+      "en": "Spotify → Settings → Storage → Clear cache (or Remove all downloads).",
+      "fr": "Spotify → Paramètres → Stockage → Vider le cache (ou Supprimer tous les téléchargements)."
+    }
+  },
+  {
+    "id": "whatsapp",
+    "match": [
+      "%LOCALAPPDATA%\\Packages\\5319275A.WhatsAppDesktop_*"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "WhatsApp Desktop data and media.",
+      "fr": "Données et médias de WhatsApp Desktop."
+    },
+    "consequence": {
+      "en": "Breaks WhatsApp Desktop; you must link it again.",
+      "fr": "Casse WhatsApp Desktop ; il faudra le relier à nouveau."
+    },
+    "howto": {
+      "en": "WhatsApp → Settings → Storage → review and delete large media.",
+      "fr": "WhatsApp → Paramètres → Stockage → passe en revue et supprime les gros médias."
+    }
+  },
+  {
+    "id": "lightroom-smart-previews",
+    "match": [
+      "**\\* Smart Previews.lrdata"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Lightroom Classic smart previews (edit photos when originals are offline).",
+      "fr": "Aperçus dynamiques de Lightroom Classic (retouche quand les originaux sont hors ligne)."
+    },
+    "consequence": {
+      "en": "You can no longer edit photos whose originals are offline.",
+      "fr": "Tu ne pourras plus retoucher les photos dont les originaux sont hors ligne."
+    },
+    "howto": {
+      "en": "Lightroom → Library → Previews → Discard Smart Previews.",
+      "fr": "Lightroom → Bibliothèque → Aperçus → Supprimer les aperçus dynamiques."
+    }
+  },
+  {
+    "id": "lightroom-previews",
+    "match": [
+      "**\\* Previews.lrdata"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Lightroom Classic preview cache.",
+      "fr": "Cache d’aperçus de Lightroom Classic."
+    },
+    "consequence": {
+      "en": "Previews are rebuilt; browsing is slower at first. Lightroom must be closed.",
+      "fr": "Les aperçus sont recréés ; la navigation est plus lente au début. Lightroom doit être fermé."
+    },
+    "howto": {
+      "en": "Lightroom → Catalog Settings → File Handling → discard 1:1 previews automatically.",
+      "fr": "Lightroom → Paramètres du catalogue → Gestion des fichiers → supprimer automatiquement les aperçus 1:1."
+    }
+  },
+  {
+    "id": "npm-global",
+    "match": [
+      "%APPDATA%\\npm\\node_modules\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Command-line tool installed globally with npm: {1}.",
+      "fr": "Outil en ligne de commande installé globalement avec npm : {1}."
+    },
+    "consequence": {
+      "en": "The {1} command stops working.",
+      "fr": "La commande {1} ne fonctionne plus."
+    },
+    "howto": {
+      "en": "npm uninstall -g {1}",
+      "fr": "npm uninstall -g {1}"
+    }
+  },
+  {
+    "id": "headless-browsers",
+    "match": [
+      "%LOCALAPPDATA%\\ms-playwright",
+      "%USERPROFILE%\\.cache\\puppeteer",
+      "%USERPROFILE%\\.cache\\ms-playwright"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Browsers downloaded by Playwright or Puppeteer for automated tests.",
+      "fr": "Navigateurs téléchargés par Playwright ou Puppeteer pour les tests automatisés."
+    },
+    "consequence": {
+      "en": "Tests download them again on next run (npx playwright install).",
+      "fr": "Les tests les retéléchargent au prochain lancement (npx playwright install)."
+    },
+    "howto": {
+      "en": "Delete old version folders; keep only the latest.",
+      "fr": "Supprime les dossiers d’anciennes versions ; garde seulement la dernière."
+    }
+  },
+  {
+    "id": "node-modules",
+    "match": [
+      "**\\node_modules"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "JavaScript dependencies of a project, downloaded by npm, yarn or pnpm.",
+      "fr": "Dépendances JavaScript d’un projet, téléchargées par npm, yarn ou pnpm."
+    },
+    "consequence": {
+      "en": "The project won’t run until you run npm install again.",
+      "fr": "Le projet ne tourne plus jusqu’au prochain npm install."
+    },
+    "howto": {
+      "en": "Delete it in old projects. npx npkill lists them all.",
+      "fr": "Supprime-le dans les vieux projets. npx npkill les liste tous."
+    }
+  },
+  {
+    "id": "python-venv",
+    "match": [
+      "**\\.venv",
+      "**\\venv",
+      "**\\env\\Lib\\site-packages"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Python virtual environment of a project.",
+      "fr": "Environnement virtuel Python d’un projet."
+    },
+    "consequence": {
+      "en": "Recreate it with python -m venv .venv and pip install -r requirements.txt.",
+      "fr": "À recréer avec python -m venv .venv puis pip install -r requirements.txt."
+    },
+    "howto": {
+      "en": "Delete it in projects you no longer work on.",
+      "fr": "Supprime-le dans les projets sur lesquels tu ne travailles plus."
+    }
+  },
+  {
+    "id": "pycache",
+    "match": [
+      "**\\__pycache__",
+      "**\\.pytest_cache",
+      "**\\.mypy_cache",
+      "**\\.ruff_cache"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Python tool cache.",
+      "fr": "Cache d’outils Python."
+    },
+    "consequence": {
+      "en": "Nothing: it is rebuilt automatically.",
+      "fr": "Rien : il est recréé automatiquement."
+    },
+    "howto": {
+      "en": "Delete it.",
+      "fr": "Supprime-le."
+    }
+  },
+  {
+    "id": "rust-target",
+    "match": [
+      "**\\target\\debug",
+      "**\\target\\release",
+      "**\\target\\x86_64-pc-windows-msvc"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Probably a Rust build folder (Cargo).",
+      "fr": "Probablement un dossier de build Rust (Cargo)."
+    },
+    "consequence": {
+      "en": "The next build takes longer.",
+      "fr": "Le prochain build est plus long."
+    },
+    "howto": {
+      "en": "cargo clean in the project folder (next to Cargo.toml).",
+      "fr": "cargo clean dans le dossier du projet (à côté de Cargo.toml)."
+    }
+  },
+  {
+    "id": "web-build-cache",
+    "match": [
+      "**\\.next\\cache",
+      "**\\.nuxt",
+      "**\\.parcel-cache",
+      "**\\.turbo",
+      "**\\.angular\\cache"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Web framework build cache.",
+      "fr": "Cache de build d’un framework web."
+    },
+    "consequence": {
+      "en": "The next build takes longer.",
+      "fr": "Le prochain build est plus long."
+    },
+    "howto": {
+      "en": "Delete it.",
+      "fr": "Supprime-le."
+    }
+  },
+  {
+    "id": "vs-solution-cache",
+    "match": [
+      "**\\.vs"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Visual Studio solution cache (IntelliSense database).",
+      "fr": "Cache de solution Visual Studio (base IntelliSense)."
+    },
+    "consequence": {
+      "en": "Open tabs and breakpoints of that solution are forgotten. Close Visual Studio first.",
+      "fr": "Les onglets ouverts et points d’arrêt de la solution sont oubliés. Ferme Visual Studio avant."
+    },
+    "howto": {
+      "en": "Delete it with Visual Studio closed.",
+      "fr": "Supprime-le, Visual Studio fermé."
+    }
+  },
+  {
+    "id": "git-repo",
+    "match": [
+      "**\\.git"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Git repository: the whole history of a project.",
+      "fr": "Dépôt Git : tout l’historique d’un projet."
+    },
+    "consequence": {
+      "en": "History, branches and unpushed commits are lost.",
+      "fr": "L’historique, les branches et les commits non poussés sont perdus."
+    },
+    "howto": {
+      "en": "git gc --prune=now compacts it. Delete the whole project only if it is pushed elsewhere.",
+      "fr": "git gc --prune=now le compacte. Supprime le projet entier seulement s’il est poussé ailleurs."
+    }
+  },
+  {
+    "id": "rustup-toolchains",
+    "match": [
+      "%USERPROFILE%\\.rustup\\toolchains\\*"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Rust toolchain {1}.",
+      "fr": "Toolchain Rust {1}."
+    },
+    "consequence": {
+      "en": "Projects using this toolchain stop building.",
+      "fr": "Les projets qui utilisent cette toolchain ne compilent plus."
+    },
+    "howto": {
+      "en": "rustup toolchain list, then rustup toolchain uninstall <name> for unused ones.",
+      "fr": "rustup toolchain list, puis rustup toolchain uninstall <nom> pour celles qui ne servent plus."
+    }
+  },
+  {
+    "id": "huggingface",
+    "match": [
+      "%USERPROFILE%\\.cache\\huggingface"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "AI models and datasets downloaded by Hugging Face libraries.",
+      "fr": "Modèles d’IA et jeux de données téléchargés par les bibliothèques Hugging Face."
+    },
+    "consequence": {
+      "en": "Models are downloaded again the next time a program needs them.",
+      "fr": "Les modèles sont retéléchargés la prochaine fois qu’un programme en a besoin."
+    },
+    "howto": {
+      "en": "huggingface-cli delete-cache to pick which models to remove.",
+      "fr": "huggingface-cli delete-cache pour choisir les modèles à retirer."
+    }
+  },
+  {
+    "id": "ollama",
+    "match": [
+      "%USERPROFILE%\\.ollama\\models"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Ollama AI models.",
+      "fr": "Modèles d’IA d’Ollama."
+    },
+    "consequence": {
+      "en": "Deleting by hand corrupts Ollama’s model list.",
+      "fr": "Supprimer à la main corrompt la liste de modèles d’Ollama."
+    },
+    "howto": {
+      "en": "ollama list, then ollama rm <model>.",
+      "fr": "ollama list, puis ollama rm <modèle>."
+    }
+  },
+  {
+    "id": "lmstudio",
+    "match": [
+      "%USERPROFILE%\\.lmstudio\\models",
+      "%USERPROFILE%\\.cache\\lm-studio\\models"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "LM Studio AI models.",
+      "fr": "Modèles d’IA de LM Studio."
+    },
+    "consequence": {
+      "en": "Models must be downloaded again.",
+      "fr": "Les modèles devront être retéléchargés."
+    },
+    "howto": {
+      "en": "LM Studio → My Models → delete the ones you no longer use.",
+      "fr": "LM Studio → My Models → supprime ceux que tu n’utilises plus."
+    }
+  },
+  {
+    "id": "torch-cache",
+    "match": [
+      "%USERPROFILE%\\.cache\\torch",
+      "%USERPROFILE%\\.cache\\pip"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Python download cache (PyTorch models, pip packages).",
+      "fr": "Cache de téléchargements Python (modèles PyTorch, paquets pip)."
+    },
+    "consequence": {
+      "en": "Downloaded again when needed.",
+      "fr": "Retéléchargé au besoin."
+    },
+    "howto": {
+      "en": "Delete it, or pip cache purge.",
+      "fr": "Supprime-le, ou pip cache purge."
+    }
+  },
+  {
+    "id": "conda-pkgs",
+    "match": [
+      "%USERPROFILE%\\anaconda3\\pkgs",
+      "%USERPROFILE%\\miniconda3\\pkgs",
+      "%ProgramData%\\anaconda3\\pkgs",
+      "%ProgramData%\\miniconda3\\pkgs"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Conda package cache.",
+      "fr": "Cache de paquets Conda."
+    },
+    "consequence": {
+      "en": "Deleting by hand can break environments that hard-link these files.",
+      "fr": "Supprimer à la main peut casser des environnements qui pointent vers ces fichiers."
+    },
+    "howto": {
+      "en": "conda clean --all",
+      "fr": "conda clean --all"
+    }
+  },
+  {
+    "id": "conda-envs",
+    "match": [
+      "%USERPROFILE%\\anaconda3\\envs\\*",
+      "%USERPROFILE%\\miniconda3\\envs\\*"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Conda environment {1}.",
+      "fr": "Environnement Conda {1}."
+    },
+    "consequence": {
+      "en": "Projects using it stop working until it is recreated.",
+      "fr": "Les projets qui l’utilisent ne marchent plus jusqu’à sa recréation."
+    },
+    "howto": {
+      "en": "conda env remove -n {1}",
+      "fr": "conda env remove -n {1}"
+    }
+  },
+  {
+    "id": "jetbrains-caches",
+    "match": [
+      "%LOCALAPPDATA%\\JetBrains\\*\\caches",
+      "%LOCALAPPDATA%\\JetBrains\\*\\index"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "JetBrains IDE cache and index ({1}).",
+      "fr": "Cache et index d’un IDE JetBrains ({1})."
+    },
+    "consequence": {
+      "en": "Projects are re-indexed on next open. Close the IDE first.",
+      "fr": "Les projets sont réindexés à la prochaine ouverture. Ferme l’IDE avant."
+    },
+    "howto": {
+      "en": "In the IDE: File → Invalidate Caches. Old version folders can be deleted.",
+      "fr": "Dans l’IDE : File → Invalidate Caches. Les dossiers d’anciennes versions peuvent être supprimés."
+    }
+  },
+  {
+    "id": "vscode-extensions",
+    "match": [
+      "%USERPROFILE%\\.vscode\\extensions"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "VS Code extensions.",
+      "fr": "Extensions de VS Code."
+    },
+    "consequence": {
+      "en": "All extensions are removed.",
+      "fr": "Toutes les extensions disparaissent."
+    },
+    "howto": {
+      "en": "VS Code → Extensions → uninstall unused ones (old versions are cleaned automatically).",
+      "fr": "VS Code → Extensions → désinstalle celles qui ne servent plus (les anciennes versions partent seules)."
+    }
+  },
+  {
+    "id": "unreal-ddc",
+    "match": [
+      "%LOCALAPPDATA%\\UnrealEngine\\Common\\DerivedDataCache",
+      "**\\DerivedDataCache"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Unreal Engine derived data cache (compiled shaders, textures).",
+      "fr": "Cache de données dérivées d’Unreal Engine (shaders, textures compilés)."
+    },
+    "consequence": {
+      "en": "Projects open much slower once while it rebuilds.",
+      "fr": "Les projets s’ouvrent beaucoup plus lentement une fois, le temps de le recréer."
+    },
+    "howto": {
+      "en": "Delete it with the editor closed.",
+      "fr": "Supprime-le, éditeur fermé."
+    }
+  },
+  {
+    "id": "browser-profile-chromium",
+    "match": [
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data",
+      "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data",
+      "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data",
+      "%LOCALAPPDATA%\\Vivaldi\\User Data",
+      "%APPDATA%\\Opera Software\\*"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Browser profile: passwords, history, cookies, extensions and cache.",
+      "fr": "Profil de navigateur : mots de passe, historique, cookies, extensions et cache."
+    },
+    "consequence": {
+      "en": "You are logged out everywhere and lose local passwords and history.",
+      "fr": "Tu es déconnecté partout et perds mots de passe et historique locaux."
+    },
+    "howto": {
+      "en": "Only the cache is safe: Kleaner Cleanup → Browsers.",
+      "fr": "Seul le cache est sans risque : Nettoyage de Kleaner → Navigateurs."
+    }
+  },
+  {
+    "id": "browser-profile-firefox",
+    "match": [
+      "%APPDATA%\\Mozilla\\Firefox\\Profiles",
+      "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Firefox profile: passwords, history, cookies, extensions and cache.",
+      "fr": "Profil Firefox : mots de passe, historique, cookies, extensions et cache."
+    },
+    "consequence": {
+      "en": "You are logged out everywhere and lose local passwords and history.",
+      "fr": "Tu es déconnecté partout et perds mots de passe et historique locaux."
+    },
+    "howto": {
+      "en": "Only the cache is safe: Kleaner Cleanup → Firefox.",
+      "fr": "Seul le cache est sans risque : Nettoyage de Kleaner → Firefox."
+    }
+  },
+  {
+    "id": "other-user-temp",
+    "match": [
+      "?:\\Users\\*\\AppData\\Local\\Temp"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Temporary files of the Windows user {1}.",
+      "fr": "Fichiers temporaires de l’utilisateur Windows {1}."
+    },
+    "consequence": {
+      "en": "Nothing if that user is not logged in.",
+      "fr": "Rien si cet utilisateur n’est pas connecté."
+    },
+    "howto": {
+      "en": "Log in as {1} and run Kleaner, or delete old files there with admin rights.",
+      "fr": "Connecte-toi en tant que {1} et lance Kleaner, ou supprime les vieux fichiers avec les droits admin."
+    }
+  },
+  {
+    "id": "wsl-system",
+    "match": [
+      "%ProgramFiles%\\WSL\\system.vhd"
+    ],
+    "verdict": "system",
+    "what": {
+      "en": "WSL’s own Linux system image (shared by all distros).",
+      "fr": "Image système Linux de WSL (partagée par toutes les distributions)."
+    },
+    "consequence": {
+      "en": "Breaks WSL and Docker Desktop.",
+      "fr": "Casse WSL et Docker Desktop."
+    },
+    "howto": {
+      "en": "Uninstall WSL if you don’t use it: wsl --uninstall.",
+      "fr": "Désinstalle WSL si tu ne t’en sers pas : wsl --uninstall."
+    }
+  },
+  {
+    "id": "edge-webview",
+    "match": [
+      "%ProgramFiles(x86)%\\Microsoft\\EdgeWebView",
+      "%ProgramFiles(x86)%\\Microsoft\\EdgeCore",
+      "%ProgramFiles(x86)%\\Microsoft\\Edge",
+      "%ProgramFiles(x86)%\\Microsoft\\EdgeUpdate"
+    ],
+    "verdict": "system",
+    "what": {
+      "en": "Microsoft Edge and WebView2, used by Windows and many apps (Kleaner too).",
+      "fr": "Microsoft Edge et WebView2, utilisés par Windows et beaucoup d’applis (Kleaner aussi)."
+    },
+    "consequence": {
+      "en": "Many apps stop opening.",
+      "fr": "Beaucoup d’applis ne s’ouvrent plus."
+    },
+    "howto": {
+      "en": "Leave it. Old version folders are removed by Edge’s updater after a restart.",
+      "fr": "Laisse-le. Les dossiers d’anciennes versions sont retirés par la mise à jour d’Edge après un redémarrage."
+    }
+  },
+  {
+    "id": "google-updater-cache",
+    "match": [
+      "%ProgramFiles(x86)%\\Google\\GoogleUpdater\\crx_cache",
+      "%LOCALAPPDATA%\\Google\\GoogleUpdater\\crx_cache"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Google Updater download cache (Chrome updates).",
+      "fr": "Cache de téléchargement de Google Updater (mises à jour de Chrome)."
+    },
+    "consequence": {
+      "en": "An update may be downloaded again.",
+      "fr": "Une mise à jour peut être retéléchargée."
+    },
+    "howto": {
+      "en": "Delete it with Chrome closed, or let Google Updater clean it.",
+      "fr": "Supprime-le Chrome fermé, ou laisse Google Updater le nettoyer."
+    }
+  },
+  {
+    "id": "arduino-staging",
+    "match": [
+      "%LOCALAPPDATA%\\Arduino15\\staging"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Archives downloaded by the Arduino IDE to install boards and libraries.",
+      "fr": "Archives téléchargées par l’IDE Arduino pour installer cartes et bibliothèques."
+    },
+    "consequence": {
+      "en": "Nothing: boards are already installed; a reinstall downloads them again.",
+      "fr": "Rien : les cartes sont déjà installées ; une réinstallation les retélécharge."
+    },
+    "howto": {
+      "en": "Delete the staging folder with the Arduino IDE closed.",
+      "fr": "Supprime le dossier staging, IDE Arduino fermé."
+    }
+  },
+  {
+    "id": "arduino-packages",
+    "match": [
+      "%LOCALAPPDATA%\\Arduino15\\packages\\*"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Arduino board package {1} (compilers and core).",
+      "fr": "Paquet de cartes Arduino {1} (compilateurs et cœur)."
+    },
+    "consequence": {
+      "en": "Sketches for those boards no longer compile.",
+      "fr": "Les croquis pour ces cartes ne compilent plus."
+    },
+    "howto": {
+      "en": "Arduino IDE → Boards Manager → remove boards you no longer use.",
+      "fr": "IDE Arduino → Gestionnaire de cartes → retire les cartes inutiles."
+    }
+  },
+  {
+    "id": "flutter-build",
+    "match": [
+      "**\\build\\app\\intermediates",
+      "**\\.dart_tool",
+      "**\\build\\app\\outputs"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Flutter / Android build output of a project.",
+      "fr": "Sortie de build Flutter / Android d’un projet."
+    },
+    "consequence": {
+      "en": "The next build takes longer.",
+      "fr": "Le prochain build est plus long."
+    },
+    "howto": {
+      "en": "flutter clean in the project folder.",
+      "fr": "flutter clean dans le dossier du projet."
+    }
+  },
+  {
+    "id": "clipchamp",
+    "match": [
+      "%LOCALAPPDATA%\\Packages\\Clipchamp.Clipchamp_*"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Clipchamp local data: copies of media used in your video projects.",
+      "fr": "Données locales de Clipchamp : copies des médias de tes projets vidéo."
+    },
+    "consequence": {
+      "en": "Projects may show missing media.",
+      "fr": "Les projets peuvent afficher des médias manquants."
+    },
+    "howto": {
+      "en": "Delete old projects in Clipchamp; reset the app (Settings → Apps → Advanced options) only if you don’t need them.",
+      "fr": "Supprime les vieux projets dans Clipchamp ; réinitialise l’appli (Paramètres → Applications → Options avancées) seulement si tu n’en as plus besoin."
+    }
+  },
+  {
+    "id": "unreal-asset-packs",
+    "match": [
+      "**\\*.ucas",
+      "**\\*.utoc",
+      "**\\*.pak",
+      "**\\*.wad.client",
+      "**\\*.wad",
+      "**\\*.mpq",
+      "**\\*.bank"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Game data archive.",
+      "fr": "Archive de données de jeu."
+    },
+    "consequence": {
+      "en": "The game breaks or re-downloads it.",
+      "fr": "Le jeu casse ou la retélécharge."
+    },
+    "howto": {
+      "en": "Uninstall the whole game from its launcher or the Programs tab.",
+      "fr": "Désinstalle le jeu entier depuis son launcher ou l’onglet Programmes."
+    }
+  },
+  {
+    "id": "downloads-installer",
+    "match": [
+      "%USERPROFILE%\\Downloads\\**\\*.exe",
+      "%USERPROFILE%\\Downloads\\**\\*.msi",
+      "%USERPROFILE%\\Downloads\\**\\*.msix"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "Installer you downloaded.",
+      "fr": "Installeur que tu as téléchargé."
+    },
+    "consequence": {
+      "en": "Usually nothing once the program is installed; download it again if needed.",
+      "fr": "En général rien une fois le programme installé ; retélécharge-le au besoin."
+    },
+    "howto": {
+      "en": "Send it to the Recycle Bin from the Scan tab.",
+      "fr": "Envoie-le à la Corbeille depuis l’onglet Analyse."
+    }
+  },
+  {
+    "id": "ai-model-file",
+    "match": [
+      "**\\*.gguf",
+      "**\\*.safetensors",
+      "**\\*.onnx",
+      "**\\*.ort",
+      "**\\*.ckpt",
+      "**\\*.pt",
+      "**\\*.pth",
+      "**\\*.bin.zst"
+    ],
+    "generic": true,
+    "verdict": "breaks",
+    "what": {
+      "en": "AI model file used by an app or tool.",
+      "fr": "Fichier de modèle d’IA utilisé par une appli ou un outil."
+    },
+    "consequence": {
+      "en": "The app’s AI features stop working, or it downloads the model again.",
+      "fr": "Les fonctions IA de l’appli ne marchent plus, ou elle retélécharge le modèle."
+    },
+    "howto": {
+      "en": "Remove the model from inside the app, or uninstall the app.",
+      "fr": "Retire le modèle depuis l’appli, ou désinstalle-la."
+    }
+  },
+  {
+    "id": "disk-image",
+    "match": [
+      "**\\*.iso",
+      "**\\*.img"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "Disk image (Windows/Linux installer, game, backup).",
+      "fr": "Image disque (installeur Windows/Linux, jeu, sauvegarde)."
+    },
+    "consequence": {
+      "en": "Nothing if you already used it and can download it again.",
+      "fr": "Rien si tu l’as déjà utilisée et peux la retélécharger."
+    },
+    "howto": {
+      "en": "Send it to the Recycle Bin from the Scan tab.",
+      "fr": "Envoie-la à la Corbeille depuis l’onglet Analyse."
+    },
+    "generic": true
+  },
+  {
+    "id": "vm-disk",
+    "match": [
+      "**\\*.vhdx",
+      "**\\*.vhd",
+      "**\\*.vmdk",
+      "**\\*.vdi",
+      "**\\*.qcow2",
+      "**\\*.avhdx"
+    ],
+    "generic": true,
+    "verdict": "breaks",
+    "what": {
+      "en": "Virtual disk of a virtual machine or container tool.",
+      "fr": "Disque virtuel d’une machine virtuelle ou d’un outil de conteneurs."
+    },
+    "consequence": {
+      "en": "Deletes the machine that uses it and everything inside.",
+      "fr": "Efface la machine qui l’utilise et tout ce qu’elle contient."
+    },
+    "howto": {
+      "en": "Delete the machine from its tool (Hyper-V, VirtualBox, VMware, Docker, WSL), not the file.",
+      "fr": "Supprime la machine depuis son outil (Hyper-V, VirtualBox, VMware, Docker, WSL), pas le fichier."
+    }
+  },
+  {
+    "id": "dump-file",
+    "match": [
+      "**\\*.dmp",
+      "**\\*.hdmp",
+      "**\\*.mdmp"
+    ],
+    "generic": true,
+    "verdict": "safe",
+    "what": {
+      "en": "Crash dump: memory copy written when a program crashed.",
+      "fr": "Dump de plantage : copie de la mémoire écrite quand un programme a planté."
+    },
+    "consequence": {
+      "en": "Nothing, unless a developer asked you for it.",
+      "fr": "Rien, sauf si un développeur te l’a demandé."
+    },
+    "howto": {
+      "en": "Send it to the Recycle Bin from the Scan tab.",
+      "fr": "Envoie-le à la Corbeille depuis l’onglet Analyse."
+    }
+  },
+  {
+    "id": "temp-file",
+    "match": [
+      "**\\*.tmp",
+      "**\\~$*"
+    ],
+    "generic": true,
+    "verdict": "safe",
+    "what": {
+      "en": "Temporary file.",
+      "fr": "Fichier temporaire."
+    },
+    "consequence": {
+      "en": "Nothing if no program is using it right now.",
+      "fr": "Rien si aucun programme ne l’utilise en ce moment."
+    },
+    "howto": {
+      "en": "Close programs, then send it to the Recycle Bin.",
+      "fr": "Ferme les programmes, puis envoie-le à la Corbeille."
+    }
+  },
+  {
+    "id": "backup-file",
+    "match": [
+      "**\\*.bak",
+      "**\\*.old",
+      "**\\*.backup"
+    ],
+    "generic": true,
+    "verdict": "personal",
+    "what": {
+      "en": "Backup copy of another file.",
+      "fr": "Copie de sauvegarde d’un autre fichier."
+    },
+    "consequence": {
+      "en": "Nothing if the original is fine; otherwise it may be your only copy.",
+      "fr": "Rien si l’original est intact ; sinon c’est peut-être ta seule copie."
+    },
+    "howto": {
+      "en": "Check the original, then send it to the Recycle Bin.",
+      "fr": "Vérifie l’original, puis envoie-la à la Corbeille."
+    }
+  },
+  {
+    "id": "debug-symbols",
+    "match": [
+      "**\\*.pdb"
+    ],
+    "generic": true,
+    "verdict": "safe",
+    "what": {
+      "en": "Debug symbols: only used to debug the program.",
+      "fr": "Symboles de débogage : servent seulement à déboguer le programme."
+    },
+    "consequence": {
+      "en": "The program still runs; only crash analysis loses detail.",
+      "fr": "Le programme marche toujours ; seule l’analyse de plantage perd du détail."
+    },
+    "howto": {
+      "en": "Send it to the Recycle Bin, or uninstall the program if unused.",
+      "fr": "Envoie-le à la Corbeille, ou désinstalle le programme s’il ne sert plus."
+    }
+  },
+  {
+    "id": "log-file",
+    "match": [
+      "**\\*.log",
+      "**\\*.etl"
+    ],
+    "generic": true,
+    "verdict": "safe",
+    "what": {
+      "en": "Log file: history written by a program.",
+      "fr": "Fichier journal : historique écrit par un programme."
+    },
+    "consequence": {
+      "en": "Only that history is lost; the program writes a new one.",
+      "fr": "Seul cet historique est perdu ; le programme en écrit un nouveau."
+    },
+    "howto": {
+      "en": "Send it to the Recycle Bin if the program is closed.",
+      "fr": "Envoie-le à la Corbeille si le programme est fermé."
+    }
+  },
+  {
+    "id": "archive-file",
+    "match": [
+      "**\\*.zip",
+      "**\\*.7z",
+      "**\\*.rar",
+      "**\\*.tar",
+      "**\\*.gz"
+    ],
+    "generic": true,
+    "verdict": "personal",
+    "what": {
+      "en": "Archive (compressed files).",
+      "fr": "Archive (fichiers compressés)."
+    },
+    "consequence": {
+      "en": "Nothing if you already extracted it; otherwise its content is lost.",
+      "fr": "Rien si tu l’as déjà décompressée ; sinon son contenu est perdu."
+    },
+    "howto": {
+      "en": "Check you have the content elsewhere, then send it to the Recycle Bin.",
+      "fr": "Vérifie que tu as le contenu ailleurs, puis envoie-la à la Corbeille."
+    }
+  },
+  {
+    "id": "media-file",
+    "match": [
+      "**\\*.mp4",
+      "**\\*.mkv",
+      "**\\*.mov",
+      "**\\*.avi",
+      "**\\*.wmv",
+      "**\\*.webm",
+      "**\\*.jpg",
+      "**\\*.jpeg",
+      "**\\*.png",
+      "**\\*.heic",
+      "**\\*.raw",
+      "**\\*.cr2",
+      "**\\*.nef",
+      "**\\*.psd",
+      "**\\*.mp3",
+      "**\\*.wav",
+      "**\\*.flac"
+    ],
+    "generic": true,
+    "verdict": "personal",
+    "what": {
+      "en": "Photo, video or audio file.",
+      "fr": "Photo, vidéo ou fichier audio."
+    },
+    "consequence": {
+      "en": "Lost for good unless you have a copy elsewhere.",
+      "fr": "Perdu définitivement si tu n’en as pas de copie ailleurs."
+    },
+    "howto": {
+      "en": "Review it in the Photos & videos tab; move to an external drive or the cloud before deleting.",
+      "fr": "Regarde-le dans l’onglet Photos & vidéos ; déplace-le sur un disque externe ou le cloud avant de supprimer."
+    }
+  },
+  {
+    "id": "personal-folders",
+    "match": [
+      "%USERPROFILE%\\Documents",
+      "%USERPROFILE%\\Pictures",
+      "%USERPROFILE%\\Videos",
+      "%USERPROFILE%\\Music",
+      "%USERPROFILE%\\Desktop",
+      "%USERPROFILE%\\Downloads"
+    ],
+    "generic": true,
+    "verdict": "personal",
+    "what": {
+      "en": "Your personal files.",
+      "fr": "Tes fichiers personnels."
+    },
+    "consequence": {
+      "en": "Only you know if you still need them.",
+      "fr": "Toi seul sais si tu en as encore besoin."
+    },
+    "howto": {
+      "en": "Sort by size and date; send what you don’t need to the Recycle Bin, or move it to an external drive.",
+      "fr": "Trie par taille et date ; envoie l’inutile à la Corbeille, ou déplace-le sur un disque externe."
+    }
+  },
+  {
+    "id": "windows-folder",
+    "match": [
+      "%SystemRoot%"
+    ],
+    "generic": true,
+    "verdict": "system",
+    "what": {
+      "en": "Windows system files.",
+      "fr": "Fichiers système de Windows."
+    },
+    "consequence": {
+      "en": "Deleting anything here can stop Windows from starting.",
+      "fr": "Supprimer quoi que ce soit ici peut empêcher Windows de démarrer."
+    },
+    "howto": {
+      "en": "Only through Kleaner Cleanup (system and heavy cleanups) or Windows tools.",
+      "fr": "Uniquement via le Nettoyage de Kleaner (nettoyages système et lourds) ou les outils de Windows."
+    }
+  },
+  {
+    "id": "program-files",
+    "match": [
+      "%ProgramFiles%\\*",
+      "%ProgramFiles(x86)%\\*",
+      "%LOCALAPPDATA%\\Programs\\*"
+    ],
+    "generic": true,
+    "verdict": "uninstall",
+    "what": {
+      "en": "Installed program: {1}.",
+      "fr": "Programme installé : {1}."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks it and leaves leftovers in Windows.",
+      "fr": "Supprimer à la main le casse et laisse des restes dans Windows."
+    },
+    "howto": {
+      "en": "Uninstall it from the Programs tab.",
+      "fr": "Désinstalle-le depuis l’onglet Programmes."
+    }
+  },
+  {
+    "id": "store-app-data",
+    "match": [
+      "%LOCALAPPDATA%\\Packages\\*"
+    ],
+    "generic": true,
+    "verdict": "breaks",
+    "what": {
+      "en": "Data of the Store app {1}.",
+      "fr": "Données de l’appli du Store {1}."
+    },
+    "consequence": {
+      "en": "The app loses its settings, logins and local files.",
+      "fr": "L’appli perd ses réglages, connexions et fichiers locaux."
+    },
+    "howto": {
+      "en": "Settings → Apps → the app → Advanced options → Reset, or uninstall it.",
+      "fr": "Paramètres → Applications → l’appli → Options avancées → Réinitialiser, ou désinstalle-la."
+    }
+  },
+  {
+    "id": "app-data-local",
+    "match": [
+      "%LOCALAPPDATA%\\*",
+      "%APPDATA%\\*",
+      "%LOCALAPPDATA%Low\\*"
+    ],
+    "generic": true,
+    "verdict": "breaks",
+    "what": {
+      "en": "Data and settings of the app « {1} ».",
+      "fr": "Données et réglages de l’appli « {1} »."
+    },
+    "consequence": {
+      "en": "The app may lose settings, logins or files. Its cache alone is usually safe.",
+      "fr": "L’appli peut perdre réglages, connexions ou fichiers. Son cache seul est en général sans risque."
+    },
+    "howto": {
+      "en": "Use the app’s own clear-cache option, or uninstall the app if you no longer use it.",
+      "fr": "Utilise l’option « vider le cache » de l’appli, ou désinstalle-la si tu ne t’en sers plus."
+    }
+  },
+  {
+    "id": "program-data",
+    "match": [
+      "%ProgramData%\\*"
+    ],
+    "generic": true,
+    "verdict": "breaks",
+    "what": {
+      "en": "Shared data of « {1} » for all users.",
+      "fr": "Données partagées de « {1} » pour tous les utilisateurs."
+    },
+    "consequence": {
+      "en": "The program may stop working or need repairing.",
+      "fr": "Le programme peut cesser de marcher ou devoir être réparé."
+    },
+    "howto": {
+      "en": "Uninstall the program if you no longer use it.",
+      "fr": "Désinstalle le programme si tu ne t’en sers plus."
+    }
+  },
+  {
+    "id": "other-user-data",
+    "match": [
+      "?:\\Users\\*\\AppData"
+    ],
+    "generic": true,
+    "verdict": "breaks",
+    "what": {
+      "en": "App data of the Windows user {1}.",
+      "fr": "Données d’applis de l’utilisateur Windows {1}."
+    },
+    "consequence": {
+      "en": "That user’s apps lose settings, logins or files.",
+      "fr": "Les applis de cet utilisateur perdent réglages, connexions ou fichiers."
+    },
+    "howto": {
+      "en": "Log in as {1} to clean, or remove the account in Settings → Accounts if it is unused.",
+      "fr": "Connecte-toi en tant que {1} pour nettoyer, ou supprime le compte dans Paramètres → Comptes s’il ne sert plus."
+    }
+  },
+  {
+    "id": "dev-dotfolder",
+    "match": [
+      "%USERPROFILE%\\.*"
+    ],
+    "generic": true,
+    "verdict": "breaks",
+    "what": {
+      "en": "Settings or cache of a command-line tool ({1}).",
+      "fr": "Réglages ou cache d’un outil en ligne de commande ({1})."
+    },
+    "consequence": {
+      "en": "The tool may lose its config, keys or downloads (e.g. .ssh holds your SSH keys).",
+      "fr": "L’outil peut perdre sa config, ses clés ou ses téléchargements (ex. .ssh contient tes clés SSH)."
+    },
+    "howto": {
+      "en": "Use the tool’s own clean command (see its documentation).",
+      "fr": "Utilise la commande de nettoyage de l’outil (voir sa documentation)."
+    }
+  }
+]

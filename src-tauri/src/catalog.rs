@@ -101,7 +101,7 @@ fn wildcard(pattern: &str, name: &str) -> bool {
 }
 
 /// Remplace `%VAR%` par sa valeur. `None` si une variable n'existe pas.
-fn expand_env(s: &str) -> Option<String> {
+pub(crate) fn expand_env(s: &str) -> Option<String> {
     let mut out = String::new();
     let mut parts = s.split('%');
     out.push_str(parts.next()?);

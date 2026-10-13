@@ -57,6 +57,43 @@ pub fn enable_backup_privilege() -> bool {
     }
 }
 
+pub const RELAUNCH_ARG: &str = "--relaunch";
+
+/// Une seule fenêtre Kleaner à la fois. Renvoie `false` si une autre instance tourne déjà :
+/// elle est alors ramenée au premier plan et l'appelant doit quitter.
+/// Après une relance en admin, on attend jusqu'à 10 s que l'ancienne instance se ferme.
+pub fn single_instance() -> bool {
+    use windows_sys::Win32::Foundation::{WAIT_ABANDONED, WAIT_OBJECT_0};
+    use windows_sys::Win32::System::Threading::{CreateMutexW, WaitForSingleObject};
+    let relaunch = std::env::args().any(|a| a == RELAUNCH_ARG);
+    let name = wide("Local\\Kleaner.SingleInstance".as_ref());
+    let mutex = unsafe { CreateMutexW(std::ptr::null(), 0, name.as_ptr()) };
+    if mutex.is_null() {
+        // Mutex créé par une instance admin, illisible depuis une instance utilisateur.
+        focus_existing();
+        return false;
+    }
+    let wait = unsafe { WaitForSingleObject(mutex, if relaunch { 10_000 } else { 0 }) };
+    // Le mutex reste possédé jusqu'à la fin du processus : on ne ferme pas le handle.
+    if wait == WAIT_OBJECT_0 || wait == WAIT_ABANDONED {
+        return true;
+    }
+    focus_existing();
+    false
+}
+
+fn focus_existing() {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowW, SW_RESTORE, SetForegroundWindow, ShowWindow};
+    let title = wide("Kleaner".as_ref());
+    unsafe {
+        let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
+        if !hwnd.is_null() {
+            ShowWindow(hwnd, SW_RESTORE);
+            SetForegroundWindow(hwnd);
+        }
+    }
+}
+
 fn wide(s: &std::ffi::OsStr) -> Vec<u16> {
     use std::os::windows::ffi::OsStrExt;
     s.encode_wide().chain([0]).collect()
@@ -67,12 +104,14 @@ pub fn relaunch_as_admin() -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let verb = wide("runas".as_ref());
     let file = wide(exe.as_os_str());
+    // La nouvelle instance attend que celle-ci se ferme (voir `single_instance`).
+    let params = wide(RELAUNCH_ARG.as_ref());
     let r = unsafe {
         ShellExecuteW(
             std::ptr::null_mut(),
             verb.as_ptr(),
             file.as_ptr(),
-            std::ptr::null(),
+            params.as_ptr(),
             std::ptr::null(),
             SW_SHOWNORMAL,
         )

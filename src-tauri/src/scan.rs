@@ -92,6 +92,25 @@ pub struct ScanResult {
     pub videos: Vec<Item>,
     pub images: Vec<Item>,
     pub categories: Vec<CategoryTotal>,
+    /// Taille et espace libre de chaque disque analysé.
+    pub drives: Vec<DriveSpace>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct DriveSpace {
+    pub root: String,
+    pub total: u64,
+    pub free: u64,
+}
+
+/// Taille et espace libre d'un disque (GetDiskFreeSpaceExW). `None` si illisible.
+pub fn drive_space(root: &Path) -> Option<DriveSpace> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::Storage::FileSystem::GetDiskFreeSpaceExW;
+    let wide: Vec<u16> = root.as_os_str().encode_wide().chain([0]).collect();
+    let (mut free, mut total) = (0u64, 0u64);
+    let ok = unsafe { GetDiskFreeSpaceExW(wide.as_ptr(), &mut free, &mut total, std::ptr::null_mut()) };
+    (ok != 0).then(|| DriveSpace { root: root.display().to_string(), total, free })
 }
 
 /// Compteurs lus par le fil de progression pendant le scan.
@@ -347,6 +366,7 @@ pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> Scan
         videos: sorted(ctx.videos),
         images: sorted(ctx.images),
         categories,
+        drives: roots.iter().filter_map(|r| drive_space(r)).collect(),
     }
 }
 
@@ -559,6 +579,12 @@ mod tests {
         for i in r.top_files.iter().take(5) {
             println!("  fichier {:>8.2} Go  {}", i.size as f64 / (1u64 << 30) as f64, i.path);
         }
+    }
+
+    #[test]
+    fn c_drive_space_is_consistent() {
+        let d = drive_space(Path::new("C:\\")).unwrap();
+        assert!(d.total > 0 && d.free <= d.total);
     }
 
     #[test]
