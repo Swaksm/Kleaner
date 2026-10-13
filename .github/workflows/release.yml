@@ -6,10 +6,14 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   release:
     runs-on: windows-latest
+    env:
+      # Signature SignPath : active seulement quand le secret existe (voir docs/signing.md).
+      SIGNING: ${{ secrets.SIGNPATH_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,11 +28,39 @@ jobs:
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       # Exe portable seul, pas d'installeur.
       - run: npm run tauri build -- --no-bundle
-      - name: SHA-256
+      - shell: pwsh
+        run: Copy-Item src-tauri/target/release/kleaner.exe kleaner.exe
+
+      - name: Upload unsigned exe for signing
+        if: env.SIGNING == 'true'
+        id: unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: kleaner-unsigned
+          path: kleaner.exe
+      - name: Sign with SignPath
+        if: env.SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: kleaner
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: portable-exe
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+      - name: Use signed exe
+        if: env.SIGNING == 'true'
         shell: pwsh
         run: |
-          Copy-Item src-tauri/target/release/kleaner.exe kleaner.exe
-          (Get-FileHash kleaner.exe -Algorithm SHA256).Hash.ToLower() + "  kleaner.exe" | Out-File -Encoding ascii kleaner.exe.sha256
+          Copy-Item signed/kleaner.exe kleaner.exe -Force
+          $sig = Get-AuthenticodeSignature kleaner.exe
+          if ($sig.Status -ne 'Valid') { throw "Signature invalide : $($sig.Status)" }
+
+      - name: SHA-256
+        shell: pwsh
+        run: (Get-FileHash kleaner.exe -Algorithm SHA256).Hash.ToLower() + "  kleaner.exe" | Out-File -Encoding ascii kleaner.exe.sha256
       - uses: softprops/action-gh-release@v2
         with:
           files: |

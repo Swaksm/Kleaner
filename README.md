@@ -8,8 +8,11 @@ Free, open-source and **transparent** Windows cleaner. Kleaner scans your drives
 
 - **Scans** the drives you choose (internal, USB…): free space, largest files and folders, breakdown by type (charts), sortable by size, name or date.
 - **Tells you if deleting something breaks it**: every large file and folder gets a verdict (safe, clean with its tool, uninstall, breaks something, your files, system, unknown) with what it is, what happens if you delete it, and how to free the space properly. Rules are hand-written in [`knowledge.json`](src-tauri/knowledge.json); Kleaner never guesses. Critical files ask for an extra confirmation.
+- **Duplicates**: finds identical photos, videos, documents and archives (compared byte by byte) and keeps one copy.
+- **Old projects**: finds `node_modules`, `.venv`, `target`, `build`… in projects you haven’t touched for months, with the command that rebuilds them.
+- **Disk map**: every folder as a rectangle sized by its space; click to go inside.
 - **Photos & videos**: lists every personal photo and video, sortable and searchable, with a list or grid view and a built-in viewer; send the ones you no longer need to the Recycle Bin.
-- **Cleans** the items of the [catalog](#catalog): each one says what it removes, why it is useless and what changes for you. Nothing is ticked in advance.
+- **Cleans** the items of the [catalog](#catalog): each one says what it removes, why it is useless and what changes for you. Nothing is ticked in advance, and « Preview the exact list » shows every file before anything is deleted.
 - **Uninstalls** programs by launching their official uninstaller, with real size on disk and last launch date.
 - **AI report** (optional, offline): generates a Markdown summary + prompt you paste into the AI of your choice; it asks you questions ("do you still use…?") and tells you what to remove. Kleaner sends nothing.
 - **Logs** every action to `%LOCALAPPDATA%\Kleaner\journal.log`.
@@ -35,6 +38,15 @@ Free, open-source and **transparent** Windows cleaner. Kleaner scans your drives
 
    It must match the content of `kleaner.exe.sha256`.
 3. Run `kleaner.exe`. Nothing to install: it is a portable exe.
+
+Or with a package manager:
+
+```powershell
+scoop bucket add kleaner https://github.com/Swaksm/Kleaner
+scoop install kleaner/kleaner
+```
+
+(winget: coming soon, see [docs/distribution.md](docs/distribution.md).)
 
 **Windows warning (SmartScreen).** The exe is not signed (a certificate is expensive for a free project). Windows shows "Windows protected your PC": click *More info* then *Run anyway*. Some antivirus tools may also react, because Kleaner deletes files and can ask for admin rights. All the code is readable here, and the exe is built by GitHub Actions from this code.
 

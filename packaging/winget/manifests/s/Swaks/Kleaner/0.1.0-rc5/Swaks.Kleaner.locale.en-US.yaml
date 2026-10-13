@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: Swaks.Kleaner
+PackageVersion: 0.1.0-rc5
+PackageLocale: en-US
+Publisher: swaks
+PublisherUrl: https://github.com/Swaksm
+PackageName: Kleaner
+PackageUrl: https://github.com/Swaksm/Kleaner
+License: MIT
+LicenseUrl: https://github.com/Swaksm/Kleaner/blob/main/LICENSE
+ShortDescription: Free, open-source and transparent Windows disk cleaner.
+Description: Scans your drives, explains what takes up space and whether deleting it breaks anything, and safely removes caches and temporary files. No telemetry, no network.
+Tags:
+  - cleaner
+  - disk-space
+  - disk-cleanup
+  - storage
+  - open-source
+ReleaseNotesUrl: https://github.com/Swaksm/Kleaner/releases/tag/v0.1.0-rc5
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

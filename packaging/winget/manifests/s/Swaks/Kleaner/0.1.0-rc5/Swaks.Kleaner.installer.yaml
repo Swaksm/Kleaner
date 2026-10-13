@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+PackageIdentifier: Swaks.Kleaner
+PackageVersion: 0.1.0-rc5
+InstallerType: portable
+Commands:
+  - kleaner
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/Swaksm/Kleaner/releases/download/v0.1.0-rc5/kleaner.exe
+    InstallerSha256: A13D4360A9FB376883C0BED93E59374F78ED4B2DDA61CBFA5F8A2764D22582D5
+ManifestType: installer
+ManifestVersion: 1.6.0

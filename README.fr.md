@@ -8,8 +8,11 @@ Nettoyeur Windows gratuit, open source et **transparent**. Kleaner analyse tes d
 
 - **Analyse** les disques que tu choisis (internes, USB…) : espace libre, plus gros fichiers et dossiers, répartition par type (graphiques), tri par taille, nom ou date.
 - **Dit si supprimer quelque chose casse tout** : chaque gros fichier et dossier a un verdict (supprimable, à nettoyer avec son outil, à désinstaller, casse quelque chose, tes fichiers, système, inconnu) avec ce que c'est, ce qui se passe si tu le supprimes, et comment libérer la place proprement. Règles écrites à la main dans [`knowledge.json`](src-tauri/knowledge.json) ; Kleaner ne devine jamais. Les fichiers critiques demandent une confirmation en plus.
+- **Doublons** : retrouve les photos, vidéos, documents et archives identiques (comparés octet par octet) et n’en garde qu’une copie.
+- **Vieux projets** : retrouve les `node_modules`, `.venv`, `target`, `build`… des projets pas touchés depuis des mois, avec la commande qui les recrée.
+- **Carte du disque** : chaque dossier en rectangle à la taille de sa place ; clique pour entrer.
 - **Photos & vidéos** : toutes tes photos et vidéos personnelles, triables et cherchables, en liste ou en grille, avec une visionneuse intégrée ; envoie à la Corbeille celles dont tu n'as plus besoin.
-- **Nettoie** les éléments du [catalogue](#catalogue) : chacun dit ce qu'il supprime, pourquoi c'est inutile et ce que ça change. Rien n'est coché d'avance.
+- **Nettoie** les éléments du [catalogue](#catalogue) : chacun dit ce qu'il supprime, pourquoi c'est inutile et ce que ça change. Rien n'est coché d'avance, et « Voir la liste exacte » montre chaque fichier avant toute suppression.
 - **Désinstalle** des programmes via leur désinstalleur officiel, avec taille réelle et date du dernier lancement.
 - **Rapport pour une IA** (optionnel, hors ligne) : un résumé Markdown + un prompt à coller dans l'IA de ton choix ; elle te pose des questions (« utilises-tu encore… ? ») et te dit quoi supprimer. Kleaner n'envoie rien.
 - **Journalise** chaque action dans `%LOCALAPPDATA%\Kleaner\journal.log`.
@@ -35,6 +38,15 @@ Nettoyeur Windows gratuit, open source et **transparent**. Kleaner analyse tes d
 
    Le résultat doit être identique au contenu de `kleaner.exe.sha256`.
 3. Lance `kleaner.exe`. Rien à installer : c'est un exe portable. La langue se change dans *Settings → Language*.
+
+Ou avec un gestionnaire de paquets :
+
+```powershell
+scoop bucket add kleaner https://github.com/Swaksm/Kleaner
+scoop install kleaner/kleaner
+```
+
+(winget : bientôt, voir [docs/distribution.md](docs/distribution.md).)
 
 **Avertissement Windows (SmartScreen).** L'exe n'est pas signé. Windows affiche « Windows a protégé votre ordinateur » : clique sur *Informations complémentaires* puis *Exécuter quand même*. Certains antivirus peuvent réagir, car Kleaner supprime des fichiers et peut demander les droits admin. Tout le code est lisible ici, et l'exe est compilé par GitHub Actions à partir de ce code.
 

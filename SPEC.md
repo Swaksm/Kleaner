@@ -290,3 +290,12 @@ En admin, l'analyse active le privilège de sauvegarde de Windows (`SeBackupPriv
 - **Thème** : Comme Windows (défaut, suit en direct) / Clair / Sombre.
 - **À propos** : ce que fait / ne fait pas Kleaner, crédits swaks, liens GitHub. Les liens ouvrent le navigateur ; Kleaner lui-même ne se connecte toujours à rien.
 - README anglais (`README.md`) et français (`README.fr.md`) séparés.
+
+## Révision 5
+
+- **Doublons** : contenu personnel uniquement (photos, vidéos, musique, documents, archives, installeurs ≥ 1 Mo, hors dossiers de programmes et `node_modules`). Taille → échantillon → contenu complet (blake3). Une copie reste toujours ; envoi à la Corbeille.
+- **Vieux projets** : dossiers régénérables (`node_modules`, `.venv`, `target`, `.next`, `build`, `.gradle`, `.dart_tool`, `obj/bin`) reconnus par leur nom + le fichier du projet à côté (`package.json`, `Cargo.toml`…), hors Electron (`resources\app`). Date = dernière modification du projet hors ces dossiers. Suppression définitive, seulement des dossiers trouvés par la dernière analyse.
+- **Carte du disque** : treemap des dossiers ≥ 64 Mo.
+- **Simulation** : « Voir la liste exacte » avant nettoyage, liste complète en fichier texte.
+- **Signature** : SignPath (gratuit open source), activée par secret ; voir `docs/signing.md`.
+- **Distribution** : bucket Scoop dans le dépôt, manifestes winget générés et validés ; voir `docs/distribution.md`. README généré par `scripts/gen-readme.cjs`.
