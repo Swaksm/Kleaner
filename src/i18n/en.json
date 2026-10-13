@@ -110,5 +110,10 @@
   "admin.badge": "Admin on",
   "analyse.fullAccess": "Full scan: protected system folders included",
   "analyse.showAll": "Show all",
-  "analyse.showLess": "Show less"
+  "analyse.showLess": "Show less",
+  "analyse.total": "Total",
+  "analyse.topDirsChart": "Where the space goes: 10 largest folders",
+  "cleanup.chart": "Recoverable space by type",
+  "cleanup.recoverable": "Recoverable",
+  "cleanup.chartAdminHint": "System and heavy cleanups are only counted in admin mode."
 }

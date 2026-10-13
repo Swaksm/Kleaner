@@ -3,6 +3,7 @@ import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
 import { CleanerCard } from "../components/CleanerCard";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { Donut } from "../components/Donut";
 import { StatusPill } from "../components/StatusPill";
 import { useT, type Key } from "../i18n/useT";
 import {
@@ -16,6 +17,8 @@ import {
 import { formatBytes } from "../lib/format";
 
 const GROUPS = ["windows", "browsers", "apps", "dev", "system"] as const;
+// Ordre fixe = ordre des couleurs du graphique.
+const CHART_GROUPS = ["windows", "browsers", "apps", "dev", "system", "heavy"] as const;
 
 export function Cleanup() {
   const { t, lang } = useT();
@@ -97,6 +100,7 @@ export function Cleanup() {
   const chosen = [...selected].map((id) => byId.get(id)!).filter(Boolean);
   const chosenBytes = chosen.reduce((s, c) => s + (estimates?.get(c.id)?.bytes ?? 0), 0);
   const freed = results?.reduce((s, r) => s + r.bytes, 0) ?? 0;
+  const recoverable = [...(estimates?.values() ?? [])].reduce((s, r) => s + r.bytes, 0);
 
   return (
     <>
@@ -122,6 +126,22 @@ export function Cleanup() {
         </div>
         {error && <StatusPill status="danger">{error}</StatusPill>}
       </Card>
+
+      {estimates && (
+        <Card title={t("cleanup.chart")}>
+          <Donut
+            centerLabel={t("cleanup.recoverable")}
+            centerValue={formatBytes(recoverable, lang)}
+            slices={CHART_GROUPS.map((g, i) => {
+              const bytes = view.cleaners
+                .filter((c) => c.group === g)
+                .reduce((s, c) => s + (estimates.get(c.id)?.bytes ?? 0), 0);
+              return { key: g, label: t(`group.${g}` as Key), value: bytes, display: formatBytes(bytes, lang), slot: i + 1 };
+            }).sort((a, b) => b.value - a.value)}
+          />
+          {!view.elevated && <p className="muted">{t("cleanup.chartAdminHint")}</p>}
+        </Card>
+      )}
 
       {results && (
         <Card title={t("cleanup.results")}>

@@ -110,5 +110,10 @@
   "admin.badge": "Admin activé",
   "analyse.fullAccess": "Analyse complète : dossiers système protégés inclus",
   "analyse.showAll": "Tout afficher",
-  "analyse.showLess": "Afficher moins"
+  "analyse.showLess": "Afficher moins",
+  "analyse.total": "Total",
+  "analyse.topDirsChart": "Où va l’espace : 10 plus gros dossiers",
+  "cleanup.chart": "Espace récupérable par type",
+  "cleanup.recoverable": "Récupérable",
+  "cleanup.chartAdminHint": "Les nettoyages système et lourds ne sont comptés qu’en mode admin."
 }

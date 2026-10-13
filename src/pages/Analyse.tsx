@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
+import { Donut } from "../components/Donut";
 import { SizeBar } from "../components/SizeBar";
 import { StatusPill } from "../components/StatusPill";
 import { ReportDialog } from "../components/ReportDialog";
@@ -14,11 +15,15 @@ import {
   onScanProgress,
   revealInExplorer,
   startScan,
+  type Category,
   type Item,
   type ScanProgress,
   type ScanResult,
 } from "../lib/api";
 import { formatBytes } from "../lib/format";
+
+// Ordre fixe des catégories = ordre des couleurs du graphique.
+const CATEGORY_ORDER: Category[] = ["videos", "images", "audio", "archives", "installers", "other"];
 
 type Phase =
   | { kind: "idle" }
@@ -123,7 +128,6 @@ export function Analyse() {
   }
 
   const r = phase.result;
-  const maxCat = Math.max(1, ...r.categories.map((c) => c.bytes));
   const chosen = r.top_files.filter((i) => selected.has(i.path));
   const chosenBytes = chosen.reduce((s, i) => s + i.size, 0);
   const showAllButton = (r.top_files.length > 50 || r.top_dirs.length > 50) && (
@@ -164,16 +168,31 @@ export function Analyse() {
       </Card>
 
       <Card title={t("analyse.categories")}>
-        {[...r.categories]
-          .sort((a, b) => b.bytes - a.bytes)
-          .map((c) => (
-            <SizeBar
-              key={c.category}
-              label={t(`cat.${c.category}` as Key)}
-              value={formatBytes(c.bytes, lang)}
-              ratio={c.bytes / maxCat}
-            />
-          ))}
+        <Donut
+          centerLabel={t("analyse.total")}
+          centerValue={formatBytes(r.bytes, lang)}
+          slices={[...r.categories]
+            .sort((a, b) => b.bytes - a.bytes)
+            .map((c) => ({
+              key: c.category,
+              label: t(`cat.${c.category}` as Key),
+              value: c.bytes,
+              display: formatBytes(c.bytes, lang),
+              // Couleur fixée par catégorie, pas par rang.
+              slot: CATEGORY_ORDER.indexOf(c.category) + 1,
+            }))}
+        />
+      </Card>
+
+      <Card title={t("analyse.topDirsChart")}>
+        {r.top_dirs.slice(0, 10).map((d) => (
+          <SizeBar
+            key={d.path}
+            label={d.path}
+            value={formatBytes(d.size, lang)}
+            ratio={d.size / Math.max(1, r.top_dirs[0]?.size ?? 1)}
+          />
+        ))}
       </Card>
 
       <Card title={t("analyse.topFiles")}>
