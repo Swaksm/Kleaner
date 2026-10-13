@@ -2,11 +2,25 @@
   {
     "id": "user-temp",
     "group": "windows",
-    "label": { "fr": "Fichiers temporaires", "en": "Temporary files" },
-    "what": { "fr": "Fichiers laissés dans %TEMP% par les installeurs et les applis.", "en": "Files left in %TEMP% by installers and apps." },
-    "why": { "fr": "Ils ne servent qu'au moment où ils sont créés. On ne touche qu'à ceux de plus de 24 h.", "en": "They are only used when created. Only files older than 24 h are touched." },
-    "effect": { "fr": "Rien.", "en": "Nothing." },
-    "paths": ["%TEMP%"],
+    "label": {
+      "fr": "Fichiers temporaires",
+      "en": "Temporary files"
+    },
+    "what": {
+      "fr": "Fichiers laissés dans %TEMP% par les installeurs et les applis.",
+      "en": "Files left in %TEMP% by installers and apps."
+    },
+    "why": {
+      "fr": "Ils ne servent qu'au moment où ils sont créés. On ne touche qu'à ceux de plus de 24 h.",
+      "en": "They are only used when created. Only files older than 24 h are touched."
+    },
+    "effect": {
+      "fr": "Rien.",
+      "en": "Nothing."
+    },
+    "paths": [
+      "%TEMP%"
+    ],
     "older_than_hours": 24,
     "mode": "delete",
     "level": "safe"
@@ -14,33 +28,76 @@
   {
     "id": "thumbnails",
     "group": "windows",
-    "label": { "fr": "Cache des miniatures", "en": "Thumbnail cache" },
-    "what": { "fr": "Aperçus d'images et d'icônes mémorisés par l'Explorateur.", "en": "Image and icon previews stored by File Explorer." },
-    "why": { "fr": "Windows les recrée automatiquement quand tu ouvres un dossier.", "en": "Windows rebuilds them automatically when you open a folder." },
-    "effect": { "fr": "Miniatures un peu plus lentes à apparaître la première fois.", "en": "Thumbnails appear a little slower the first time." },
-    "paths": ["%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"],
-    "only": ["thumbcache_*.db", "iconcache_*.db"],
+    "label": {
+      "fr": "Cache des miniatures",
+      "en": "Thumbnail cache"
+    },
+    "what": {
+      "fr": "Aperçus d'images et d'icônes mémorisés par l'Explorateur.",
+      "en": "Image and icon previews stored by File Explorer."
+    },
+    "why": {
+      "fr": "Windows les recrée automatiquement quand tu ouvres un dossier.",
+      "en": "Windows rebuilds them automatically when you open a folder."
+    },
+    "effect": {
+      "fr": "Miniatures un peu plus lentes à apparaître la première fois.",
+      "en": "Thumbnails appear a little slower the first time."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"
+    ],
+    "only": [
+      "thumbcache_*.db",
+      "iconcache_*.db"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "inet-cache",
     "group": "windows",
-    "label": { "fr": "Cache Internet de Windows", "en": "Windows Internet cache" },
-    "what": { "fr": "Copies de pages et fichiers web gardées par Windows et les anciennes applis.", "en": "Copies of web pages and files kept by Windows and older apps." },
-    "why": { "fr": "Ce sont des copies : elles sont retéléchargées au besoin.", "en": "They are copies: downloaded again when needed." },
-    "effect": { "fr": "Rien.", "en": "Nothing." },
-    "paths": ["%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache"],
+    "label": {
+      "fr": "Cache Internet de Windows",
+      "en": "Windows Internet cache"
+    },
+    "what": {
+      "fr": "Copies de pages et fichiers web gardées par Windows et les anciennes applis.",
+      "en": "Copies of web pages and files kept by Windows and older apps."
+    },
+    "why": {
+      "fr": "Ce sont des copies : elles sont retéléchargées au besoin.",
+      "en": "They are copies: downloaded again when needed."
+    },
+    "effect": {
+      "fr": "Rien.",
+      "en": "Nothing."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "crash-dumps",
     "group": "windows",
-    "label": { "fr": "Rapports de plantage", "en": "Crash dumps" },
-    "what": { "fr": "Copies de la mémoire des applis qui ont planté, et rapports d'erreurs Windows.", "en": "Memory copies of apps that crashed, and Windows error reports." },
-    "why": { "fr": "Utiles seulement à un développeur qui enquête sur un plantage précis.", "en": "Only useful to a developer investigating a specific crash." },
-    "effect": { "fr": "Rien.", "en": "Nothing." },
+    "label": {
+      "fr": "Rapports de plantage",
+      "en": "Crash dumps"
+    },
+    "what": {
+      "fr": "Copies de la mémoire des applis qui ont planté, et rapports d'erreurs Windows.",
+      "en": "Memory copies of apps that crashed, and Windows error reports."
+    },
+    "why": {
+      "fr": "Utiles seulement à un développeur qui enquête sur un plantage précis.",
+      "en": "Only useful to a developer investigating a specific crash."
+    },
+    "effect": {
+      "fr": "Rien.",
+      "en": "Nothing."
+    },
     "paths": [
       "%LOCALAPPDATA%\\CrashDumps",
       "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportArchive",
@@ -53,10 +110,22 @@
   {
     "id": "shader-cache",
     "group": "windows",
-    "label": { "fr": "Caches de la carte graphique", "en": "Graphics card caches" },
-    "what": { "fr": "Shaders compilés par DirectX et les pilotes NVIDIA ou AMD.", "en": "Shaders compiled by DirectX and NVIDIA or AMD drivers." },
-    "why": { "fr": "Ils se recompilent automatiquement au prochain lancement des jeux et applis.", "en": "They are recompiled automatically the next time games and apps start." },
-    "effect": { "fr": "Premier lancement des jeux un peu plus long.", "en": "Games take a little longer to start the first time." },
+    "label": {
+      "fr": "Caches de la carte graphique",
+      "en": "Graphics card caches"
+    },
+    "what": {
+      "fr": "Shaders compilés par DirectX et les pilotes NVIDIA ou AMD.",
+      "en": "Shaders compiled by DirectX and NVIDIA or AMD drivers."
+    },
+    "why": {
+      "fr": "Ils se recompilent automatiquement au prochain lancement des jeux et applis.",
+      "en": "They are recompiled automatically the next time games and apps start."
+    },
+    "effect": {
+      "fr": "Premier lancement des jeux un peu plus long.",
+      "en": "Games take a little longer to start the first time."
+    },
     "paths": [
       "%LOCALAPPDATA%\\D3DSCache",
       "%LOCALAPPDATA%\\NVIDIA\\DXCache",
@@ -71,20 +140,45 @@
   {
     "id": "recycle-bin",
     "group": "windows",
-    "label": { "fr": "Corbeille", "en": "Recycle Bin" },
-    "what": { "fr": "Tous les fichiers actuellement dans la Corbeille, sur tous les disques.", "en": "All files currently in the Recycle Bin, on every drive." },
-    "why": { "fr": "Tu les as déjà supprimés : ils n'attendent qu'une confirmation.", "en": "You already deleted them: they are only waiting for confirmation." },
-    "effect": { "fr": "Irréversible : ces fichiers ne pourront plus être restaurés.", "en": "Irreversible: these files can no longer be restored." },
+    "label": {
+      "fr": "Corbeille",
+      "en": "Recycle Bin"
+    },
+    "what": {
+      "fr": "Tous les fichiers actuellement dans la Corbeille, sur tous les disques.",
+      "en": "All files currently in the Recycle Bin, on every drive."
+    },
+    "why": {
+      "fr": "Tu les as déjà supprimés : ils n'attendent qu'une confirmation.",
+      "en": "You already deleted them: they are only waiting for confirmation."
+    },
+    "effect": {
+      "fr": "Irréversible : ces fichiers ne pourront plus être restaurés.",
+      "en": "Irreversible: these files can no longer be restored."
+    },
     "mode": "command",
-    "level": "heavy"
+    "level": "heavy",
+    "command": "SHEmptyRecycleBinW (API Windows)"
   },
   {
     "id": "browser-chrome",
     "group": "browsers",
-    "label": { "fr": "Google Chrome : cache", "en": "Google Chrome: cache" },
-    "what": { "fr": "Copies locales des pages, scripts et shaders déjà chargés.", "en": "Local copies of pages, scripts and shaders already loaded." },
-    "why": { "fr": "Chrome les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Chrome downloads them again when needed. Cookies, passwords and history are untouched." },
-    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "label": {
+      "fr": "Google Chrome : cache",
+      "en": "Google Chrome: cache"
+    },
+    "what": {
+      "fr": "Copies locales des pages, scripts et shaders déjà chargés.",
+      "en": "Local copies of pages, scripts and shaders already loaded."
+    },
+    "why": {
+      "fr": "Chrome les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.",
+      "en": "Chrome downloads them again when needed. Cookies, passwords and history are untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.",
+      "en": "You stay logged in. Sites load a little slower the first time."
+    },
     "paths": [
       "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\Cache",
       "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\Code Cache",
@@ -92,17 +186,31 @@
       "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\ShaderCache",
       "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\GrShaderCache"
     ],
-    "close": ["chrome.exe"],
+    "close": [
+      "chrome.exe"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "browser-edge",
     "group": "browsers",
-    "label": { "fr": "Microsoft Edge : cache", "en": "Microsoft Edge: cache" },
-    "what": { "fr": "Copies locales des pages, scripts et shaders déjà chargés.", "en": "Local copies of pages, scripts and shaders already loaded." },
-    "why": { "fr": "Edge les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Edge downloads them again when needed. Cookies, passwords and history are untouched." },
-    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "label": {
+      "fr": "Microsoft Edge : cache",
+      "en": "Microsoft Edge: cache"
+    },
+    "what": {
+      "fr": "Copies locales des pages, scripts et shaders déjà chargés.",
+      "en": "Local copies of pages, scripts and shaders already loaded."
+    },
+    "why": {
+      "fr": "Edge les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.",
+      "en": "Edge downloads them again when needed. Cookies, passwords and history are untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.",
+      "en": "You stay logged in. Sites load a little slower the first time."
+    },
     "paths": [
       "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\Cache",
       "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\Code Cache",
@@ -110,17 +218,31 @@
       "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\ShaderCache",
       "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\GrShaderCache"
     ],
-    "close": ["msedge.exe"],
+    "close": [
+      "msedge.exe"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "browser-brave",
     "group": "browsers",
-    "label": { "fr": "Brave : cache", "en": "Brave: cache" },
-    "what": { "fr": "Copies locales des pages, scripts et shaders déjà chargés.", "en": "Local copies of pages, scripts and shaders already loaded." },
-    "why": { "fr": "Brave les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Brave downloads them again when needed. Cookies, passwords and history are untouched." },
-    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "label": {
+      "fr": "Brave : cache",
+      "en": "Brave: cache"
+    },
+    "what": {
+      "fr": "Copies locales des pages, scripts et shaders déjà chargés.",
+      "en": "Local copies of pages, scripts and shaders already loaded."
+    },
+    "why": {
+      "fr": "Brave les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.",
+      "en": "Brave downloads them again when needed. Cookies, passwords and history are untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.",
+      "en": "You stay logged in. Sites load a little slower the first time."
+    },
     "paths": [
       "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\*\\Cache",
       "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\*\\Code Cache",
@@ -128,76 +250,148 @@
       "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\ShaderCache",
       "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\GrShaderCache"
     ],
-    "close": ["brave.exe"],
+    "close": [
+      "brave.exe"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "browser-opera",
     "group": "browsers",
-    "label": { "fr": "Opera : cache", "en": "Opera: cache" },
-    "what": { "fr": "Copies locales des pages et scripts déjà chargés.", "en": "Local copies of pages and scripts already loaded." },
-    "why": { "fr": "Opera les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Opera downloads them again when needed. Cookies, passwords and history are untouched." },
-    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "label": {
+      "fr": "Opera : cache",
+      "en": "Opera: cache"
+    },
+    "what": {
+      "fr": "Copies locales des pages et scripts déjà chargés.",
+      "en": "Local copies of pages and scripts already loaded."
+    },
+    "why": {
+      "fr": "Opera les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.",
+      "en": "Opera downloads them again when needed. Cookies, passwords and history are untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.",
+      "en": "You stay logged in. Sites load a little slower the first time."
+    },
     "paths": [
       "%LOCALAPPDATA%\\Opera Software\\Opera Stable\\Cache",
       "%LOCALAPPDATA%\\Opera Software\\Opera GX Stable\\Cache"
     ],
-    "close": ["opera.exe"],
+    "close": [
+      "opera.exe"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "browser-firefox",
     "group": "browsers",
-    "label": { "fr": "Firefox : cache", "en": "Firefox: cache" },
-    "what": { "fr": "Copies locales des pages et fichiers déjà chargés (dossier cache2).", "en": "Local copies of pages and files already loaded (cache2 folder)." },
-    "why": { "fr": "Firefox les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Firefox downloads them again when needed. Cookies, passwords and history are untouched." },
-    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
-    "paths": ["%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\cache2"],
-    "close": ["firefox.exe"],
+    "label": {
+      "fr": "Firefox : cache",
+      "en": "Firefox: cache"
+    },
+    "what": {
+      "fr": "Copies locales des pages et fichiers déjà chargés (dossier cache2).",
+      "en": "Local copies of pages and files already loaded (cache2 folder)."
+    },
+    "why": {
+      "fr": "Firefox les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.",
+      "en": "Firefox downloads them again when needed. Cookies, passwords and history are untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.",
+      "en": "You stay logged in. Sites load a little slower the first time."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\cache2"
+    ],
+    "close": [
+      "firefox.exe"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "app-discord",
     "group": "apps",
-    "label": { "fr": "Discord : cache", "en": "Discord: cache" },
-    "what": { "fr": "Images, vidéos et scripts déjà affichés dans Discord.", "en": "Images, videos and scripts already shown in Discord." },
-    "why": { "fr": "Discord les retélécharge au besoin. Ta session n'est pas touchée.", "en": "Discord downloads them again when needed. Your session is untouched." },
-    "effect": { "fr": "Tu restes connecté. Images un peu plus lentes à apparaître.", "en": "You stay logged in. Images appear a little slower." },
+    "label": {
+      "fr": "Discord : cache",
+      "en": "Discord: cache"
+    },
+    "what": {
+      "fr": "Images, vidéos et scripts déjà affichés dans Discord.",
+      "en": "Images, videos and scripts already shown in Discord."
+    },
+    "why": {
+      "fr": "Discord les retélécharge au besoin. Ta session n'est pas touchée.",
+      "en": "Discord downloads them again when needed. Your session is untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Images un peu plus lentes à apparaître.",
+      "en": "You stay logged in. Images appear a little slower."
+    },
     "paths": [
       "%APPDATA%\\discord\\Cache",
       "%APPDATA%\\discord\\Code Cache",
       "%APPDATA%\\discord\\GPUCache"
     ],
-    "close": ["Discord.exe"],
+    "close": [
+      "Discord.exe"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "app-slack",
     "group": "apps",
-    "label": { "fr": "Slack : cache", "en": "Slack: cache" },
-    "what": { "fr": "Images, fichiers et scripts déjà affichés dans Slack.", "en": "Images, files and scripts already shown in Slack." },
-    "why": { "fr": "Slack les retélécharge au besoin. Ta session n'est pas touchée.", "en": "Slack downloads them again when needed. Your session is untouched." },
-    "effect": { "fr": "Tu restes connecté. Images un peu plus lentes à apparaître.", "en": "You stay logged in. Images appear a little slower." },
+    "label": {
+      "fr": "Slack : cache",
+      "en": "Slack: cache"
+    },
+    "what": {
+      "fr": "Images, fichiers et scripts déjà affichés dans Slack.",
+      "en": "Images, files and scripts already shown in Slack."
+    },
+    "why": {
+      "fr": "Slack les retélécharge au besoin. Ta session n'est pas touchée.",
+      "en": "Slack downloads them again when needed. Your session is untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Images un peu plus lentes à apparaître.",
+      "en": "You stay logged in. Images appear a little slower."
+    },
     "paths": [
       "%APPDATA%\\Slack\\Cache",
       "%APPDATA%\\Slack\\Code Cache",
       "%APPDATA%\\Slack\\GPUCache"
     ],
-    "close": ["slack.exe"],
+    "close": [
+      "slack.exe"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "app-teams",
     "group": "apps",
-    "label": { "fr": "Microsoft Teams : cache", "en": "Microsoft Teams: cache" },
-    "what": { "fr": "Images, fichiers et scripts déjà affichés dans Teams (ancienne et nouvelle version).", "en": "Images, files and scripts already shown in Teams (classic and new)." },
-    "why": { "fr": "Teams les retélécharge au besoin. Ta session n'est pas touchée.", "en": "Teams downloads them again when needed. Your session is untouched." },
-    "effect": { "fr": "Tu restes connecté. Premier lancement un peu plus long.", "en": "You stay logged in. First start takes a little longer." },
+    "label": {
+      "fr": "Microsoft Teams : cache",
+      "en": "Microsoft Teams: cache"
+    },
+    "what": {
+      "fr": "Images, fichiers et scripts déjà affichés dans Teams (ancienne et nouvelle version).",
+      "en": "Images, files and scripts already shown in Teams (classic and new)."
+    },
+    "why": {
+      "fr": "Teams les retélécharge au besoin. Ta session n'est pas touchée.",
+      "en": "Teams downloads them again when needed. Your session is untouched."
+    },
+    "effect": {
+      "fr": "Tu restes connecté. Premier lancement un peu plus long.",
+      "en": "You stay logged in. First start takes a little longer."
+    },
     "paths": [
       "%APPDATA%\\Microsoft\\Teams\\Cache",
       "%APPDATA%\\Microsoft\\Teams\\Code Cache",
@@ -206,17 +400,32 @@
       "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\EBWebView\\*\\Code Cache",
       "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\EBWebView\\*\\GPUCache"
     ],
-    "close": ["Teams.exe", "ms-teams.exe"],
+    "close": [
+      "Teams.exe",
+      "ms-teams.exe"
+    ],
     "mode": "delete",
     "level": "safe"
   },
   {
     "id": "app-vscode",
     "group": "apps",
-    "label": { "fr": "VS Code : cache", "en": "VS Code: cache" },
-    "what": { "fr": "Scripts précompilés et paquets d'extensions déjà installés.", "en": "Precompiled scripts and already-installed extension packages." },
-    "why": { "fr": "VS Code les recrée au besoin. Réglages, extensions et session ne sont pas touchés.", "en": "VS Code recreates them when needed. Settings, extensions and session are untouched." },
-    "effect": { "fr": "Premier lancement un peu plus long.", "en": "First start takes a little longer." },
+    "label": {
+      "fr": "VS Code : cache",
+      "en": "VS Code: cache"
+    },
+    "what": {
+      "fr": "Scripts précompilés et paquets d'extensions déjà installés.",
+      "en": "Precompiled scripts and already-installed extension packages."
+    },
+    "why": {
+      "fr": "VS Code les recrée au besoin. Réglages, extensions et session ne sont pas touchés.",
+      "en": "VS Code recreates them when needed. Settings, extensions and session are untouched."
+    },
+    "effect": {
+      "fr": "Premier lancement un peu plus long.",
+      "en": "First start takes a little longer."
+    },
     "paths": [
       "%APPDATA%\\Code\\Cache",
       "%APPDATA%\\Code\\CachedData",
@@ -224,8 +433,428 @@
       "%APPDATA%\\Code\\GPUCache",
       "%APPDATA%\\Code\\CachedExtensionVSIXs"
     ],
-    "close": ["Code.exe"],
+    "close": [
+      "Code.exe"
+    ],
     "mode": "delete",
     "level": "safe"
+  },
+  {
+    "id": "dev-npm",
+    "group": "dev",
+    "label": {
+      "fr": "npm : cache",
+      "en": "npm: cache"
+    },
+    "what": {
+      "fr": "Paquets npm déjà téléchargés, gardés en copie.",
+      "en": "npm packages already downloaded, kept as copies."
+    },
+    "why": {
+      "fr": "npm les retélécharge au besoin. Tes projets et leurs node_modules ne sont pas touchés.",
+      "en": "npm downloads them again when needed. Your projects and their node_modules are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\npm-cache"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "dev-yarn",
+    "group": "dev",
+    "label": {
+      "fr": "Yarn : cache",
+      "en": "Yarn: cache"
+    },
+    "what": {
+      "fr": "Paquets Yarn déjà téléchargés, gardés en copie.",
+      "en": "Yarn packages already downloaded, kept as copies."
+    },
+    "why": {
+      "fr": "Yarn les retélécharge au besoin. Tes projets ne sont pas touchés.",
+      "en": "Yarn downloads them again when needed. Your projects are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Yarn\\Cache"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "dev-pip",
+    "group": "dev",
+    "label": {
+      "fr": "pip : cache",
+      "en": "pip: cache"
+    },
+    "what": {
+      "fr": "Paquets Python déjà téléchargés par pip.",
+      "en": "Python packages already downloaded by pip."
+    },
+    "why": {
+      "fr": "pip les retélécharge au besoin. Tes environnements Python ne sont pas touchés.",
+      "en": "pip downloads them again when needed. Your Python environments are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\pip\\cache"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "dev-nuget",
+    "group": "dev",
+    "label": {
+      "fr": "NuGet : paquets et cache",
+      "en": "NuGet: packages and cache"
+    },
+    "what": {
+      "fr": "Paquets .NET téléchargés par NuGet.",
+      "en": ".NET packages downloaded by NuGet."
+    },
+    "why": {
+      "fr": "dotnet et Visual Studio les restaurent automatiquement au prochain build.",
+      "en": "dotnet and Visual Studio restore them automatically on the next build."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%USERPROFILE%\\.nuget\\packages",
+      "%LOCALAPPDATA%\\NuGet\\v3-cache"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "dev-gradle",
+    "group": "dev",
+    "label": {
+      "fr": "Gradle : cache",
+      "en": "Gradle: cache"
+    },
+    "what": {
+      "fr": "Dépendances et résultats de build gardés par Gradle.",
+      "en": "Dependencies and build outputs kept by Gradle."
+    },
+    "why": {
+      "fr": "Gradle les retélécharge ou les recalcule au besoin.",
+      "en": "Gradle downloads or rebuilds them when needed."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%USERPROFILE%\\.gradle\\caches"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "dev-cargo",
+    "group": "dev",
+    "label": {
+      "fr": "Cargo : cache",
+      "en": "Cargo: cache"
+    },
+    "what": {
+      "fr": "Crates Rust téléchargées et décompressées par Cargo.",
+      "en": "Rust crates downloaded and unpacked by Cargo."
+    },
+    "why": {
+      "fr": "Cargo les retélécharge au besoin. Tes projets et toolchains ne sont pas touchés.",
+      "en": "Cargo downloads them again when needed. Your projects and toolchains are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install ou build retélécharge ce qui manque.",
+      "en": "The next install or build downloads what is missing again."
+    },
+    "paths": [
+      "%USERPROFILE%\\.cargo\\registry\\cache",
+      "%USERPROFILE%\\.cargo\\registry\\src"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "windows-temp",
+    "group": "system",
+    "label": {
+      "fr": "Temporaires de Windows",
+      "en": "Windows temporary files"
+    },
+    "what": {
+      "fr": "Fichiers laissés dans C:\\Windows\\Temp par Windows et les installeurs.",
+      "en": "Files left in C:\\Windows\\Temp by Windows and installers."
+    },
+    "why": {
+      "fr": "Ils ne servent qu’au moment où ils sont créés. On ne touche qu’à ceux de plus de 24 h.",
+      "en": "They are only used when created. Only files older than 24 h are touched."
+    },
+    "effect": {
+      "fr": "Rien.",
+      "en": "Nothing."
+    },
+    "admin": true,
+    "paths": [
+      "%SystemRoot%\\Temp"
+    ],
+    "older_than_hours": 24,
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "system-crash-reports",
+    "group": "system",
+    "label": {
+      "fr": "Rapports de plantage système",
+      "en": "System crash reports"
+    },
+    "what": {
+      "fr": "Rapports d’erreurs Windows et petits dumps mémoire après un écran bleu.",
+      "en": "Windows error reports and small memory dumps after a blue screen."
+    },
+    "why": {
+      "fr": "Utiles seulement à un technicien qui enquête sur un plantage précis.",
+      "en": "Only useful to a technician investigating a specific crash."
+    },
+    "effect": {
+      "fr": "Rien.",
+      "en": "Nothing."
+    },
+    "admin": true,
+    "paths": [
+      "%ProgramData%\\Microsoft\\Windows\\WER\\ReportArchive",
+      "%ProgramData%\\Microsoft\\Windows\\WER\\ReportQueue",
+      "%ProgramData%\\Microsoft\\Windows\\WER\\Temp",
+      "%SystemRoot%\\Minidump"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "memory-dump",
+    "group": "system",
+    "label": {
+      "fr": "Dump mémoire complet",
+      "en": "Full memory dump"
+    },
+    "what": {
+      "fr": "Le fichier C:\\Windows\\MEMORY.DMP créé après un écran bleu.",
+      "en": "The C:\\Windows\\MEMORY.DMP file created after a blue screen."
+    },
+    "why": {
+      "fr": "Utile seulement pour analyser ce plantage précis. Il peut peser plusieurs Go.",
+      "en": "Only useful to analyse that specific crash. It can weigh several GB."
+    },
+    "effect": {
+      "fr": "Rien.",
+      "en": "Nothing."
+    },
+    "admin": true,
+    "mode": "command",
+    "level": "safe",
+    "command": "suppression de %SystemRoot%\\MEMORY.DMP"
+  },
+  {
+    "id": "delivery-optimization",
+    "group": "system",
+    "label": {
+      "fr": "Cache d’optimisation de livraison",
+      "en": "Delivery Optimization cache"
+    },
+    "what": {
+      "fr": "Morceaux de mises à jour Windows gardés pour les partager avec d’autres PC.",
+      "en": "Pieces of Windows updates kept to share with other PCs."
+    },
+    "why": {
+      "fr": "Les mises à jour sont déjà installées. Vidé via la commande officielle de Windows.",
+      "en": "Updates are already installed. Emptied with the official Windows command."
+    },
+    "effect": {
+      "fr": "Rien.",
+      "en": "Nothing."
+    },
+    "admin": true,
+    "paths": [
+      "%SystemRoot%\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache"
+    ],
+    "mode": "command",
+    "level": "safe",
+    "command": "powershell Delete-DeliveryOptimizationCache -Force"
+  },
+  {
+    "id": "windows-update-cache",
+    "group": "system",
+    "label": {
+      "fr": "Téléchargements Windows Update",
+      "en": "Windows Update downloads"
+    },
+    "what": {
+      "fr": "Fichiers de mises à jour déjà téléchargés dans SoftwareDistribution\\Download.",
+      "en": "Update files already downloaded to SoftwareDistribution\\Download."
+    },
+    "why": {
+      "fr": "Les mises à jour installées n’en ont plus besoin. Le service est arrêté puis relancé.",
+      "en": "Installed updates no longer need them. The service is stopped then restarted."
+    },
+    "effect": {
+      "fr": "Une mise à jour en attente sera retéléchargée.",
+      "en": "A pending update will be downloaded again."
+    },
+    "admin": true,
+    "paths": [
+      "%SystemRoot%\\SoftwareDistribution\\Download"
+    ],
+    "mode": "command",
+    "level": "safe",
+    "command": "Stop-Service wuauserv,bits ; vider SoftwareDistribution\\Download ; Start-Service wuauserv,bits"
+  },
+  {
+    "id": "cbs-logs",
+    "group": "system",
+    "label": {
+      "fr": "Anciens journaux de Windows",
+      "en": "Old Windows logs"
+    },
+    "what": {
+      "fr": "Anciens journaux d’installation des composants Windows (CbsPersist) de plus de 7 jours.",
+      "en": "Old Windows component setup logs (CbsPersist) older than 7 days."
+    },
+    "why": {
+      "fr": "Ils ne servent qu’à diagnostiquer une installation déjà terminée.",
+      "en": "They only help diagnose a setup that is already finished."
+    },
+    "effect": {
+      "fr": "Rien.",
+      "en": "Nothing."
+    },
+    "admin": true,
+    "paths": [
+      "%SystemRoot%\\Logs\\CBS"
+    ],
+    "only": [
+      "CbsPersist_*.log",
+      "CbsPersist_*.cab"
+    ],
+    "older_than_hours": 168,
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "windows-old",
+    "group": "heavy",
+    "label": {
+      "fr": "Ancienne version de Windows",
+      "en": "Previous Windows version"
+    },
+    "what": {
+      "fr": "Les dossiers Windows.old, $Windows.~BT et $Windows.~WS laissés après une mise à jour majeure.",
+      "en": "The Windows.old, $Windows.~BT and $Windows.~WS folders left after a major update."
+    },
+    "why": {
+      "fr": "Ils ne servent qu’à revenir à la version précédente de Windows.",
+      "en": "They are only used to roll back to the previous Windows version."
+    },
+    "effect": {
+      "fr": "Irréversible : tu ne pourras plus revenir à la version précédente de Windows.",
+      "en": "Irreversible: you will no longer be able to roll back to the previous Windows version."
+    },
+    "admin": true,
+    "paths": [
+      "%SystemDrive%\\Windows.old",
+      "%SystemDrive%\\$Windows.~BT",
+      "%SystemDrive%\\$Windows.~WS"
+    ],
+    "mode": "command",
+    "level": "heavy",
+    "command": "takeown /F <dossier> /R /A ; icacls <dossier> /grant Administrateurs:F /T ; suppression ; rd /S /Q <dossier>"
+  },
+  {
+    "id": "component-store",
+    "group": "heavy",
+    "label": {
+      "fr": "Anciens composants Windows (WinSxS)",
+      "en": "Old Windows components (WinSxS)"
+    },
+    "what": {
+      "fr": "Anciennes versions de composants remplacées par des mises à jour.",
+      "en": "Old component versions replaced by updates."
+    },
+    "why": {
+      "fr": "Nettoyage officiel de Windows (DISM). Taille connue seulement à la fin. Peut durer plusieurs minutes.",
+      "en": "Official Windows cleanup (DISM). Size only known at the end. Can take several minutes."
+    },
+    "effect": {
+      "fr": "Les mises à jour déjà installées ne pourront plus être désinstallées.",
+      "en": "Already installed updates can no longer be uninstalled."
+    },
+    "admin": true,
+    "mode": "command",
+    "level": "heavy",
+    "command": "Dism.exe /Online /Cleanup-Image /StartComponentCleanup"
+  },
+  {
+    "id": "hibernation",
+    "group": "heavy",
+    "label": {
+      "fr": "Hibernation",
+      "en": "Hibernation"
+    },
+    "what": {
+      "fr": "Le fichier hiberfil.sys, de la taille d’une bonne partie de la RAM.",
+      "en": "The hiberfil.sys file, sized like a large part of your RAM."
+    },
+    "why": {
+      "fr": "Inutile si tu n’utilises pas la mise en veille prolongée.",
+      "en": "Useless if you do not use hibernation."
+    },
+    "effect": {
+      "fr": "Hibernation et démarrage rapide désactivés. Réactivable avec powercfg /hibernate on.",
+      "en": "Hibernation and fast startup turned off. Turn back on with powercfg /hibernate on."
+    },
+    "admin": true,
+    "mode": "command",
+    "level": "heavy",
+    "command": "powercfg /hibernate off"
+  },
+  {
+    "id": "restore-points",
+    "group": "heavy",
+    "label": {
+      "fr": "Anciens points de restauration",
+      "en": "Old restore points"
+    },
+    "what": {
+      "fr": "Tous les points de restauration système sauf le plus récent.",
+      "en": "All system restore points except the most recent one."
+    },
+    "why": {
+      "fr": "Le plus récent suffit en général pour réparer Windows.",
+      "en": "The most recent one is usually enough to repair Windows."
+    },
+    "effect": {
+      "fr": "Tu ne pourras plus revenir à un état plus ancien que le dernier point.",
+      "en": "You can no longer go back further than the latest point."
+    },
+    "admin": true,
+    "mode": "command",
+    "level": "heavy",
+    "command": "Get-CimInstance Win32_ShadowCopy | (tous sauf le plus récent) | Remove-CimInstance"
   }
 ]

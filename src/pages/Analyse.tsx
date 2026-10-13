@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
 import { SizeBar } from "../components/SizeBar";
 import { StatusPill } from "../components/StatusPill";
@@ -6,6 +7,7 @@ import { TrashConfirm } from "../components/TrashConfirm";
 import { useT, type Key } from "../i18n/useT";
 import {
   cancelScan,
+  listCleaners,
   moveToTrash,
   onScanDone,
   onScanProgress,
@@ -30,8 +32,10 @@ export function Analyse() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState<Item[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
+  const [elevated, setElevated] = useState(true);
 
   useEffect(() => {
+    listCleaners().then((v) => setElevated(v.elevated), () => {});
     const unlisten = [
       onScanProgress((progress) => setPhase((p) => (p.kind === "scanning" ? { ...p, progress } : p))),
       onScanDone((result) => {
@@ -143,6 +147,7 @@ export function Analyse() {
             {t("analyse.restart")}
           </button>
         </div>
+        {r.denied > 0 && !elevated && <AdminBanner elevated={false} />}
         {feedback}
       </Card>
 

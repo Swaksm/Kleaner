@@ -1,24 +1,14 @@
 import { useState } from "react";
-import { Card } from "./components/Card";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
-import { StatusPill } from "./components/StatusPill";
 import { useT, type Key } from "./i18n/useT";
 import { Analyse } from "./pages/Analyse";
+import { Cleanup } from "./pages/Cleanup";
 import { Journal } from "./pages/Journal";
+import { Programs } from "./pages/Programs";
 import { Settings } from "./pages/Settings";
 
 const pages = ["analyse", "cleanup", "programs", "journal", "settings"] as const;
 type Page = (typeof pages)[number];
-
-function Placeholder() {
-  const { t } = useT();
-  return (
-    <Card>
-      <StatusPill status="neutral">{t("status.planned")}</StatusPill>
-      <p>{t("page.soon")}</p>
-    </Card>
-  );
-}
 
 function App() {
   const { t } = useT();
@@ -50,7 +40,8 @@ function App() {
         </div>
         {page === "journal" && <Journal />}
         {page === "settings" && <Settings />}
-        {(page === "cleanup" || page === "programs") && <Placeholder />}
+        {page === "cleanup" && <Cleanup />}
+        {page === "programs" && <Programs />}
       </main>
     </div>
   );

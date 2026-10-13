@@ -42,3 +42,45 @@ export const onScanProgress = (fn: (p: ScanProgress) => void) => listen<ScanProg
 export const onScanDone = (fn: (r: ScanResult) => void) => listen<ScanResult>("scan-done", (e) => fn(e.payload));
 
 export const moveToTrash = (paths: string[]) => invoke<ActionReport>("move_to_trash", { paths });
+
+export type Text = { fr: string; en: string };
+export type Cleaner = {
+  id: string;
+  group: "windows" | "browsers" | "apps" | "dev" | "system" | "heavy";
+  label: Text;
+  what: Text;
+  why: Text;
+  effect: Text;
+  paths: string[];
+  admin: boolean;
+  mode: "delete" | "command";
+  level: "safe" | "heavy";
+  close: string[];
+  command: string | null;
+};
+export type CleanReport = {
+  id: string;
+  files: number;
+  bytes: number;
+  skipped: number;
+  blocked_by: string[];
+  output: string | null;
+  error: string | null;
+};
+export type CleanersView = { elevated: boolean; cleaners: Cleaner[] };
+
+export const listCleaners = () => invoke<CleanersView>("list_cleaners");
+export const estimateCleaners = () => invoke<CleanReport[]>("estimate_cleaners");
+export const runCleaners = (ids: string[]) => invoke<CleanReport[]>("run_cleaners", { ids });
+export const relaunchAdmin = () => invoke<void>("relaunch_admin");
+
+export type Program = {
+  id: string;
+  name: string;
+  publisher: string;
+  version: string;
+  bytes: number;
+  install_date: string;
+};
+export const listPrograms = () => invoke<Program[]>("list_programs");
+export const uninstallProgram = (id: string) => invoke<void>("uninstall_program", { id });

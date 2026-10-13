@@ -1,7 +1,9 @@
 pub mod actions;
 pub mod catalog;
+pub mod elevation;
 pub mod guard;
 pub mod journal;
+pub mod programs;
 pub mod scan;
 
 use serde::Serialize;
@@ -109,12 +111,91 @@ fn move_to_trash(paths: Vec<String>) -> Result<actions::ActionReport, String> {
     actions::trash_files(&paths, &guard::Protected::from_env(), &journal::data_dir())
 }
 
+#[derive(Serialize)]
+struct CleanersView {
+    elevated: bool,
+    cleaners: &'static [catalog::Cleaner],
+}
+
+#[tauri::command]
+fn list_cleaners() -> CleanersView {
+    CleanersView { elevated: elevation::is_elevated(), cleaners: catalog::all() }
+}
+
+/// Estimation de chaque entrée (lecture seule). Entrées admin ignorées sans droits admin.
+#[tauri::command]
+async fn estimate_cleaners() -> Result<Vec<catalog::CleanReport>, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let elevated = elevation::is_elevated();
+        catalog::all()
+            .iter()
+            .filter(|c| elevated || !c.admin)
+            .map(|c| {
+                let mut r = catalog::estimate(c);
+                r.blocked_by = catalog::running(&c.close);
+                r
+            })
+            .collect()
+    })
+    .await
+    .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn run_cleaners(ids: Vec<String>) -> Result<Vec<catalog::CleanReport>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let dir = journal::data_dir();
+        ids.iter()
+            .map(|id| match catalog::get(id) {
+                None => catalog::CleanReport { id: id.clone(), error: Some("Entrée inconnue".into()), ..Default::default() },
+                Some(c) => catalog::execute(c, &dir).unwrap_or_else(|e| catalog::CleanReport {
+                    id: id.clone(),
+                    error: Some(e),
+                    ..Default::default()
+                }),
+            })
+            .collect()
+    })
+    .await
+    .map_err(|e| e.to_string())
+}
+
+/// Relance Kleaner en admin puis ferme cette instance. Si l'UAC est refusé, on reste ouvert.
+#[tauri::command]
+fn relaunch_admin(app: tauri::AppHandle) -> Result<(), String> {
+    elevation::relaunch_as_admin()?;
+    app.exit(0);
+    Ok(())
+}
+
+#[tauri::command]
+async fn list_programs() -> Result<Vec<programs::Program>, String> {
+    tauri::async_runtime::spawn_blocking(programs::list).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn uninstall_program(id: String) -> Result<(), String> {
+    programs::uninstall(&id, &journal::data_dir())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(ScanState::default())
-        .invoke_handler(tauri::generate_handler![read_journal, remove_kleaner_data, start_scan, cancel_scan, move_to_trash])
+        .invoke_handler(tauri::generate_handler![
+            read_journal,
+            remove_kleaner_data,
+            start_scan,
+            cancel_scan,
+            move_to_trash,
+            list_cleaners,
+            estimate_cleaners,
+            run_cleaners,
+            relaunch_admin,
+            list_programs,
+            uninstall_program
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

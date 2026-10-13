@@ -62,38 +62,38 @@
   - Verify : un test fait échouer toute entrée qui cible `Cookies`, `Local Storage`, `IndexedDB`, `Login Data`, `Session Storage` ou `Service Worker`. Vérification sur VM : toujours connecté après le nettoyage.
   - Files : `src-tauri/cleaners.json`
 
-- [ ] **T11 : Entrées outils dev**
+- [x] **T11 : Entrées outils dev**
   - Acceptance : caches npm, Yarn, pip, NuGet, Gradle et Cargo.
   - Verify : test du catalogue. `npm install` fonctionne toujours après le nettoyage.
   - Files : `src-tauri/cleaners.json`
 
-- [ ] **T12 : Écran Nettoyage**
+- [x] **T12 : Écran Nettoyage**
   - Acceptance : une carte par catégorie avec la taille estimée, « Ce que ça supprime », « Pourquoi c'est inutile », « Ce que ça change » et une case (cochée si `safe`). Ces trois lignes sont reprises dans la confirmation. La confirmation indique le total et le mode. Le rapport montre l'espace libéré et les fichiers ignorés, avec leur raison.
   - Verify : `npm test`, puis nettoyage réel sur la VM.
   - Files : `src/pages/Cleanup.tsx`, `src/components/CleanerCard.tsx`, `src/lib/api.ts`
 
-**Checkpoint P3 (bloquant)** : sur la VM, après un nettoyage complet, l'utilisateur est toujours connecté partout.
+**Checkpoint P3 (bloquant, PAS ENCORE FAIT)** : sur la VM, après un nettoyage complet, l'utilisateur est toujours connecté partout.
 
 ## P4 — Admin
 
-- [ ] **T13 : Élévation**
+- [x] **T13 : Élévation**
   - Acceptance : `is_elevated()`. « Analyse complète » relance l'exe via `runas` et ferme l'instance courante. En mode non admin, les entrées `admin` affichent « Analyse complète requise ».
   - Verify : test manuel de l'UAC, accepté puis refusé (dans ce cas, l'appli reste ouverte en mode utilisateur).
   - Files : `src-tauri/src/elevation.rs`, `src/pages/Cleanup.tsx`
 
-- [ ] **T14 : Entrées système `safe`**
+- [x] **T14 : Entrées système `safe`**
   - Acceptance : `C:\Windows\Temp`, WER système, Minidump, `MEMORY.DMP`, Delivery Optimization, cache Windows Update (arrêt de `wuauserv` et `bits`, suppression, puis relance garantie même en cas d'erreur), anciens logs CBS et DISM.
   - Verify : test du catalogue. Sur VM, Windows Update fonctionne toujours après le nettoyage.
   - Files : `src-tauri/cleaners.json`, `src-tauri/src/actions.rs`
 
-- [ ] **T15 : Nettoyages `heavy`**
+- [x] **T15 : Nettoyages `heavy`**
   - Acceptance : Windows.old (avec `$Windows.~BT` et `~WS`), DISM StartComponentCleanup, `powercfg /hibernate off` et points de restauration (tous sauf le plus récent). Chacun a une carte dédiée, affiche la commande exacte, demande une confirmation en deux étapes et enregistre sa sortie dans le journal.
   - Verify : sur un snapshot de VM, chaque action une par une, puis vérifier que Windows démarre et que la mise à jour fonctionne.
   - Files : `src-tauri/cleaners.json`, `src-tauri/src/actions.rs`, `src/components/CleanerCard.tsx`
 
 ## P5 — Programmes
 
-- [ ] **T16 : Programmes installés**
+- [x] **T16 : Programmes installés**
   - Acceptance : lecture de HKLM et HKCU (32 et 64 bits), avec nom, éditeur, `EstimatedSize` et date. Tri par taille et recherche. « Désinstaller » lance l'`UninstallString` après confirmation, puis rafraîchit la liste. Les composants système (`SystemComponent=1`) sont masqués.
   - Verify : `cargo test programs` (parsing des chaînes). Désinstallation manuelle d'un petit programme sur VM.
   - Files : `src-tauri/src/programs.rs`, `src/pages/Programs.tsx`, `src/lib/api.ts`

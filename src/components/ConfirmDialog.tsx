@@ -8,6 +8,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   danger = false,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: {
@@ -17,6 +18,7 @@ export function ConfirmDialog({
   confirmLabel: string;
   cancelLabel: string;
   danger?: boolean;
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -37,7 +39,7 @@ export function ConfirmDialog({
         <button className="btn" onClick={onCancel}>
           {cancelLabel}
         </button>
-        <button className={danger ? "btn btn-danger" : "btn btn-primary"} onClick={onConfirm}>
+        <button className={danger ? "btn btn-danger" : "btn btn-primary"} disabled={confirmDisabled} onClick={onConfirm}>
           {confirmLabel}
         </button>
       </div>

@@ -1,0 +1,223 @@
+import { useEffect, useState } from "react";
+import { AdminBanner } from "../components/AdminBanner";
+import { Card } from "../components/Card";
+import { CleanerCard } from "../components/CleanerCard";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { StatusPill } from "../components/StatusPill";
+import { useT, type Key } from "../i18n/useT";
+import {
+  estimateCleaners,
+  listCleaners,
+  runCleaners,
+  type CleanReport,
+  type Cleaner,
+  type CleanersView,
+} from "../lib/api";
+import { formatBytes } from "../lib/format";
+
+const GROUPS = ["windows", "browsers", "apps", "dev", "system"] as const;
+
+export function Cleanup() {
+  const { t, lang } = useT();
+  const [view, setView] = useState<CleanersView | null>(null);
+  const [estimates, setEstimates] = useState<Map<string, CleanReport> | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirm, setConfirm] = useState(false);
+  const [heavy, setHeavy] = useState<Cleaner | null>(null);
+  const [heavyAck, setHeavyAck] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [results, setResults] = useState<CleanReport[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load(preselect: boolean) {
+    setEstimates(null);
+    try {
+      const v = await listCleaners();
+      setView(v);
+      const list = await estimateCleaners();
+      const map = new Map(list.map((r) => [r.id, r]));
+      setEstimates(map);
+      if (preselect) {
+        const ok = v.cleaners.filter((c) => {
+          const r = map.get(c.id);
+          return c.level === "safe" && r && r.bytes > 0 && r.blocked_by.length === 0;
+        });
+        setSelected(new Set(ok.map((c) => c.id)));
+      }
+    } catch (e) {
+      setError(String(e));
+    }
+  }
+
+  useEffect(() => {
+    load(true);
+  }, []);
+
+  function lockReason(c: Cleaner): string | undefined {
+    if (c.admin && !view?.elevated) return t("cleanup.needsAdmin");
+    const r = estimates?.get(c.id);
+    if (r && r.blocked_by.length > 0) return `${t("cleanup.closeFirst")} ${r.blocked_by.join(", ")}`;
+    return undefined;
+  }
+
+  function toggle(id: string) {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelected(next);
+  }
+
+  async function run(ids: string[]) {
+    setConfirm(false);
+    setHeavy(null);
+    setHeavyAck(false);
+    setRunning(true);
+    setError(null);
+    try {
+      setResults(await runCleaners(ids));
+      setSelected(new Set());
+      await load(false);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  if (!view) return error ? <StatusPill status="danger">{error}</StatusPill> : <p className="muted">…</p>;
+
+  const byId = new Map(view.cleaners.map((c) => [c.id, c]));
+  const chosen = [...selected].map((id) => byId.get(id)!).filter(Boolean);
+  const chosenBytes = chosen.reduce((s, c) => s + (estimates?.get(c.id)?.bytes ?? 0), 0);
+  const freed = results?.reduce((s, r) => s + r.bytes, 0) ?? 0;
+
+  return (
+    <>
+      <Card>
+        <p>{t("cleanup.intro")}</p>
+        <AdminBanner elevated={view.elevated} />
+        <div className="row">
+          <button className="btn btn-primary" disabled={chosen.length === 0 || running} onClick={() => setConfirm(true)}>
+            {running ? t("cleanup.running") : t("cleanup.run")}
+          </button>
+          <span className="muted">
+            {chosen.length} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
+          </span>
+          <button className="btn" disabled={running} onClick={() => load(false)}>
+            {t("cleanup.refresh")}
+          </button>
+        </div>
+        {error && <StatusPill status="danger">{error}</StatusPill>}
+      </Card>
+
+      {results && (
+        <Card title={t("cleanup.results")}>
+          <p>
+            <span className="num big">{formatBytes(freed, lang)}</span> {t("cleanup.freed")}
+          </p>
+          <ul className="items">
+            {results.map((r) => (
+              <li key={r.id}>
+                <span>{byId.get(r.id)?.label[lang] ?? r.id}</span>
+                <span className="num">{formatBytes(r.bytes, lang)}</span>
+                <span>
+                  {r.error ? (
+                    <StatusPill status="danger">{r.error}</StatusPill>
+                  ) : r.skipped > 0 ? (
+                    <StatusPill status="warn">
+                      {r.skipped} {t("journal.skipped")}
+                    </StatusPill>
+                  ) : (
+                    <StatusPill status="ok">{t("journal.done")}</StatusPill>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {results.some((r) => r.skipped > 0) && <p className="muted">{t("cleanup.skippedWhy")}</p>}
+        </Card>
+      )}
+
+      {GROUPS.map((g) => {
+        const items = view.cleaners.filter((c) => c.group === g && c.level === "safe");
+        if (items.length === 0) return null;
+        return (
+          <Card key={g} title={t(`group.${g}` as Key)}>
+            {items.map((c) => (
+              <CleanerCard
+                key={c.id}
+                cleaner={c}
+                report={estimates?.get(c.id)}
+                locked={lockReason(c)}
+                checked={selected.has(c.id)}
+                onToggle={() => toggle(c.id)}
+              />
+            ))}
+          </Card>
+        );
+      })}
+
+      <Card title={t("group.heavy")}>
+        <p className="muted">{t("cleanup.heavyIntro")}</p>
+        {view.cleaners
+          .filter((c) => c.level === "heavy")
+          .map((c) => (
+            <CleanerCard key={c.id} cleaner={c} report={estimates?.get(c.id)} locked={lockReason(c)}>
+              <button className="btn btn-danger" disabled={!!lockReason(c) || running} onClick={() => setHeavy(c)}>
+                {t("cleanup.heavyRun")}
+              </button>
+            </CleanerCard>
+          ))}
+      </Card>
+
+      <ConfirmDialog
+        open={confirm}
+        title={t("cleanup.confirmTitle")}
+        confirmLabel={t("cleanup.run")}
+        cancelLabel={t("common.cancel")}
+        danger
+        onConfirm={() => run(chosen.map((c) => c.id))}
+        onCancel={() => setConfirm(false)}
+      >
+        <p>
+          {chosen.length} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
+        </p>
+        <p className="danger">{t("cleanup.permanent")}</p>
+        <ul className="paths">
+          {chosen.map((c) => (
+            <li key={c.id}>
+              {c.label[lang]} — {c.effect[lang]}
+            </li>
+          ))}
+        </ul>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={heavy !== null}
+        title={heavy ? heavy.label[lang] : ""}
+        confirmLabel={t("cleanup.heavyRun")}
+        cancelLabel={t("common.cancel")}
+        danger
+        confirmDisabled={!heavyAck}
+        onConfirm={() => heavy && run([heavy.id])}
+        onCancel={() => {
+          setHeavy(null);
+          setHeavyAck(false);
+        }}
+      >
+        {heavy && (
+          <>
+            <p>{heavy.what[lang]}</p>
+            {heavy.command && <code>{heavy.command}</code>}
+            <p className="danger">{heavy.effect[lang]}</p>
+            <label className="check">
+              <input type="checkbox" checked={heavyAck} onChange={(e) => setHeavyAck(e.target.checked)} />
+              {t("cleanup.heavyAck")}
+            </label>
+            {!heavyAck && <p className="muted">{t("cleanup.heavyAckHint")}</p>}
+          </>
+        )}
+      </ConfirmDialog>
+    </>
+  );
+}
