@@ -173,6 +173,14 @@ async fn list_programs() -> Result<Vec<programs::Program>, String> {
     tauri::async_runtime::spawn_blocking(programs::list).await.map_err(|e| e.to_string())
 }
 
+/// Taille réelle des dossiers d'installation (peut prendre quelques secondes).
+#[tauri::command]
+async fn program_sizes() -> Result<Vec<programs::RealSize>, String> {
+    tauri::async_runtime::spawn_blocking(|| programs::real_sizes(&programs::list()))
+        .await
+        .map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn uninstall_program(id: String) -> Result<(), String> {
     programs::uninstall(&id, &journal::data_dir())
@@ -200,7 +208,8 @@ pub fn run() {
             relaunch_admin,
             list_programs,
             uninstall_program,
-            save_report
+            save_report,
+            program_sizes
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

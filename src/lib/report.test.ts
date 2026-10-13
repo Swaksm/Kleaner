@@ -46,7 +46,7 @@ test("rapport : prompt, données anonymisées, nettoyages utiles seulement", () 
       { id: "vide", files: 0, bytes: 0, skipped: 0, blocked_by: [], output: null, error: null },
     ],
     elevated: false,
-    programs: [{ id: "HKCU\\x", name: "Jeu | Deluxe", publisher: "Studio", version: "1", bytes: 1024 ** 3, install_date: "20210101" }],
+    programs: [{ id: "HKCU\\x", name: "Jeu | Deluxe", publisher: "Studio", version: "1", bytes: 1024 ** 3, install_date: "20210101", location: "" }],
     lang: "fr",
     now: new Date("2026-10-13"),
   });

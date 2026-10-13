@@ -87,7 +87,7 @@
   "admin.off": "User mode",
   "admin.why": "System cleanups and some folders need admin rights.",
   "admin.button": "Full scan (admin)",
-  "programs.intro": "Installed programs, sorted by the size they declare. Kleaner only launches their official uninstaller.",
+  "programs.intro": "Installed programs, sorted by the space they really take on disk when Kleaner finds their folder, otherwise by the size they declare. Kleaner only launches their official uninstaller.",
   "programs.search": "Search a program",
   "programs.uninstall": "Uninstall",
   "programs.confirm": "Kleaner will launch this program’s official uninstaller. Follow its instructions, then refresh the list.",
@@ -101,5 +101,8 @@
   "report.save": "Save",
   "report.close": "Close",
   "report.copied": "Copied: paste it into your AI.",
-  "report.saved": "Saved to %LOCALAPPDATA%\\Kleaner\\rapports."
+  "report.saved": "Saved to %LOCALAPPDATA%\\Kleaner\\rapports.",
+  "programs.real": "measured",
+  "programs.declared": "declared",
+  "programs.measuring": "measuring…"
 }

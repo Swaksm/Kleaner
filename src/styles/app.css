@@ -502,3 +502,13 @@ select {
     transition: none !important;
   }
 }
+
+.size-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.small {
+  font-size: 11px;
+}

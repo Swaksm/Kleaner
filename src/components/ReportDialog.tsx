@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useT } from "../i18n/useT";
-import { estimateCleaners, listCleaners, listPrograms, revealInExplorer, saveReport, type ScanResult } from "../lib/api";
+import {
+  estimateCleaners,
+  listCleaners,
+  listPrograms,
+  programSizes,
+  revealInExplorer,
+  saveReport,
+  type ScanResult,
+} from "../lib/api";
 import { buildReport } from "../lib/report";
 import { StatusPill } from "./StatusPill";
 
@@ -13,10 +21,15 @@ export function ReportDialog({ scan, onClose }: { scan: ScanResult; onClose: () 
 
   useEffect(() => {
     ref.current?.showModal();
-    Promise.all([listCleaners(), estimateCleaners(), listPrograms()])
-      .then(([view, estimates, programs]) =>
-        setContent(buildReport({ scan, cleaners: view.cleaners, estimates, elevated: view.elevated, programs, lang })),
-      )
+    Promise.all([listCleaners(), estimateCleaners(), listPrograms(), programSizes()])
+      .then(([view, estimates, list, sizes]) => {
+        // Taille réelle mesurée quand elle est connue, sinon taille déclarée.
+        const real = new Map(sizes.map((s) => [s.id, s.bytes]));
+        const programs = list
+          .map((p) => ({ ...p, bytes: real.get(p.id) ?? p.bytes }))
+          .sort((a, b) => b.bytes - a.bytes);
+        setContent(buildReport({ scan, cleaners: view.cleaners, estimates, elevated: view.elevated, programs, lang }));
+      })
       .catch((e) => setMessage({ status: "danger", text: String(e) }));
   }, [scan, lang]);
 

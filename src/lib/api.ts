@@ -82,6 +82,8 @@ export type Program = {
   version: string;
   bytes: number;
   install_date: string;
+  location: string;
 };
 export const listPrograms = () => invoke<Program[]>("list_programs");
 export const uninstallProgram = (id: string) => invoke<void>("uninstall_program", { id });
+export const programSizes = () => invoke<{ id: string; bytes: number }[]>("program_sizes");

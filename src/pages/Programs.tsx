@@ -3,7 +3,7 @@ import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
-import { listPrograms, uninstallProgram, type Program } from "../lib/api";
+import { listPrograms, programSizes, uninstallProgram, type Program } from "../lib/api";
 import { formatBytes } from "../lib/format";
 
 function formatInstallDate(d: string, lang: string): string {
@@ -18,10 +18,17 @@ export function Programs() {
   const [target, setTarget] = useState<Program | null>(null);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
 
+  const [real, setReal] = useState<Map<string, number> | null>(null);
+
   function load() {
     setPrograms(null);
+    setReal(null);
     listPrograms().then(setPrograms, (e) => setMessage({ status: "danger", text: String(e) }));
+    // Taille réelle mesurée sur le disque, arrive après la liste.
+    programSizes().then((s) => setReal(new Map(s.map((r) => [r.id, r.bytes]))), () => setReal(new Map()));
   }
+
+  const size = (p: Program) => real?.get(p.id) ?? p.bytes;
 
   useEffect(load, []);
 
@@ -38,7 +45,9 @@ export function Programs() {
   }
 
   const q = query.trim().toLowerCase();
-  const shown = programs?.filter((p) => !q || `${p.name} ${p.publisher}`.toLowerCase().includes(q));
+  const shown = programs
+    ?.filter((p) => !q || `${p.name} ${p.publisher}`.toLowerCase().includes(q))
+    .sort((a, b) => size(b) - size(a));
 
   return (
     <>
@@ -71,8 +80,24 @@ export function Programs() {
                   <span className="muted">
                     {[p.publisher, p.version, formatInstallDate(p.install_date, lang)].filter(Boolean).join(" · ")}
                   </span>
+                  {p.location && (
+                    <span className="muted path" title={p.location}>
+                      {p.location}
+                    </span>
+                  )}
                 </div>
-                <span className="num">{p.bytes > 0 ? formatBytes(p.bytes, lang) : "—"}</span>
+                <span className="size-cell">
+                  <span className="num">{size(p) > 0 ? formatBytes(size(p), lang) : "—"}</span>
+                  <span className="muted small">
+                    {real === null
+                      ? t("programs.measuring")
+                      : real.has(p.id)
+                        ? t("programs.real")
+                        : p.bytes > 0
+                          ? t("programs.declared")
+                          : ""}
+                  </span>
+                </span>
                 <button className="btn btn-small" onClick={() => setTarget(p)}>
                   {t("programs.uninstall")}
                 </button>

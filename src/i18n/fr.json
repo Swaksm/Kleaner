@@ -87,7 +87,7 @@
   "admin.off": "Mode utilisateur",
   "admin.why": "Les nettoyages système et certains dossiers demandent les droits admin.",
   "admin.button": "Analyse complète (admin)",
-  "programs.intro": "Programmes installés, triés par la taille qu’ils déclarent. Kleaner lance seulement leur désinstalleur officiel.",
+  "programs.intro": "Programmes installés, triés par la place qu’ils prennent réellement sur le disque quand Kleaner trouve leur dossier, sinon par la taille qu’ils déclarent. Kleaner lance seulement leur désinstalleur officiel.",
   "programs.search": "Rechercher un programme",
   "programs.uninstall": "Désinstaller",
   "programs.confirm": "Kleaner va lancer le désinstalleur officiel de ce programme. Suis ses instructions, puis rafraîchis la liste.",
@@ -101,5 +101,8 @@
   "report.save": "Enregistrer",
   "report.close": "Fermer",
   "report.copied": "Copié : colle-le dans ton IA.",
-  "report.saved": "Enregistré dans %LOCALAPPDATA%\\Kleaner\\rapports."
+  "report.saved": "Enregistré dans %LOCALAPPDATA%\\Kleaner\\rapports.",
+  "programs.real": "mesurée",
+  "programs.declared": "déclarée",
+  "programs.measuring": "mesure…"
 }
