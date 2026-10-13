@@ -90,8 +90,8 @@
   "programs.intro": "Installed programs. Measured size: real space of the install folder on disk. Declared size: what the program reports to Windows (often missing or wrong). Kleaner only launches their official uninstaller.",
   "programs.search": "Search a program",
   "programs.uninstall": "Uninstall",
-  "programs.confirm": "Kleaner will launch this program’s official uninstaller. Follow its instructions, then refresh the list.",
-  "programs.launched": "uninstaller launched. Refresh the list once it is done.",
+  "programs.confirm": "Kleaner will launch this program’s official uninstaller. Follow its steps; the program leaves the list once uninstalled.",
+  "programs.launched": "uninstaller launched. Follow its steps: the list updates by itself.",
   "report.button": "Report for an AI",
   "report.title": "Report for an AI",
   "report.intro": "Paste this report into the AI of your choice (ChatGPT, Claude…). It will ask you questions (\"Do you still use…?\") and then tell you what to delete to save the most space. Kleaner sends nothing.",
@@ -148,5 +148,7 @@
   "programs.showDeclared": "Show declared size",
   "media.display": "Display",
   "media.list": "List",
-  "media.grid": "Grid"
+  "media.grid": "Grid",
+  "programs.uninstalling": "Uninstalling…",
+  "programs.removed": "uninstalled."
 }

@@ -8,6 +8,9 @@ import { listPrograms, programSizes, uninstallProgram, type Program } from "../l
 import { formatBytes } from "../lib/format";
 import { sortBy, type SortState } from "../lib/sort";
 
+const POLL_MS = 3000;
+const WATCH_MS = 10 * 60 * 1000;
+
 function formatInstallDate(d: string, lang: string): string {
   if (!/^\d{8}$/.test(d)) return "";
   return new Date(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)).toLocaleDateString(lang);
@@ -27,6 +30,37 @@ export function Programs() {
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
 
   const [real, setReal] = useState<Map<string, number> | null>(null);
+  // Programmes dont le désinstalleur a été lancé : id → heure de lancement.
+  const [watching, setWatching] = useState<Map<string, number>>(new Map());
+
+  // Le désinstalleur tourne hors de Kleaner : on relit le registre jusqu'à ce que le programme disparaisse.
+  useEffect(() => {
+    if (watching.size === 0) return;
+    const timer = setInterval(async () => {
+      let list: Program[];
+      try {
+        list = await listPrograms();
+      } catch {
+        return;
+      }
+      const present = new Set(list.map((p) => p.id));
+      const now = Date.now();
+      const gone = [...watching.keys()].filter((id) => !present.has(id));
+      const expired = [...watching].filter(([id, start]) => present.has(id) && now - start > WATCH_MS).map(([id]) => id);
+      if (gone.length === 0 && expired.length === 0) return;
+      setPrograms((prev) => {
+        const names = prev?.filter((p) => gone.includes(p.id)).map((p) => p.name) ?? [];
+        if (names.length > 0) setMessage({ status: "ok", text: `${names.join(", ")} : ${t("programs.removed")}` });
+        return prev?.filter((p) => !gone.includes(p.id)) ?? prev;
+      });
+      setWatching((prev) => {
+        const next = new Map(prev);
+        [...gone, ...expired].forEach((id) => next.delete(id));
+        return next;
+      });
+    }, POLL_MS);
+    return () => clearInterval(timer);
+  }, [watching, t]);
 
   function load() {
     setPrograms(null);
@@ -47,6 +81,7 @@ export function Programs() {
     if (!p) return;
     try {
       await uninstallProgram(p.id);
+      setWatching((prev) => new Map(prev).set(p.id, Date.now()));
       setMessage({ status: "ok", text: `${p.name} : ${t("programs.launched")}` });
     } catch (e) {
       setMessage({ status: "danger", text: String(e) });
@@ -167,9 +202,15 @@ export function Programs() {
                     </span>
                   )}
                 </span>
-                <button className="btn btn-small" onClick={() => setTarget(p)}>
-                  {t("programs.uninstall")}
-                </button>
+                {watching.has(p.id) ? (
+                  <span className="loading small" role="status">
+                    <span className="spinner" aria-hidden /> {t("programs.uninstalling")}
+                  </span>
+                ) : (
+                  <button className="btn btn-small" onClick={() => setTarget(p)}>
+                    {t("programs.uninstall")}
+                  </button>
+                )}
               </li>
             ))}
           </ul>

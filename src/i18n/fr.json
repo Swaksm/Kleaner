@@ -90,8 +90,8 @@
   "programs.intro": "Programmes installés. Taille mesurée : place réelle du dossier d’installation sur le disque. Taille déclarée : ce que le programme annonce à Windows (souvent absente ou fausse). Kleaner lance seulement leur désinstalleur officiel.",
   "programs.search": "Rechercher un programme",
   "programs.uninstall": "Désinstaller",
-  "programs.confirm": "Kleaner va lancer le désinstalleur officiel de ce programme. Suis ses instructions, puis rafraîchis la liste.",
-  "programs.launched": "désinstalleur lancé. Rafraîchis la liste une fois terminé.",
+  "programs.confirm": "Kleaner va lancer le désinstalleur officiel de ce programme. Suis ses instructions ; le programme disparaîtra de la liste une fois désinstallé.",
+  "programs.launched": "désinstalleur lancé. Suis ses instructions : la liste se met à jour toute seule.",
   "report.button": "Rapport pour une IA",
   "report.title": "Rapport pour une IA",
   "report.intro": "Colle ce rapport dans l’IA de ton choix (ChatGPT, Claude…). Elle te posera des questions (« Utilises-tu encore… ? ») puis te dira quoi supprimer pour gagner le plus de place. Kleaner n’envoie rien.",
@@ -148,5 +148,7 @@
   "programs.showDeclared": "Afficher la taille déclarée",
   "media.display": "Affichage",
   "media.list": "Liste",
-  "media.grid": "Grille"
+  "media.grid": "Grille",
+  "programs.uninstalling": "En cours…",
+  "programs.removed": "désinstallé."
 }
