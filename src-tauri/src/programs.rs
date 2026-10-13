@@ -321,7 +321,7 @@ mod tests {
         let sizes = real_sizes(&all);
         println!("{}/{} programmes avec dossier, {} ms", sizes.len(), all.len(), t.elapsed().as_millis());
         let mut rows: Vec<_> = sizes.iter().map(|r| (r.bytes, all.iter().find(|p| p.id == r.id).unwrap())).collect();
-        rows.sort_by(|a, b| b.0.cmp(&a.0));
+        rows.sort_by_key(|r| std::cmp::Reverse(r.0));
         for (real, p) in rows.iter().take(12) {
             let gb = |b: u64| b as f64 / (1u64 << 30) as f64;
             println!("{:>7.2} Go réel  {:>7.2} Go déclaré  {}  [{}]", gb(*real), gb(p.bytes), p.name, p.location);
