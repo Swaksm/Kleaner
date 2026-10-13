@@ -14,7 +14,7 @@
 
 ## P1 — Sécurité
 
-- [ ] **T3 : `guard.rs`**
+- [x] **T3 : `guard.rs`**
   - Acceptance : `check_delete(path, roots)` refuse tout chemin hors des racines, ainsi que les variantes `..`, de casse, UNC et `\\?\`, et tout point de reparse. `check_trash(path)` applique la blocklist de la spec.
   - Verify : `cargo test guard`. Les tests créent une vraie jonction dans un dossier temporaire.
   - Files : `src-tauri/src/guard.rs`
