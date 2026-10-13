@@ -35,3 +35,5 @@ jobs:
             kleaner.exe
             kleaner.exe.sha256
           generate_release_notes: true
+          # v0.1.0-rc1 → pre-release ; v0.1.0 → release normale.
+          prerelease: ${{ contains(github.ref_name, '-') }}
