@@ -6,6 +6,13 @@ import { formatBytes, formatDay } from "../lib/format";
 import { baseName } from "../lib/sort";
 import { StatusPill } from "./StatusPill";
 
+/** Clic sur le fond assombri (hors du cadre de la fenêtre). */
+export function outside(e: React.MouseEvent, d: HTMLElement | null): boolean {
+  if (!d || e.target !== d) return false;
+  const r = d.getBoundingClientRect();
+  return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+}
+
 /**
  * Aperçu d'une photo ou lecture d'une vidéo dans Kleaner.
  * Le Rust n'autorise la lecture que du fichier affiché ; formats non lisibles → lecteur par défaut.
@@ -55,7 +62,13 @@ export function MediaViewer({
   const open = () => openMedia(item.path).catch((e) => setError(String(e)));
 
   return (
-    <dialog ref={ref} className="dialog viewer" onCancel={onClose} onKeyDown={onKey}>
+    <dialog
+      ref={ref}
+      className="dialog viewer"
+      onCancel={onClose}
+      onKeyDown={onKey}
+      onClick={(e) => outside(e, ref.current) && onClose()}
+    >
       <div className="viewer-head">
         <div className="media-text">
           <strong>{baseName(item.path)}</strong>

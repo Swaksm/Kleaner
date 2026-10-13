@@ -711,8 +711,20 @@ select {
   grid-template-columns: minmax(0, 1fr) 96px 90px 150px;
 }
 
-.items.grid-programs li {
-  grid-template-columns: minmax(0, 1fr) auto 110px;
+.items.programs li {
+  grid-template-columns: var(--cols);
+  gap: 8px;
+}
+
+.cell-clip {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.block {
+  display: block;
 }
 
 .end {

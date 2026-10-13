@@ -141,8 +141,8 @@
   "cleanup.estimating": "Estimating…",
   "cleanup.showEmpty": "Also show empty or not installed items",
   "cleanup.nothing": "Nothing to clean here right now.",
-  "programs.measured": "Measured size",
-  "programs.declaredCol": "Declared size",
+  "programs.measured": "Measured",
+  "programs.declaredCol": "Declared",
   "programs.showMeasured": "Show measured size",
   "programs.showDeclared": "Show declared size",
   "media.display": "Display",
@@ -175,5 +175,8 @@
   "settings.theme": "Theme",
   "settings.themeSystem": "Same as Windows",
   "settings.themeLight": "Light",
-  "settings.themeDark": "Dark"
+  "settings.themeDark": "Dark",
+  "programs.installed": "Installed",
+  "programs.lastUsed": "Last used",
+  "programs.lastUsedAdmin": "Last launch comes from Windows Prefetch: run the full scan (admin) to see it."
 }

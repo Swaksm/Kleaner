@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useT, type Key } from "../i18n/useT";
 import { revealInExplorer, type Explanation, type Verdict } from "../lib/api";
+import { outside } from "./MediaViewer";
 import { StatusPill } from "./StatusPill";
 
 const STATUS: Record<Verdict, "ok" | "warn" | "danger" | "neutral"> = {
@@ -46,7 +47,7 @@ export function ExplainDialog({ e, onClose }: { e: Explanation; onClose: () => v
       ref={ref}
       className="dialog"
       onCancel={onClose}
-      onClick={(ev) => ev.target === ref.current && onClose()}
+      onClick={(ev) => outside(ev, ref.current) && onClose()}
     >
       <h2>{t("verdict.title")}</h2>
       <div className="dialog-body">

@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
-import { SortHeader } from "../components/SortHeader";
+import { SortHeader, type HeaderCell } from "../components/SortHeader";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
-import { listPrograms, programSizes, uninstallProgram, type Program } from "../lib/api";
-import { formatBytes } from "../lib/format";
+import { isElevated, listPrograms, programSizes, uninstallProgram, type Program } from "../lib/api";
+import { formatBytes, formatDay } from "../lib/format";
 import { sortBy, type SortState } from "../lib/sort";
 
 const POLL_MS = 3000;
 const WATCH_MS = 10 * 60 * 1000;
+
+type SortKey = "measured" | "declared" | "name" | "date" | "publisher" | "used";
 
 function formatInstallDate(d: string, lang: string): string {
   if (!/^\d{8}$/.test(d)) return "";
@@ -20,16 +22,18 @@ export function Programs() {
   const { t, lang } = useT();
   const [programs, setPrograms] = useState<Program[] | null>(null);
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortState<"measured" | "declared" | "name" | "date" | "publisher">>({
+  const [sort, setSort] = useState<SortState<SortKey>>({
     key: "measured",
     dir: "desc",
   });
   const [showDeclared, setShowDeclared] = useState(true);
   const [showMeasured, setShowMeasured] = useState(true);
+  const [elevated, setElevated] = useState(false);
   const [target, setTarget] = useState<Program | null>(null);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
 
   const [real, setReal] = useState<Map<string, number> | null>(null);
+  const [lastUsed, setLastUsed] = useState<Map<string, number>>(new Map());
   // Programmes dont le désinstalleur a été lancé : id → heure de lancement.
   const [watching, setWatching] = useState<Map<string, number>>(new Map());
 
@@ -67,13 +71,22 @@ export function Programs() {
     setReal(null);
     listPrograms().then(setPrograms, (e) => setMessage({ status: "danger", text: String(e) }));
     // Taille réelle mesurée sur le disque, arrive après la liste.
-    programSizes().then((s) => setReal(new Map(s.map((r) => [r.id, r.bytes]))), () => setReal(new Map()));
+    programSizes().then(
+      (s) => {
+        setReal(new Map(s.map((r) => [r.id, r.bytes])));
+        setLastUsed(new Map(s.filter((r) => r.last_used > 0).map((r) => [r.id, r.last_used])));
+      },
+      () => setReal(new Map()),
+    );
   }
 
   // Taille mesurée inconnue : -1 pour la ranger après les tailles connues.
   const measured = (p: Program) => real?.get(p.id) ?? -1;
 
   useEffect(load, []);
+  useEffect(() => {
+    isElevated().then(setElevated, () => {});
+  }, []);
 
   async function uninstall() {
     const p = target;
@@ -88,13 +101,22 @@ export function Programs() {
     }
   }
 
+  // Colonnes : nom, éditeur, installé, dernier lancement, [mesurée], [déclarée], action.
+  const cols = ["minmax(140px, 1fr)", "120px", "80px", "84px", ...(showMeasured ? ["78px"] : []), ...(showDeclared ? ["78px"] : []), "100px"].join(" ");
   const q = query.trim().toLowerCase();
   const shown =
     programs &&
     sortBy(
       programs.filter((p) => !q || `${p.name} ${p.publisher}`.toLowerCase().includes(q)),
       sort,
-      { measured, declared: (p) => p.bytes, name: (p) => p.name, date: (p) => p.install_date, publisher: (p) => p.publisher },
+      {
+        measured,
+        declared: (p) => p.bytes,
+        name: (p) => p.name,
+        date: (p) => p.install_date,
+        publisher: (p) => p.publisher,
+        used: (p) => lastUsed.get(p.id) ?? 0,
+      },
     );
 
   return (
@@ -151,23 +173,15 @@ export function Programs() {
         {!shown ? (
           <p className="muted">…</p>
         ) : (
-          <ul className="items programs grid-programs">
+          <ul className="items programs" style={{ ["--cols" as string]: cols }}>
             <SortHeader
               cells={[
-                {
-                  sorts: [
-                    ["name", t("sort.name"), false],
-                    ["publisher", t("sort.publisher"), false],
-                    ["date", t("sort.date"), true],
-                  ],
-                },
-                {
-                  sorts: [
-                    ...(showMeasured ? [["measured", t("programs.measured"), true] as ["measured", string, boolean]] : []),
-                    ...(showDeclared ? [["declared", t("programs.declaredCol"), true] as ["declared", string, boolean]] : []),
-                  ],
-                  end: true,
-                },
+                { sorts: [["name", t("sort.name"), false]] },
+                { sorts: [["publisher", t("sort.publisher"), false]] },
+                { sorts: [["date", t("programs.installed"), true]] },
+                { sorts: [["used", t("programs.lastUsed"), true]] },
+                ...(showMeasured ? [{ sorts: [["measured", t("programs.measured"), true]], end: true } as HeaderCell<SortKey>] : []),
+                ...(showDeclared ? [{ sorts: [["declared", t("programs.declaredCol"), true]], end: true } as HeaderCell<SortKey>] : []),
                 null,
               ]}
               value={sort}
@@ -177,31 +191,24 @@ export function Programs() {
               <li key={p.id}>
                 <div className="program">
                   <strong>{p.name}</strong>
-                  <span className="muted">
-                    {[p.publisher, p.version, formatInstallDate(p.install_date, lang)].filter(Boolean).join(" · ")}
-                  </span>
                   {p.location && (
-                    <span className="muted path" title={p.location}>
+                    <span className="muted path small" title={p.location}>
                       {p.location}
                     </span>
                   )}
                 </div>
-                <span className="sizes">
-                  {showMeasured && (
-                    <span className="size-cell">
-                      <span className="num">
-                        {real === null ? "…" : real.has(p.id) ? formatBytes(real.get(p.id)!, lang) : "—"}
-                      </span>
-                      <span className="muted small">{t("programs.real")}</span>
-                    </span>
-                  )}
-                  {showDeclared && (
-                    <span className="size-cell">
-                      <span className="num">{p.bytes > 0 ? formatBytes(p.bytes, lang) : "—"}</span>
-                      <span className="muted small">{t("programs.declared")}</span>
-                    </span>
-                  )}
+                <span className="muted small cell-clip" title={p.publisher}>
+                  {p.publisher || "—"}
+                  {p.version && <span className="block">{p.version}</span>}
                 </span>
+                <span className="muted small">{formatInstallDate(p.install_date, lang) || "—"}</span>
+                <span className="muted small" title={elevated ? "" : t("programs.lastUsedAdmin")}>
+                  {lastUsed.has(p.id) ? formatDay(lastUsed.get(p.id)!, lang) : "—"}
+                </span>
+                {showMeasured && (
+                  <span className="num end">{real === null ? "…" : real.has(p.id) ? formatBytes(real.get(p.id)!, lang) : "—"}</span>
+                )}
+                {showDeclared && <span className="num end">{p.bytes > 0 ? formatBytes(p.bytes, lang) : "—"}</span>}
                 {watching.has(p.id) ? (
                   <span className="loading small" role="status">
                     <span className="spinner" aria-hidden /> {t("programs.uninstalling")}

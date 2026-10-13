@@ -141,8 +141,8 @@
   "cleanup.estimating": "Estimation en cours…",
   "cleanup.showEmpty": "Afficher aussi les éléments vides ou non installés",
   "cleanup.nothing": "Rien à nettoyer ici pour l’instant.",
-  "programs.measured": "Taille mesurée",
-  "programs.declaredCol": "Taille déclarée",
+  "programs.measured": "Mesurée",
+  "programs.declaredCol": "Déclarée",
   "programs.showMeasured": "Afficher la taille mesurée",
   "programs.showDeclared": "Afficher la taille déclarée",
   "media.display": "Affichage",
@@ -175,5 +175,8 @@
   "settings.theme": "Thème",
   "settings.themeSystem": "Comme Windows",
   "settings.themeLight": "Clair",
-  "settings.themeDark": "Sombre"
+  "settings.themeDark": "Sombre",
+  "programs.installed": "Installé",
+  "programs.lastUsed": "Dernier lancement",
+  "programs.lastUsedAdmin": "Le dernier lancement vient du Prefetch de Windows : lance l’analyse complète (admin) pour le voir."
 }
