@@ -223,7 +223,27 @@ Conventions :
 - Les 4 nettoyages `heavy` sont inclus.
 - Caches navigateurs, applis, dev et GPU inclus, uniquement s'ils n'ont aucun impact sur les sessions.
 
-## Évolution v2 (hors v1) : recommandations personnalisées par IA
+## Rapport pour IA (v0.2, sans réseau)
+
+Après une analyse, le bouton « Rapport pour une IA » génère un fichier Markdown que l'utilisateur colle lui-même dans l'IA de son choix (ChatGPT, Claude…). **Kleaner n'envoie rien.**
+
+Contenu du rapport :
+
+1. **Un prompt** qui demande à l'IA de :
+   - poser des questions courtes, un groupe à la fois, en commençant par les plus gros gains (« Utilises-tu encore ce jeu ? Ce projet ? »)
+   - finir par une liste classée par espace gagné, avec la méthode pour chaque élément (onglet Nettoyage de Kleaner, désinstallation, Corbeille) et le risque
+   - ne jamais conseiller de toucher aux fichiers système
+2. **Le résumé de l'analyse** : total, répartition par type, 200 plus gros fichiers et 200 plus gros dossiers, avec taille et date de modification.
+3. **Les estimations du catalogue** : espace récupérable par élément, et ce que ça change.
+4. **Les programmes installés**, avec taille et date d'installation.
+
+Règles :
+
+- **Le nom d'utilisateur est masqué** : `C:\Users\<nom>` devient `%USERPROFILE%`.
+- **Aperçu obligatoire** : le rapport s'affiche avant d'être copié ou enregistré, avec un avertissement : « Il contient des noms de fichiers et de dossiers. Relis-le avant de le partager. »
+- Deux actions : « Copier » (presse-papiers) ou « Enregistrer » dans `%LOCALAPPDATA%\Kleaner\rapports\`, puis ouverture dans l'Explorateur. La génération est notée dans le journal.
+
+## Évolution v2 (hors v1) : recommandations personnalisées par IA intégrées
 
 Idée : une IA regarde le résultat de l'analyse et propose des actions adaptées à la personne. Par exemple : « 40 Go de projets non ouverts depuis 1 an », « 3 jeux jamais lancés », « installeurs déjà installés dans Téléchargements ».
 

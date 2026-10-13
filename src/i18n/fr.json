@@ -91,5 +91,15 @@
   "programs.search": "Rechercher un programme",
   "programs.uninstall": "Désinstaller",
   "programs.confirm": "Kleaner va lancer le désinstalleur officiel de ce programme. Suis ses instructions, puis rafraîchis la liste.",
-  "programs.launched": "désinstalleur lancé. Rafraîchis la liste une fois terminé."
+  "programs.launched": "désinstalleur lancé. Rafraîchis la liste une fois terminé.",
+  "report.button": "Rapport pour une IA",
+  "report.title": "Rapport pour une IA",
+  "report.intro": "Colle ce rapport dans l’IA de ton choix (ChatGPT, Claude…). Elle te posera des questions (« Utilises-tu encore… ? ») puis te dira quoi supprimer pour gagner le plus de place. Kleaner n’envoie rien.",
+  "report.privacy": "Il contient des noms de fichiers, de dossiers et de programmes (ton nom d’utilisateur est masqué). Relis-le avant de le partager.",
+  "report.loading": "Préparation du rapport…",
+  "report.copy": "Copier",
+  "report.save": "Enregistrer",
+  "report.close": "Fermer",
+  "report.copied": "Copié : colle-le dans ton IA.",
+  "report.saved": "Enregistré dans %LOCALAPPDATA%\\Kleaner\\rapports."
 }

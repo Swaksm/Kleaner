@@ -37,6 +37,19 @@ pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir:
     result.map(|_| ActionReport { files: entry.files, bytes })
 }
 
+/// Enregistre un rapport Markdown dans `<data_dir>\rapports` et le journalise. Renvoie son chemin.
+pub fn save_report(content: &str, data_dir: &Path) -> Result<PathBuf, String> {
+    let mut entry = journal::Entry::new("report");
+    let dir = data_dir.join("rapports");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let path = dir.join(format!("kleaner-rapport-{}.md", entry.ts));
+    std::fs::write(&path, content).map_err(|e| e.to_string())?;
+    entry.paths = vec![path.display().to_string()];
+    entry.bytes = content.len() as u64;
+    journal::append(data_dir, &entry).map_err(|e| format!("Journal : {e}"))?;
+    Ok(path)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -56,6 +69,16 @@ mod tests {
         let err = trash_files(&[win], &guard::Protected::from_env(), &d).unwrap_err();
         assert!(err.starts_with("Refusé"), "{err}");
         assert!(journal::read_last(&d, 10).unwrap().is_empty());
+        fs::remove_dir_all(&d).unwrap();
+    }
+
+    #[test]
+    fn report_saved_under_data_dir_and_logged() {
+        let d = temp("report");
+        let p = save_report("# Rapport", &d).unwrap();
+        assert!(p.starts_with(d.join("rapports")));
+        assert_eq!(fs::read_to_string(&p).unwrap(), "# Rapport");
+        assert_eq!(journal::read_last(&d, 1).unwrap()[0].action, "report");
         fs::remove_dir_all(&d).unwrap();
     }
 

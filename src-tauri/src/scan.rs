@@ -12,7 +12,7 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
 use std::time::Instant;
 
-const TOP_N: usize = 50;
+const TOP_N: usize = 200;
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
 /// Fichiers « en ligne uniquement » (OneDrive…) : ils n'occupent pas le disque.
 const FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS: u32 = 0x40_0000;
@@ -58,6 +58,8 @@ fn category(path: &Path) -> Category {
 pub struct Item {
     pub size: u64,
     pub path: String,
+    /// Dernière modification (secondes Unix). Pour un dossier : le fichier le plus récent dedans.
+    pub modified: u64,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -100,12 +102,12 @@ impl TopN {
         Self { heap: Mutex::new(BinaryHeap::with_capacity(TOP_N + 1)), min: AtomicU64::new(0) }
     }
 
-    fn offer(&self, size: u64, path: &Path) {
+    fn offer(&self, size: u64, path: &Path, modified: u64) {
         if size <= self.min.load(Relaxed) {
             return;
         }
         let mut heap = self.heap.lock().unwrap();
-        heap.push(Reverse(Item { size, path: path.display().to_string() }));
+        heap.push(Reverse(Item { size, path: path.display().to_string(), modified }));
         if heap.len() > TOP_N {
             heap.pop();
             self.min.store(heap.peek().map_or(0, |r| r.0.size), Relaxed);
@@ -127,17 +129,22 @@ struct Ctx<'a> {
     cats: [(AtomicU64, AtomicU64); 6],
 }
 
-/// Taille totale de `dir`, en enregistrant fichiers et dossiers au passage.
+fn unix_secs(t: std::io::Result<std::time::SystemTime>) -> u64 {
+    t.ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_secs())
+}
+
+/// (taille totale, modification la plus récente) de `dir`, en enregistrant fichiers et dossiers au passage.
 // shortcut: les liens physiques (WinSxS ↔ System32) sont comptés deux fois ; à corriger si les tailles de C:\Windows gênent.
-fn walk(dir: &Path, ctx: &Ctx) -> u64 {
+fn walk(dir: &Path, ctx: &Ctx) -> (u64, u64) {
     if ctx.cancel.load(Relaxed) {
-        return 0;
+        return (0, 0);
     }
     let Ok(rd) = fs::read_dir(dir) else {
         ctx.progress.denied.fetch_add(1, Relaxed);
-        return 0;
+        return (0, 0);
     };
     let mut own = 0u64;
+    let mut newest = 0u64;
     let mut subdirs = Vec::new();
     for entry in rd.flatten() {
         // Sous Windows, ces métadonnées viennent de la lecture du dossier : pas d'appel système en plus.
@@ -155,21 +162,24 @@ fn walk(dir: &Path, ctx: &Ctx) -> u64 {
         }
         let len = m.len();
         own += len;
+        let modified = unix_secs(m.modified());
+        newest = newest.max(modified);
         let path = entry.path();
         let c = category(&path) as usize;
         ctx.cats[c].0.fetch_add(len, Relaxed);
         ctx.cats[c].1.fetch_add(1, Relaxed);
         ctx.progress.files.fetch_add(1, Relaxed);
         ctx.progress.bytes.fetch_add(len, Relaxed);
-        ctx.files.offer(len, &path);
+        ctx.files.offer(len, &path, modified);
     }
-    let children: Vec<u64> = subdirs.par_iter().map(|d| walk(d, ctx)).collect();
-    let total = own + children.iter().sum::<u64>();
-    let biggest_child = children.iter().copied().max().unwrap_or(0);
+    let children: Vec<(u64, u64)> = subdirs.par_iter().map(|d| walk(d, ctx)).collect();
+    let total = own + children.iter().map(|c| c.0).sum::<u64>();
+    let newest = children.iter().map(|c| c.1).fold(newest, u64::max);
+    let biggest_child = children.iter().map(|c| c.0).max().unwrap_or(0);
     if total > 0 && (biggest_child as f64) < PASS_THROUGH * total as f64 {
-        ctx.dirs.offer(total, dir);
+        ctx.dirs.offer(total, dir, newest);
     }
-    total
+    (total, newest)
 }
 
 pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> ScanResult {
@@ -181,7 +191,7 @@ pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> Scan
         dirs: TopN::new(),
         cats: Default::default(),
     };
-    let bytes: u64 = roots.par_iter().map(|r| walk(r, &ctx)).sum();
+    let bytes: u64 = roots.par_iter().map(|r| walk(r, &ctx).0).sum();
     // Une racine de disque dans le top n'apprend rien à l'utilisateur.
     let roots_str: Vec<String> = roots.iter().map(|r| r.display().to_string()).collect();
     let mut top_dirs = ctx.dirs.into_sorted();
@@ -274,6 +284,24 @@ mod tests {
     }
 
     #[test]
+    fn dir_modified_is_newest_file_inside() {
+        let s = Sandbox::new("modified");
+        let old = s.file("proj/old.bin", 3000);
+        let new = s.file("proj/sub/new.bin", 10);
+        let set = |p: &Path, secs: u64| {
+            let t = std::time::UNIX_EPOCH + std::time::Duration::from_secs(secs);
+            fs::File::options().write(true).open(p).unwrap().set_modified(t).unwrap();
+        };
+        set(&old, 1_000_000_000);
+        set(&new, 1_600_000_000);
+        let r = run(&s.0);
+        let file = r.top_files.iter().find(|i| i.path.ends_with("old.bin")).unwrap();
+        assert_eq!(file.modified, 1_000_000_000);
+        let dir = r.top_dirs.iter().find(|i| i.path.ends_with("proj")).unwrap();
+        assert_eq!(dir.modified, 1_600_000_000);
+    }
+
+    #[test]
     fn hidden_files_included() {
         let s = Sandbox::new("hidden");
         let f = s.file("secret.bin", 1234);
@@ -325,7 +353,7 @@ mod tests {
     fn top_n_keeps_largest() {
         let t = TopN::new();
         for i in 0..(TOP_N as u64 * 3) {
-            t.offer(i + 1, Path::new("x"));
+            t.offer(i + 1, Path::new("x"), 0);
         }
         let v = t.into_sorted();
         assert_eq!(v.len(), TOP_N);

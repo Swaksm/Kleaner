@@ -3,6 +3,7 @@ import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
 import { SizeBar } from "../components/SizeBar";
 import { StatusPill } from "../components/StatusPill";
+import { ReportDialog } from "../components/ReportDialog";
 import { TrashConfirm } from "../components/TrashConfirm";
 import { useT, type Key } from "../i18n/useT";
 import {
@@ -33,6 +34,7 @@ export function Analyse() {
   const [confirming, setConfirming] = useState<Item[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
   const [elevated, setElevated] = useState(true);
+  const [report, setReport] = useState(false);
 
   useEffect(() => {
     listCleaners().then((v) => setElevated(v.elevated), () => {});
@@ -146,6 +148,9 @@ export function Analyse() {
           <button className="btn" onClick={start}>
             {t("analyse.restart")}
           </button>
+          <button className="btn btn-primary" onClick={() => setReport(true)}>
+            {t("report.button")}
+          </button>
         </div>
         {r.denied > 0 && !elevated && <AdminBanner elevated={false} />}
         {feedback}
@@ -167,7 +172,7 @@ export function Analyse() {
       <Card title={t("analyse.topFiles")}>
         <p className="muted">{t("analyse.topFilesHint")}</p>
         <ul className="items">
-          {r.top_files.map((i) => (
+          {r.top_files.slice(0, 50).map((i) => (
             <li key={i.path}>
               <label className="check path" title={i.path}>
                 <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
@@ -194,7 +199,7 @@ export function Analyse() {
 
       <Card title={t("analyse.topDirs")}>
         <ul className="items">
-          {r.top_dirs.map((i) => (
+          {r.top_dirs.slice(0, 50).map((i) => (
             <li key={i.path}>
               <span className="path" title={i.path}>
                 {i.path}
@@ -208,6 +213,7 @@ export function Analyse() {
         </ul>
       </Card>
 
+      {report && <ReportDialog scan={r} onClose={() => setReport(false)} />}
       <TrashConfirm items={confirming} onConfirm={trash} onCancel={() => setConfirming([])} />
     </>
   );

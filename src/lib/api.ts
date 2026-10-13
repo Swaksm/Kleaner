@@ -17,7 +17,7 @@ export type JournalEntry = {
 export type JournalView = { path: string; entries: JournalEntry[] };
 
 export type Category = "videos" | "images" | "audio" | "archives" | "installers" | "other";
-export type Item = { size: number; path: string };
+export type Item = { size: number; path: string; modified: number };
 export type ScanProgress = { files: number; bytes: number; denied: number };
 export type ScanResult = {
   roots: string[];
@@ -42,6 +42,7 @@ export const onScanProgress = (fn: (p: ScanProgress) => void) => listen<ScanProg
 export const onScanDone = (fn: (r: ScanResult) => void) => listen<ScanResult>("scan-done", (e) => fn(e.payload));
 
 export const moveToTrash = (paths: string[]) => invoke<ActionReport>("move_to_trash", { paths });
+export const saveReport = (content: string) => invoke<string>("save_report", { content });
 
 export type Text = { fr: string; en: string };
 export type Cleaner = {

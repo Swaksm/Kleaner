@@ -91,5 +91,15 @@
   "programs.search": "Search a program",
   "programs.uninstall": "Uninstall",
   "programs.confirm": "Kleaner will launch this program’s official uninstaller. Follow its instructions, then refresh the list.",
-  "programs.launched": "uninstaller launched. Refresh the list once it is done."
+  "programs.launched": "uninstaller launched. Refresh the list once it is done.",
+  "report.button": "Report for an AI",
+  "report.title": "Report for an AI",
+  "report.intro": "Paste this report into the AI of your choice (ChatGPT, Claude…). It will ask you questions (\"Do you still use…?\") and then tell you what to delete to save the most space. Kleaner sends nothing.",
+  "report.privacy": "It contains file, folder and program names (your user name is hidden). Read it before sharing.",
+  "report.loading": "Preparing the report…",
+  "report.copy": "Copy",
+  "report.save": "Save",
+  "report.close": "Close",
+  "report.copied": "Copied: paste it into your AI.",
+  "report.saved": "Saved to %LOCALAPPDATA%\\Kleaner\\rapports."
 }

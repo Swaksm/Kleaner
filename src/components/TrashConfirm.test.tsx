@@ -19,8 +19,8 @@ afterEach(cleanup);
 
 test("affiche nombre, taille totale, mode Corbeille et chaque chemin", () => {
   const items = [
-    { path: "C:\\Users\\me\\Videos\\film.mkv", size: 2 * 1024 ** 3 },
-    { path: "C:\\Users\\me\\Downloads\\setup.iso", size: 1024 ** 3 },
+    { path: "C:\\Users\\me\\Videos\\film.mkv", size: 2 * 1024 ** 3, modified: 0 },
+    { path: "C:\\Users\\me\\Downloads\\setup.iso", size: 1024 ** 3, modified: 0 },
   ];
   render(<TrashConfirm items={items} onConfirm={vi.fn()} onCancel={vi.fn()} />);
   expect(screen.getByText("3,0 Go")).toBeTruthy();

@@ -178,6 +178,11 @@ fn uninstall_program(id: String) -> Result<(), String> {
     programs::uninstall(&id, &journal::data_dir())
 }
 
+#[tauri::command]
+fn save_report(content: String) -> Result<String, String> {
+    actions::save_report(&content, &journal::data_dir()).map(|p| p.display().to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -194,7 +199,8 @@ pub fn run() {
             run_cleaners,
             relaunch_admin,
             list_programs,
-            uninstall_program
+            uninstall_program,
+            save_report
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
