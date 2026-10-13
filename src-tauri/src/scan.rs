@@ -22,6 +22,10 @@ const MEDIA_SKIP_NAMES: [&str; 2] = ["$recycle.bin", "system volume information"
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
 /// Fichiers « en ligne uniquement » (OneDrive…) : ils n'occupent pas le disque.
 const FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS: u32 = 0x40_0000;
+/// Doublons : seuls les fichiers de l'utilisateur d'au moins 1 Mo sont comparés.
+const DUP_MIN: u64 = 1024 * 1024;
+/// Carte du disque : dossiers d'au moins 64 Mo.
+const TREE_MIN: u64 = 64 * 1024 * 1024;
 /// Un dossier dont un seul enfant porte ≥ 80 % de la taille n'est qu'un passage : on ne le liste pas.
 const PASS_THROUGH: f64 = 0.8;
 
@@ -94,6 +98,58 @@ pub struct ScanResult {
     pub categories: Vec<CategoryTotal>,
     /// Taille et espace libre de chaque disque analysé.
     pub drives: Vec<DriveSpace>,
+    /// Dossiers régénérables des projets (node_modules, target, .venv…).
+    pub artifacts: Vec<Artifact>,
+    /// Dossiers d'au moins 64 Mo, pour la carte du disque.
+    pub tree: Vec<Item>,
+}
+
+/// Dossier de build ou de dépendances d'un projet, recréé par l'outil du projet.
+#[derive(Serialize, Clone, Debug)]
+pub struct Artifact {
+    pub path: String,
+    /// node, python, rust, gradle, build, dart, next, dotnet
+    pub kind: &'static str,
+    pub size: u64,
+    pub project: String,
+    /// Dernière modification des fichiers du projet, hors dossier régénérable.
+    pub project_modified: u64,
+}
+
+/// Fichier de l'utilisateur candidat à la recherche de doublons.
+#[derive(Clone, Debug)]
+pub struct DupCandidate {
+    pub path: PathBuf,
+    pub size: u64,
+    pub modified: u64,
+}
+
+/// Contenu personnel (photos, vidéos, musique, documents, archives, installeurs) : seul candidat aux doublons.
+/// Les .dll, .exe, bases de données et fichiers de jeux en double sont normaux : les supprimer casse le logiciel.
+fn user_content(path: &Path, cat: Category) -> bool {
+    const DOCS: [&str; 12] = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "odp", "epub", "rtf"];
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
+    !matches!(cat, Category::Other) || DOCS.contains(&ext.as_str())
+}
+
+/// Type de dossier régénérable, d'après son nom et les fichiers du projet à côté.
+fn artifact_kind(name: &str, files: &[String]) -> Option<&'static str> {
+    let has = |f: &str| files.iter().any(|x| x == f);
+    let has_ext = |e: &str| files.iter().any(|x| x.ends_with(e));
+    match name {
+        "node_modules" if has("package.json") => Some("node"),
+        ".next" if has("package.json") => Some("next"),
+        ".venv" => Some("python"),
+        "venv" if has("requirements.txt") || has("pyproject.toml") || has("setup.py") || has("pipfile") => Some("python"),
+        "target" if has("cargo.toml") => Some("rust"),
+        ".gradle" if has("build.gradle") || has("build.gradle.kts") || has("settings.gradle") || has("settings.gradle.kts") => {
+            Some("gradle")
+        }
+        "build" if has("build.gradle") || has("build.gradle.kts") || has("pubspec.yaml") || has("cmakelists.txt") => Some("build"),
+        ".dart_tool" if has("pubspec.yaml") => Some("dart"),
+        "obj" | "bin" if has_ext(".csproj") || has_ext(".fsproj") || has_ext(".vbproj") => Some("dotnet"),
+        _ => None,
+    }
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -162,6 +218,10 @@ struct Ctx<'a> {
     media_skip: Vec<String>,
     videos: Mutex<Vec<Item>>,
     images: Mutex<Vec<Item>>,
+    dups: Mutex<Vec<DupCandidate>>,
+    artifacts: Mutex<Vec<Artifact>>,
+    tree: Mutex<Vec<Item>>,
+    profile: String,
 }
 
 impl Ctx<'_> {
@@ -169,7 +229,10 @@ impl Ctx<'_> {
     fn media_dir(&self, dir: &Path) -> bool {
         let lower = dir.to_string_lossy().to_lowercase();
         let name = dir.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
-        !self.media_skip.contains(&lower) && !MEDIA_SKIP_NAMES.contains(&name.as_str())
+        // Dossiers cachés du profil (.vscode, .cargo…) et gestionnaires d'outils : logiciels, pas fichiers perso.
+        let tool_dir = (name.starts_with('.') || name == "scoop")
+            && dir.parent().is_some_and(|p| p.to_string_lossy().to_lowercase() == self.profile);
+        !self.media_skip.contains(&lower) && !MEDIA_SKIP_NAMES.contains(&name.as_str()) && !tool_dir
     }
 }
 
@@ -270,7 +333,9 @@ fn unix_secs(t: std::io::Result<std::time::SystemTime>) -> u64 {
 
 /// (taille totale, modification la plus récente) de `dir`, en enregistrant fichiers et dossiers au passage.
 // shortcut: les liens physiques (WinSxS ↔ System32) sont comptés deux fois ; à corriger si les tailles de C:\Windows gênent.
-fn walk(dir: &Path, ctx: &Ctx, media: bool) -> (u64, u64) {
+/// `media` : zone de l'utilisateur (ni Windows, ni Program Files, ni AppData…).
+/// `in_artifact` : à l'intérieur d'un dossier régénérable (node_modules…) ou d'un dépôt .git.
+fn walk(dir: &Path, ctx: &Ctx, media: bool, in_artifact: bool) -> (u64, u64) {
     if ctx.cancel.load(Relaxed) {
         return (0, 0);
     }
@@ -282,6 +347,7 @@ fn walk(dir: &Path, ctx: &Ctx, media: bool) -> (u64, u64) {
     let mut own = 0u64;
     let mut newest = 0u64;
     let mut subdirs = Vec::new();
+    let mut file_names = Vec::new();
     for e in entries {
         if e.attrs & FILE_ATTRIBUTE_REPARSE_POINT != 0 && e.is_dir {
             continue; // jonction ou lien : déjà compté ailleurs, ou hors disque
@@ -294,9 +360,15 @@ fn walk(dir: &Path, ctx: &Ctx, media: bool) -> (u64, u64) {
             continue;
         }
         let (len, modified, path) = (e.len, e.modified, e.path);
+        let cat = category(&path);
+        if media {
+            file_names.push(path.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default());
+            if len >= DUP_MIN && !in_artifact && user_content(&path, cat) {
+                ctx.dups.lock().unwrap().push(DupCandidate { path: path.clone(), size: len, modified });
+            }
+        }
         own += len;
         newest = newest.max(modified);
-        let cat = category(&path);
         if media {
             let list = match cat {
                 Category::Videos if len >= VIDEO_MIN => Some(&ctx.videos),
@@ -314,8 +386,44 @@ fn walk(dir: &Path, ctx: &Ctx, media: bool) -> (u64, u64) {
         ctx.progress.bytes.fetch_add(len, Relaxed);
         ctx.files.offer(len, &path, modified);
     }
-    let children: Vec<(u64, u64)> = subdirs.par_iter().map(|d| walk(d, ctx, media && ctx.media_dir(d))).collect();
+    // Electron : « resources\app\node_modules » fait partie d'une appli installée, pas d'un projet.
+    let electron_app = dir.file_name().is_some_and(|n| n.eq_ignore_ascii_case("app"))
+        && dir.parent().and_then(|p| p.file_name()).is_some_and(|n| n.eq_ignore_ascii_case("resources"));
+    let kinds: Vec<Option<&'static str>> = subdirs
+        .iter()
+        .map(|d| {
+            let name = d.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
+            if !media || in_artifact || electron_app { None } else { artifact_kind(&name, &file_names) }
+        })
+        .collect();
+    let children: Vec<(u64, u64)> = subdirs
+        .par_iter()
+        .zip(&kinds)
+        .map(|(d, kind)| {
+            let git = d.file_name().is_some_and(|n| n == ".git");
+            walk(d, ctx, media && ctx.media_dir(d), in_artifact || kind.is_some() || git)
+        })
+        .collect();
     let total = own + children.iter().map(|c| c.0).sum::<u64>();
+    // Date du projet : ses fichiers, sans les dossiers régénérables (un npm install ne le « rajeunit » pas).
+    let project_modified =
+        children.iter().zip(&kinds).filter(|(_, k)| k.is_none()).map(|(c, _)| c.1).fold(newest, u64::max);
+    for ((d, kind), c) in subdirs.iter().zip(&kinds).zip(&children) {
+        if let Some(kind) = kind
+            && c.0 > 0
+        {
+            ctx.artifacts.lock().unwrap().push(Artifact {
+                path: d.display().to_string(),
+                kind,
+                size: c.0,
+                project: dir.display().to_string(),
+                project_modified,
+            });
+        }
+    }
+    if total >= TREE_MIN {
+        ctx.tree.lock().unwrap().push(Item { size: total, path: dir.display().to_string(), modified: 0 });
+    }
     let newest = children.iter().map(|c| c.1).fold(newest, u64::max);
     let biggest_child = children.iter().map(|c| c.0).max().unwrap_or(0);
     if total > 0 && (biggest_child as f64) < PASS_THROUGH * total as f64 {
@@ -325,6 +433,11 @@ fn walk(dir: &Path, ctx: &Ctx, media: bool) -> (u64, u64) {
 }
 
 pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> ScanResult {
+    scan_full(roots, cancel, progress).0
+}
+
+/// Analyse + candidats doublons (gardés côté Rust : trop nombreux pour l'interface).
+pub fn scan_full(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> (ScanResult, Vec<DupCandidate>) {
     let start = Instant::now();
     // Mode admin : on active le privilège de sauvegarde pour lire aussi les dossiers système protégés.
     let backup = crate::elevation::is_elevated() && crate::elevation::enable_backup_privilege();
@@ -342,8 +455,12 @@ pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> Scan
             .collect(),
         videos: Mutex::default(),
         images: Mutex::default(),
+        dups: Mutex::default(),
+        artifacts: Mutex::default(),
+        tree: Mutex::default(),
+        profile: std::env::var("USERPROFILE").unwrap_or_default().to_lowercase(),
     };
-    let bytes: u64 = roots.par_iter().map(|r| walk(r, &ctx, true).0).sum();
+    let bytes: u64 = roots.par_iter().map(|r| walk(r, &ctx, true, false).0).sum();
     // Une racine de disque dans le top n'apprend rien à l'utilisateur.
     let roots_str: Vec<String> = roots.iter().map(|r| r.display().to_string()).collect();
     let mut top_dirs = ctx.dirs.into_sorted();
@@ -353,7 +470,11 @@ pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> Scan
         .zip(&ctx.cats)
         .map(|(&category, (b, f))| CategoryTotal { category, bytes: b.load(Relaxed), files: f.load(Relaxed) })
         .collect();
-    ScanResult {
+    let mut artifacts = ctx.artifacts.into_inner().unwrap();
+    artifacts.sort_by_key(|a| Reverse(a.size));
+    let mut tree = ctx.tree.into_inner().unwrap();
+    tree.sort_by_key(|i| Reverse(i.size));
+    let result = ScanResult {
         roots: roots_str,
         bytes,
         files: progress.files.load(Relaxed),
@@ -367,7 +488,10 @@ pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> Scan
         images: sorted(ctx.images),
         categories,
         drives: roots.iter().filter_map(|r| drive_space(r)).collect(),
-    }
+        artifacts,
+        tree,
+    };
+    (result, ctx.dups.into_inner().unwrap())
 }
 
 fn sorted(list: Mutex<Vec<Item>>) -> Vec<Item> {
@@ -539,6 +663,47 @@ mod tests {
         let s = Sandbox::new("mediaskip");
         s.file("$Recycle.Bin/x/film.mp4", 2 * 1024 * 1024);
         assert!(run(&s.0).videos.is_empty());
+    }
+
+    #[test]
+    fn project_artifacts_detected_with_project_date() {
+        let s = Sandbox::new("artifacts");
+        let pkg = s.file("web/package.json", 10);
+        s.file("web/node_modules/react/index.js", 5000);
+        s.file("web/node_modules/react/node_modules/x/y.js", 100);
+        s.file("rs/Cargo.toml", 10);
+        s.file("rs/target/debug/app.exe", 3000);
+        s.file("notaproject/target/keep.bin", 1000);
+        let old = std::time::UNIX_EPOCH + std::time::Duration::from_secs(1_500_000_000);
+        fs::File::options().write(true).open(&pkg).unwrap().set_modified(old).unwrap();
+        let r = run(&s.0);
+        let find = |k: &str| r.artifacts.iter().filter(|a| a.kind == k).collect::<Vec<_>>();
+        let node = find("node");
+        assert_eq!(node.len(), 1, "node_modules imbriqué non compté : {:?}", r.artifacts);
+        assert_eq!(node[0].size, 5100);
+        assert_eq!(node[0].project_modified, 1_500_000_000, "la date du projet ignore node_modules");
+        assert_eq!(find("rust").len(), 1);
+        assert!(!r.artifacts.iter().any(|a| a.path.contains("notaproject")), "target sans Cargo.toml ignoré");
+    }
+
+    #[test]
+    fn electron_app_node_modules_ignored() {
+        let s = Sandbox::new("electron");
+        s.file("MyApp/resources/app/package.json", 10);
+        s.file("MyApp/resources/app/node_modules/x/i.js", 100);
+        assert!(run(&s.0).artifacts.is_empty());
+    }
+
+    #[test]
+    fn dup_candidates_collected() {
+        let s = Sandbox::new("dups");
+        s.file("a/big.mp4", 2 * 1024 * 1024);
+        s.file("a/small.mp4", 1000);
+        s.file("a/lib.dll", 2 * 1024 * 1024);
+        s.file("p/package.json", 1);
+        s.file("p/node_modules/m/big.mp4", 2 * 1024 * 1024);
+        let (_, d) = scan_full(std::slice::from_ref(&s.0), &AtomicBool::new(false), &Progress::default());
+        assert_eq!(d.len(), 1, "{d:?}");
     }
 
     #[test]

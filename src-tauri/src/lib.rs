@@ -1,5 +1,6 @@
 pub mod actions;
 pub mod catalog;
+pub mod duplicates;
 pub mod elevation;
 pub mod guard;
 pub mod journal;
@@ -10,7 +11,7 @@ pub mod scan;
 use serde::Serialize;
 use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering::Relaxed};
 use std::time::Duration;
 use tauri::{Emitter, Manager, State};
@@ -57,6 +58,10 @@ fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
 struct ScanState {
     cancel: Arc<AtomicBool>,
     running: Arc<AtomicBool>,
+    /// Résultats de la dernière analyse gardés côté Rust (trop gros, ou vérifiés avant suppression).
+    dups: Arc<Mutex<Vec<scan::DupCandidate>>>,
+    artifacts: Arc<Mutex<Vec<String>>>,
+    dup_cancel: Arc<AtomicBool>,
 }
 
 #[derive(Serialize, Clone)]
@@ -93,6 +98,7 @@ fn start_scan(app: tauri::AppHandle, state: State<ScanState>, roots: Option<Vec<
     }
     state.cancel.store(false, Relaxed);
     let (cancel, running) = (state.cancel.clone(), state.running.clone());
+    let (dups, artifacts) = (state.dups.clone(), state.artifacts.clone());
     std::thread::spawn(move || {
         let progress = Arc::new(scan::Progress::default());
         let done = Arc::new(AtomicBool::new(false));
@@ -110,7 +116,9 @@ fn start_scan(app: tauri::AppHandle, state: State<ScanState>, roots: Option<Vec<
                 }
             })
         };
-        let result = scan::scan(&roots, &cancel, &progress);
+        let (result, candidates) = scan::scan_full(&roots, &cancel, &progress);
+        *dups.lock().unwrap() = candidates;
+        *artifacts.lock().unwrap() = result.artifacts.iter().map(|a| a.path.clone()).collect();
         done.store(true, Relaxed);
         let _ = ticker.join();
         let _ = app.emit("scan-done", &result);
@@ -239,6 +247,93 @@ fn list_drives() -> Vec<scan::DriveInfo> {
     scan::drives()
 }
 
+#[derive(Serialize, Clone)]
+struct DupProgress {
+    done: u64,
+    total: u64,
+}
+
+/// Cherche les doublons parmi les fichiers de la dernière analyse. Événements `dup-progress`.
+#[tauri::command]
+async fn find_duplicates(app: tauri::AppHandle, state: State<'_, ScanState>) -> Result<Vec<duplicates::DupGroup>, String> {
+    let candidates = state.dups.lock().unwrap().clone();
+    if candidates.is_empty() {
+        return Err("Run a scan first".into());
+    }
+    state.dup_cancel.store(false, Relaxed);
+    let cancel = state.dup_cancel.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        duplicates::find(candidates, &cancel, &|done, total| {
+            let _ = app.emit("dup-progress", DupProgress { done, total });
+        })
+    })
+    .await
+    .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn cancel_duplicates(state: State<ScanState>) {
+    state.dup_cancel.store(true, Relaxed);
+}
+
+/// Supprime des dossiers régénérables de projets. Seuls ceux trouvés par la dernière analyse sont acceptés.
+#[tauri::command]
+async fn delete_artifacts(paths: Vec<String>, state: State<'_, ScanState>) -> Result<catalog::CleanReport, String> {
+    let known = state.artifacts.lock().unwrap().clone();
+    if let Some(p) = paths.iter().find(|p| !known.contains(p)) {
+        return Err(format!("Refused: {p} was not found by the last scan"));
+    }
+    let dirs: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
+    tauri::async_runtime::spawn_blocking(move || catalog::delete_project_dirs(&dirs, &journal::data_dir()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[derive(Serialize)]
+struct PreviewEntry {
+    id: String,
+    files: u64,
+    bytes: u64,
+    sample: Vec<scan::Item>,
+}
+
+#[derive(Serialize)]
+struct PreviewView {
+    entries: Vec<PreviewEntry>,
+    /// Liste complète enregistrée dans les rapports de Kleaner.
+    file: String,
+}
+
+/// Simulation : ce que les nettoyages choisis supprimeraient, fichier par fichier. Ne supprime rien.
+#[tauri::command]
+async fn preview_cleaners(ids: Vec<String>) -> Result<PreviewView, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut text = String::new();
+        let mut entries = Vec::new();
+        for id in &ids {
+            let Some(c) = catalog::get(id) else { continue };
+            let (r, list) = catalog::preview(c);
+            text.push_str(&format!("## {} — {} files, {} bytes\n", c.label.en, r.files, r.bytes));
+            if let Some(cmd) = &c.command {
+                text.push_str(&format!("command: {cmd}\n"));
+            }
+            for (p, size) in &list {
+                text.push_str(&format!("{size}\t{p}\n"));
+            }
+            text.push('\n');
+            let sample = list.iter().take(200).map(|(p, size)| scan::Item { size: *size, path: p.clone(), modified: 0 }).collect();
+            entries.push(PreviewEntry { id: id.clone(), files: r.files, bytes: r.bytes, sample });
+        }
+        let dir = journal::data_dir().join("rapports");
+        std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        let file = dir.join(format!("cleanup-preview-{}.txt", journal::Entry::new("x").ts));
+        std::fs::write(&file, text).map_err(|e| e.to_string())?;
+        Ok(PreviewView { entries, file: file.display().to_string() })
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if !elevation::single_instance() {
@@ -265,7 +360,11 @@ pub fn run() {
             preview_media,
             open_media,
             explain_paths,
-            list_drives
+            list_drives,
+            find_duplicates,
+            cancel_duplicates,
+            delete_artifacts,
+            preview_cleaners
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

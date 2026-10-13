@@ -164,6 +164,8 @@ struct Walk<'a> {
     cutoff: Option<SystemTime>,
     dry_run: bool,
     report: CleanReport,
+    /// Simulation : chemins et tailles de ce qui serait supprimé.
+    listed: Option<Vec<(String, u64)>>,
 }
 
 impl Walk<'_> {
@@ -216,6 +218,9 @@ impl Walk<'_> {
             } else if !self.wanted(&p, &m) {
                 empty = false;
             } else if self.dry_run || self.remove_file(&p, &m) {
+                if let Some(l) = &mut self.listed {
+                    l.push((p.display().to_string(), m.len()));
+                }
                 self.report.files += 1;
                 self.report.bytes += m.len();
                 empty &= !self.dry_run;
@@ -259,15 +264,66 @@ fn walk(entry: &Cleaner, dry_run: bool) -> CleanReport {
 
 /// Vide le contenu des dossiers `paths` de l'entrée (ou compte seulement si `dry_run`).
 fn walk_paths(entry: &Cleaner, dry_run: bool) -> CleanReport {
-    let report = CleanReport { id: entry.id.clone(), ..Default::default() };
     let roots: Vec<PathBuf> = entry.paths.iter().flat_map(|p| resolve(p)).collect();
+    walk_roots(entry, &roots, dry_run, false).0
+}
+
+fn walk_roots(entry: &Cleaner, roots: &[PathBuf], dry_run: bool, list: bool) -> (CleanReport, Vec<(String, u64)>) {
+    let report = CleanReport { id: entry.id.clone(), ..Default::default() };
     let cutoff = (entry.older_than_hours > 0)
         .then(|| SystemTime::now() - Duration::from_secs(entry.older_than_hours * 3600));
-    let mut w = Walk { entry, roots: &roots, cutoff, dry_run, report };
-    for r in &roots {
+    let mut w = Walk { entry, roots, cutoff, dry_run, report, listed: list.then(Vec::new) };
+    for r in roots {
         w.dir(r);
     }
-    w.report
+    (w.report, w.listed.unwrap_or_default())
+}
+
+/// Simulation : la liste exacte des fichiers qu'un nettoyage supprimerait. Ne modifie rien.
+/// Les commandes Windows (DISM, powercfg…) n'ont pas de liste : seulement leur estimation.
+pub fn preview(entry: &Cleaner) -> (CleanReport, Vec<(String, u64)>) {
+    if entry.mode == Mode::Command && entry.paths.is_empty() {
+        return (estimate(entry), Vec::new());
+    }
+    let roots: Vec<PathBuf> = entry.paths.iter().flat_map(|p| resolve(p)).collect();
+    walk_roots(entry, &roots, true, true)
+}
+
+/// Supprime définitivement des dossiers régénérables de projets (node_modules, target…),
+/// trouvés par l'analyse. Même garde que le catalogue : liens jamais suivis, fichiers verrouillés ignorés.
+pub fn delete_project_dirs(dirs: &[PathBuf], journal_dir: &Path) -> Result<CleanReport, String> {
+    let entry = Cleaner {
+        id: "project-artifacts".into(),
+        group: "dev".into(),
+        label: Text { en: String::new(), fr: String::new() },
+        what: Text { en: String::new(), fr: String::new() },
+        why: Text { en: String::new(), fr: String::new() },
+        effect: Text { en: String::new(), fr: String::new() },
+        paths: Vec::new(),
+        only: Vec::new(),
+        older_than_hours: 0,
+        admin: false,
+        mode: Mode::Delete,
+        level: Level::Safe,
+        close: Vec::new(),
+        command: None,
+    };
+    let (mut report, _) = walk_roots(&entry, dirs, false, false);
+    // Le dossier lui-même, une fois vide (la garde exige d'être strictement sous une racine : son parent).
+    for d in dirs {
+        let parent: Vec<PathBuf> = d.parent().map(Path::to_path_buf).into_iter().collect();
+        if guard::check_delete(d, &parent).is_ok() {
+            let _ = fs::remove_dir(d);
+        }
+    }
+    let mut j = journal::Entry::new("clean:project-artifacts");
+    j.paths = dirs.iter().map(|d| d.display().to_string()).collect();
+    j.files = report.files;
+    j.bytes = report.bytes;
+    j.skipped = report.skipped;
+    journal::append(journal_dir, &j).map_err(|e| format!("Log: {e}"))?;
+    report.id = "project-artifacts".into();
+    Ok(report)
 }
 
 /// Taille et nombre de fichiers qui seraient supprimés. Ne modifie rien.
@@ -505,6 +561,28 @@ mod tests {
 
     fn journal_dir(s: &Sandbox) -> PathBuf {
         s.0.join("journal")
+    }
+
+    #[test]
+    fn preview_lists_without_deleting() {
+        let s = Sandbox::new("preview");
+        let a = s.file("cache/a.bin", 100);
+        s.file("cache/sub/b.bin", 50);
+        let (r, list) = preview(&cleaner(vec![s.0.join("cache").display().to_string()]));
+        assert_eq!((r.files, r.bytes, list.len()), (2, 150, 2));
+        assert!(a.exists());
+    }
+
+    #[test]
+    fn project_dirs_deleted_with_folder_and_logged() {
+        let s = Sandbox::new("projdel");
+        s.file("web/package.json", 10);
+        s.file("web/node_modules/x/y.js", 100);
+        let nm = s.0.join("web").join("node_modules");
+        let r = delete_project_dirs(std::slice::from_ref(&nm), &journal_dir(&s)).unwrap();
+        assert_eq!((r.files, r.bytes), (1, 100));
+        assert!(!nm.exists(), "node_modules supprimé");
+        assert!(s.0.join("web").join("package.json").exists(), "le projet reste");
     }
 
     #[test]
