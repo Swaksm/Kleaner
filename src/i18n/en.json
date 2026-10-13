@@ -31,7 +31,7 @@
   "journal.skipped": "skipped",
   "page.soon": "This section is coming soon.",
   "status.planned": "Planned",
-  "analyse.intro": "Kleaner will scan all your drives, hidden files included, to show you what takes up space. Nothing is changed during the scan.",
+  "analyse.intro": "Kleaner scans the drives you tick, hidden files included, to show you what takes up space. Nothing is changed during the scan.",
   "analyse.start": "Scan",
   "analyse.running": "Scanning",
   "analyse.files": "files",
@@ -178,5 +178,12 @@
   "settings.themeDark": "Dark",
   "programs.installed": "Installed",
   "programs.lastUsed": "Last used",
-  "programs.lastUsedAdmin": "Last launch comes from Windows Prefetch: run the full scan (admin) to see it."
+  "programs.lastUsedAdmin": "Last launch comes from Windows Prefetch: run the full scan (admin) to see it.",
+  "drives.title": "Drives to scan",
+  "drives.change": "Choose drives for the next scan",
+  "drives.fixed": "Internal drive",
+  "drives.removable": "USB / removable",
+  "drives.network": "Network drive",
+  "drives.cdrom": "CD / DVD",
+  "drives.other": "Other"
 }

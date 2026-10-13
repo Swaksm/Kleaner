@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
 import { Donut } from "../components/Donut";
+import { DrivePicker } from "../components/DrivePicker";
 import { SizeBar } from "../components/SizeBar";
 import { StatusPill } from "../components/StatusPill";
 import { ReportDialog } from "../components/ReportDialog";
@@ -12,6 +13,7 @@ import { useT, type Key } from "../i18n/useT";
 import {
   cancelScan,
   explainPaths,
+  listDrives,
   listCleaners,
   moveToTrash,
   onScanDone,
@@ -19,6 +21,7 @@ import {
   revealInExplorer,
   startScan,
   type Category,
+  type DriveInfo,
   type Explanation,
   type Verdict,
   type Item,
@@ -54,6 +57,8 @@ export function Analyse() {
   const [fileSort, setFileSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const [dirSort, setDirSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const scan = useScanResult();
+  const [drives, setDrives] = useState<DriveInfo[]>([]);
+  const [roots, setRoots] = useState<Set<string>>(new Set());
   const [explanations, setExplanations] = useState<Map<string, Explanation>>(new Map());
   const [explaining, setExplaining] = useState<Explanation | null>(null);
 
@@ -66,6 +71,11 @@ export function Analyse() {
 
   useEffect(() => {
     listCleaners().then((v) => setElevated(v.elevated), () => {});
+    // Disques internes cochés par défaut ; clés USB et lecteurs réseau à cocher soi-même.
+    listDrives().then((d) => {
+      setDrives(d);
+      setRoots(new Set(d.filter((x) => x.kind === "fixed").map((x) => x.root)));
+    }, () => {});
     const unlisten = [
       onScanProgress((progress) => setPhase((p) => (p.kind === "scanning" ? { ...p, progress } : p))),
       onScanDone((result) => {
@@ -81,7 +91,7 @@ export function Analyse() {
   function start() {
     setMessage(null);
     setPhase({ kind: "scanning", progress: { files: 0, bytes: 0, denied: 0 }, start: Date.now() });
-    startScan().catch((e) => {
+    startScan(drives.length > 0 ? [...roots] : undefined).catch((e) => {
       setPhase({ kind: "idle" });
       setMessage({ status: "danger", text: String(e) });
     });
@@ -116,7 +126,8 @@ export function Analyse() {
     return (
       <Card>
         <p>{t("analyse.intro")}</p>
-        <button className="btn btn-primary" onClick={start}>
+        <DrivePicker drives={drives} selected={roots} onChange={setRoots} />
+        <button className="btn btn-primary" disabled={drives.length > 0 && roots.size === 0} onClick={start}>
           {t("analyse.start")}
         </button>
         {feedback}
@@ -183,6 +194,10 @@ export function Analyse() {
             {r.roots.join(" ")} · {(r.duration_ms / 1000).toFixed(1)} s
           </span>
         </div>
+        <details className="drives-again">
+          <summary className="muted">{t("drives.change")}</summary>
+          <DrivePicker drives={drives} selected={roots} onChange={setRoots} />
+        </details>
         {r.drives.map((d) => (
           <SizeBar
             key={d.root}
@@ -199,7 +214,7 @@ export function Analyse() {
               {r.denied} {t("analyse.denied")}
             </StatusPill>
           )}
-          <button className="btn" onClick={start}>
+          <button className="btn" disabled={drives.length > 0 && roots.size === 0} onClick={start}>
             {t("analyse.restart")}
           </button>
           <button className="btn btn-primary" onClick={() => setReport(true)}>

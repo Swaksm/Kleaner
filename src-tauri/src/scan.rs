@@ -376,6 +376,47 @@ fn sorted(list: Mutex<Vec<Item>>) -> Vec<Item> {
     v
 }
 
+#[derive(Serialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum DriveKind {
+    Fixed,
+    Removable,
+    Network,
+    Cdrom,
+    Other,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct DriveInfo {
+    pub root: String,
+    pub kind: DriveKind,
+    pub total: u64,
+    pub free: u64,
+}
+
+/// Tous les disques présents, avec leur type et leur espace (lecteurs vides ignorés).
+pub fn drives() -> Vec<DriveInfo> {
+    use windows_sys::Win32::Storage::FileSystem::{GetDriveTypeW, GetLogicalDrives};
+    let mask = unsafe { GetLogicalDrives() };
+    (0..26u8)
+        .filter(|i| mask & (1 << i) != 0)
+        .map(|i| format!("{}:\\", (b'A' + i) as char))
+        .filter_map(|root| {
+            let wide: Vec<u16> = root.encode_utf16().chain([0]).collect();
+            let kind = match unsafe { GetDriveTypeW(wide.as_ptr()) } {
+                2 => DriveKind::Removable,
+                3 => DriveKind::Fixed,
+                4 => DriveKind::Network,
+                5 => DriveKind::Cdrom,
+                _ => DriveKind::Other,
+            };
+            // Lecteur de CD vide ou carte absente : pas d'espace lisible.
+            let space = drive_space(Path::new(&root))?;
+            Some(DriveInfo { root, kind, total: space.total, free: space.free })
+        })
+        .collect()
+}
+
 /// Disques fixes (pas les clés USB, lecteurs réseau ni CD).
 pub fn fixed_drives() -> Vec<PathBuf> {
     use windows_sys::Win32::Storage::FileSystem::{GetDriveTypeW, GetLogicalDrives};
@@ -585,6 +626,12 @@ mod tests {
     fn c_drive_space_is_consistent() {
         let d = drive_space(Path::new("C:\\")).unwrap();
         assert!(d.total > 0 && d.free <= d.total);
+    }
+
+    #[test]
+    fn drives_lists_c_as_fixed() {
+        let c = drives().into_iter().find(|d| d.root == "C:\\").unwrap();
+        assert_eq!(c.kind, DriveKind::Fixed);
     }
 
     #[test]

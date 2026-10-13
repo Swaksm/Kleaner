@@ -40,7 +40,7 @@ export const readJournal = (limit = 200) => invoke<JournalView>("read_journal", 
 export const removeKleanerData = () => invoke<void>("remove_kleaner_data");
 export const revealInExplorer = (path: string) => revealItemInDir(path);
 
-export const startScan = () => invoke<void>("start_scan");
+export const startScan = (roots?: string[]) => invoke<void>("start_scan", { roots });
 export const cancelScan = () => invoke<void>("cancel_scan");
 export const onScanProgress = (fn: (p: ScanProgress) => void) => listen<ScanProgress>("scan-progress", (e) => fn(e.payload));
 export const onScanDone = (fn: (r: ScanResult) => void) => listen<ScanResult>("scan-done", (e) => fn(e.payload));
@@ -109,3 +109,6 @@ export type Explanation = {
 /** Supprimer à la main est dangereux : confirmation renforcée. */
 export const isCritical = (v: Verdict) => v === "breaks" || v === "system" || v === "uninstall";
 export const explainPaths = (paths: string[]) => invoke<Explanation[]>("explain_paths", { paths });
+
+export type DriveInfo = { root: string; kind: "fixed" | "removable" | "network" | "cdrom" | "other"; total: number; free: number };
+export const listDrives = () => invoke<DriveInfo[]>("list_drives");

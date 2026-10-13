@@ -919,3 +919,22 @@ select {
 :root { --series-7: #a3a29c; }
 .donut-arc.series-7 { stroke: var(--series-7); }
 .swatch.series-7 { background: var(--series-7); }
+
+/* Choix des disques */
+.drives {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.drive {
+  display: grid;
+  grid-template-columns: auto 40px 150px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.drives-again summary {
+  cursor: pointer;
+  margin-bottom: 8px;
+}

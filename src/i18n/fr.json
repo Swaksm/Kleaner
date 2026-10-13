@@ -31,7 +31,7 @@
   "journal.skipped": "ignorés",
   "page.soon": "Cette section arrive bientôt.",
   "status.planned": "Prévu",
-  "analyse.intro": "Kleaner va parcourir tous tes disques, fichiers cachés compris, pour te montrer ce qui prend de la place. Rien n’est modifié pendant l’analyse.",
+  "analyse.intro": "Kleaner analyse les disques que tu coches, fichiers cachés compris, pour te montrer ce qui prend de la place. Rien n’est modifié pendant l’analyse.",
   "analyse.start": "Analyser",
   "analyse.running": "Analyse en cours",
   "analyse.files": "fichiers",
@@ -178,5 +178,12 @@
   "settings.themeDark": "Sombre",
   "programs.installed": "Installé",
   "programs.lastUsed": "Dernier lancement",
-  "programs.lastUsedAdmin": "Le dernier lancement vient du Prefetch de Windows : lance l’analyse complète (admin) pour le voir."
+  "programs.lastUsedAdmin": "Le dernier lancement vient du Prefetch de Windows : lance l’analyse complète (admin) pour le voir.",
+  "drives.title": "Disques à analyser",
+  "drives.change": "Choisir les disques pour la prochaine analyse",
+  "drives.fixed": "Disque interne",
+  "drives.removable": "Clé USB / amovible",
+  "drives.network": "Lecteur réseau",
+  "drives.cdrom": "CD / DVD",
+  "drives.other": "Autre"
 }

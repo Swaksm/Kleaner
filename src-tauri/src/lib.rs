@@ -9,7 +9,7 @@ pub mod scan;
 
 use serde::Serialize;
 use std::os::windows::process::CommandExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering::Relaxed};
 use std::time::Duration;
@@ -69,7 +69,25 @@ struct ScanProgress {
 /// Lance l'analyse de tous les disques fixes en arrière-plan.
 /// Événements : `scan-progress` toutes les 250 ms, puis `scan-done` avec le résultat.
 #[tauri::command]
-fn start_scan(app: tauri::AppHandle, state: State<ScanState>) -> Result<(), String> {
+fn start_scan(app: tauri::AppHandle, state: State<ScanState>, roots: Option<Vec<String>>) -> Result<(), String> {
+    // Seules des racines de disques réellement présents sont acceptées ; par défaut, les disques fixes.
+    let roots: Vec<PathBuf> = match roots {
+        None => scan::fixed_drives(),
+        Some(asked) => {
+            let present: Vec<String> = scan::drives().into_iter().map(|d| d.root).collect();
+            let mut out = Vec::new();
+            for r in asked {
+                if !present.iter().any(|p| p.eq_ignore_ascii_case(&r)) {
+                    return Err(format!("Unknown drive: {r}"));
+                }
+                out.push(PathBuf::from(r));
+            }
+            out
+        }
+    };
+    if roots.is_empty() {
+        return Err("No drive selected".into());
+    }
     if state.running.swap(true, Relaxed) {
         return Err("A scan is already running".into());
     }
@@ -92,7 +110,7 @@ fn start_scan(app: tauri::AppHandle, state: State<ScanState>) -> Result<(), Stri
                 }
             })
         };
-        let result = scan::scan(&scan::fixed_drives(), &cancel, &progress);
+        let result = scan::scan(&roots, &cancel, &progress);
         done.store(true, Relaxed);
         let _ = ticker.join();
         let _ = app.emit("scan-done", &result);
@@ -216,6 +234,11 @@ async fn explain_paths(paths: Vec<String>) -> Result<Vec<knowledge::Explanation>
     tauri::async_runtime::spawn_blocking(move || knowledge::explain_all(&paths)).await.map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn list_drives() -> Vec<scan::DriveInfo> {
+    scan::drives()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if !elevation::single_instance() {
@@ -241,7 +264,8 @@ pub fn run() {
             is_elevated,
             preview_media,
             open_media,
-            explain_paths
+            explain_paths,
+            list_drives
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
