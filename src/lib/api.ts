@@ -46,6 +46,8 @@ export const onScanDone = (fn: (r: ScanResult) => void) => listen<ScanResult>("s
 
 export const moveToTrash = (paths: string[]) => invoke<ActionReport>("move_to_trash", { paths });
 export const saveReport = (content: string) => invoke<string>("save_report", { content });
+export const previewMedia = (path: string) => invoke<string>("preview_media", { path });
+export const openMedia = (path: string) => invoke<void>("open_media", { path });
 
 export type Text = { fr: string; en: string };
 export type Cleaner = {

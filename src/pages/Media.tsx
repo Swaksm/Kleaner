@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card } from "../components/Card";
 import { SortBar } from "../components/SortBar";
 import { StatusPill } from "../components/StatusPill";
+import { MediaViewer } from "../components/MediaViewer";
 import { TrashConfirm } from "../components/TrashConfirm";
 import { useT } from "../i18n/useT";
 import { moveToTrash, revealInExplorer, type Item } from "../lib/api";
@@ -30,6 +31,7 @@ export function Media() {
   const [limit, setLimit] = useState(PAGE);
   const [confirming, setConfirming] = useState<Item[]>([]);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
+  const [viewing, setViewing] = useState<number | null>(null);
 
   if (!scan) {
     return (
@@ -137,7 +139,7 @@ export function Media() {
           {filtered.length.toLocaleString(lang)} {t("media.results")} · {formatBytes(total(filtered), lang)}
         </p>
         <ul className="items media-list">
-          {visible.map((i) => (
+          {visible.map((i, idx) => (
             <li key={i.path}>
               <label className="check media-name" title={i.path}>
                 <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
@@ -148,6 +150,9 @@ export function Media() {
               </label>
               <span className="muted small">{formatDay(i.modified, lang)}</span>
               <span className="num">{formatBytes(i.size, lang)}</span>
+              <button className="btn btn-small btn-active" onClick={() => setViewing(idx)}>
+                {t(kind === "videos" ? "viewer.play" : "viewer.view")}
+              </button>
               <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
                 {t("analyse.open")}
               </button>
@@ -161,6 +166,18 @@ export function Media() {
         )}
       </Card>
 
+      {viewing !== null && filtered[viewing] && (
+        <MediaViewer
+          items={filtered}
+          index={viewing}
+          kind={kind}
+          onIndex={(i) => {
+            setViewing(i);
+            if (i >= limit) setLimit(i + 1);
+          }}
+          onClose={() => setViewing(null)}
+        />
+      )}
       <TrashConfirm items={confirming} onConfirm={trash} onCancel={() => setConfirming([])} />
     </>
   );

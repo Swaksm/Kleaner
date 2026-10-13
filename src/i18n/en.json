@@ -130,5 +130,13 @@
   "sort.name": "Name",
   "sort.date": "Date",
   "sort.folder": "Folder",
-  "sort.publisher": "Publisher"
+  "sort.publisher": "Publisher",
+  "viewer.play": "Play",
+  "viewer.view": "View",
+  "viewer.prev": "Previous",
+  "viewer.next": "Next",
+  "viewer.zoom": "Click to zoom to 100%",
+  "viewer.fit": "Click to fit the window",
+  "viewer.openDefault": "Open with default player",
+  "viewer.unsupported": "This format cannot be shown in Kleaner (MKV, AVI, HEIC, RAW…)."
 }

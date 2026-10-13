@@ -196,6 +196,19 @@ fn save_report(content: String) -> Result<String, String> {
     actions::save_report(&content, &journal::data_dir()).map(|p| p.display().to_string())
 }
 
+/// Autorise la fenêtre à lire ce seul fichier (photo ou vidéo) pour l'afficher. Rien d'autre n'est ouvert.
+#[tauri::command]
+fn preview_media(app: tauri::AppHandle, path: String) -> Result<String, String> {
+    let file = actions::check_media(Path::new(&path))?;
+    app.asset_protocol_scope().allow_file(&file).map_err(|e| e.to_string())?;
+    Ok(file.display().to_string())
+}
+
+#[tauri::command]
+fn open_media(path: String) -> Result<(), String> {
+    actions::open_media(Path::new(&path))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -215,7 +228,9 @@ pub fn run() {
             uninstall_program,
             save_report,
             program_sizes,
-            is_elevated
+            is_elevated,
+            preview_media,
+            open_media
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

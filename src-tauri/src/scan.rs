@@ -45,7 +45,7 @@ const CATEGORIES: [Category; 6] = [
     Category::Other,
 ];
 
-fn category(path: &Path) -> Category {
+pub fn category(path: &Path) -> Category {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
     match ext.as_str() {
         "mp4" | "mkv" | "avi" | "mov" | "wmv" | "webm" | "m4v" | "flv" | "mpg" | "mpeg" => Category::Videos,

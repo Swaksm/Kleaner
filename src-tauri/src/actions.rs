@@ -50,6 +50,39 @@ pub fn save_report(content: &str, data_dir: &Path) -> Result<PathBuf, String> {
     Ok(path)
 }
 
+/// Vérifie qu'un chemin est une photo ou une vidéo locale existante (pas un lien, pas un exe).
+/// Seuls ces fichiers peuvent être affichés dans Kleaner ou ouverts avec le lecteur par défaut.
+pub fn check_media(path: &Path) -> Result<PathBuf, String> {
+    use crate::scan::{Category, category};
+    use std::os::windows::fs::MetadataExt;
+    if !matches!(category(path), Category::Videos | Category::Images) {
+        return Err(format!("Pas une photo ni une vidéo : {}", path.display()));
+    }
+    // Chemin local uniquement (pas de partage réseau).
+    if !path.is_absolute() || path.to_string_lossy().starts_with(r"\\") {
+        return Err(format!("Chemin non local : {}", path.display()));
+    }
+    let m = std::fs::symlink_metadata(path).map_err(|e| format!("{} : {e}", path.display()))?;
+    if !m.is_file() || m.file_attributes() & 0x400 != 0 {
+        return Err(format!("Pas un fichier ordinaire : {}", path.display()));
+    }
+    Ok(path.to_path_buf())
+}
+
+/// Ouvre une photo ou une vidéo avec l'application par défaut de Windows.
+pub fn open_media(path: &Path) -> Result<(), String> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::UI::Shell::ShellExecuteW;
+    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+    let file = check_media(path)?;
+    let w = |s: &std::ffi::OsStr| s.encode_wide().chain([0]).collect::<Vec<u16>>();
+    let (verb, file) = (w("open".as_ref()), w(file.as_os_str()));
+    let r = unsafe {
+        ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL)
+    };
+    if r as isize > 32 { Ok(()) } else { Err("Aucune application pour ouvrir ce fichier.".into()) }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,6 +112,21 @@ mod tests {
         assert!(p.starts_with(d.join("rapports")));
         assert_eq!(fs::read_to_string(&p).unwrap(), "# Rapport");
         assert_eq!(journal::read_last(&d, 1).unwrap()[0].action, "report");
+        fs::remove_dir_all(&d).unwrap();
+    }
+
+    #[test]
+    fn only_real_media_files_can_be_previewed() {
+        let d = temp("media");
+        let photo = d.join("photo.JPG");
+        fs::write(&photo, b"x").unwrap();
+        let exe = d.join("virus.exe");
+        fs::write(&exe, b"x").unwrap();
+        assert!(check_media(&photo).is_ok());
+        assert!(check_media(&exe).unwrap_err().starts_with("Pas une photo"));
+        assert!(check_media(&d.join("absent.mp4")).is_err());
+        assert!(check_media(Path::new(r"\\serveur\partage\film.mp4")).is_err());
+        assert!(check_media(Path::new("relatif.mp4")).is_err());
         fs::remove_dir_all(&d).unwrap();
     }
 
