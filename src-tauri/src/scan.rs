@@ -13,6 +13,12 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
 use std::time::Instant;
 
 const TOP_N: usize = 200;
+/// En dessous : miniatures, icônes, extraits sans intérêt pour l'utilisateur.
+const VIDEO_MIN: u64 = 1024 * 1024;
+const IMAGE_MIN: u64 = 50 * 1024;
+/// Dossiers où les médias appartiennent aux logiciels, pas à l'utilisateur.
+const MEDIA_SKIP_VARS: [&str; 6] = ["SystemRoot", "ProgramFiles", "ProgramFiles(x86)", "ProgramData", "LOCALAPPDATA", "APPDATA"];
+const MEDIA_SKIP_NAMES: [&str; 2] = ["$recycle.bin", "system volume information"];
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
 /// Fichiers « en ligne uniquement » (OneDrive…) : ils n'occupent pas le disque.
 const FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS: u32 = 0x40_0000;
@@ -82,6 +88,9 @@ pub struct ScanResult {
     pub duration_ms: u64,
     pub top_files: Vec<Item>,
     pub top_dirs: Vec<Item>,
+    /// Toutes les vidéos et photos personnelles (hors dossiers système et logiciels), par taille.
+    pub videos: Vec<Item>,
+    pub images: Vec<Item>,
     pub categories: Vec<CategoryTotal>,
 }
 
@@ -131,6 +140,18 @@ struct Ctx<'a> {
     files: TopN,
     dirs: TopN,
     cats: [(AtomicU64, AtomicU64); 6],
+    media_skip: Vec<String>,
+    videos: Mutex<Vec<Item>>,
+    images: Mutex<Vec<Item>>,
+}
+
+impl Ctx<'_> {
+    /// Les médias de ce dossier (et de ses sous-dossiers) appartiennent-ils à l'utilisateur ?
+    fn media_dir(&self, dir: &Path) -> bool {
+        let lower = dir.to_string_lossy().to_lowercase();
+        let name = dir.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
+        !self.media_skip.contains(&lower) && !MEDIA_SKIP_NAMES.contains(&name.as_str())
+    }
 }
 
 /// Une entrée de dossier, quelle que soit la façon dont elle a été lue.
@@ -230,7 +251,7 @@ fn unix_secs(t: std::io::Result<std::time::SystemTime>) -> u64 {
 
 /// (taille totale, modification la plus récente) de `dir`, en enregistrant fichiers et dossiers au passage.
 // shortcut: les liens physiques (WinSxS ↔ System32) sont comptés deux fois ; à corriger si les tailles de C:\Windows gênent.
-fn walk(dir: &Path, ctx: &Ctx) -> (u64, u64) {
+fn walk(dir: &Path, ctx: &Ctx, media: bool) -> (u64, u64) {
     if ctx.cancel.load(Relaxed) {
         return (0, 0);
     }
@@ -256,14 +277,25 @@ fn walk(dir: &Path, ctx: &Ctx) -> (u64, u64) {
         let (len, modified, path) = (e.len, e.modified, e.path);
         own += len;
         newest = newest.max(modified);
-        let c = category(&path) as usize;
+        let cat = category(&path);
+        if media {
+            let list = match cat {
+                Category::Videos if len >= VIDEO_MIN => Some(&ctx.videos),
+                Category::Images if len >= IMAGE_MIN => Some(&ctx.images),
+                _ => None,
+            };
+            if let Some(list) = list {
+                list.lock().unwrap().push(Item { size: len, path: path.display().to_string(), modified });
+            }
+        }
+        let c = cat as usize;
         ctx.cats[c].0.fetch_add(len, Relaxed);
         ctx.cats[c].1.fetch_add(1, Relaxed);
         ctx.progress.files.fetch_add(1, Relaxed);
         ctx.progress.bytes.fetch_add(len, Relaxed);
         ctx.files.offer(len, &path, modified);
     }
-    let children: Vec<(u64, u64)> = subdirs.par_iter().map(|d| walk(d, ctx)).collect();
+    let children: Vec<(u64, u64)> = subdirs.par_iter().map(|d| walk(d, ctx, media && ctx.media_dir(d))).collect();
     let total = own + children.iter().map(|c| c.0).sum::<u64>();
     let newest = children.iter().map(|c| c.1).fold(newest, u64::max);
     let biggest_child = children.iter().map(|c| c.0).max().unwrap_or(0);
@@ -284,8 +316,15 @@ pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> Scan
         files: TopN::new(),
         dirs: TopN::new(),
         cats: Default::default(),
+        media_skip: MEDIA_SKIP_VARS
+            .iter()
+            .filter_map(|k| std::env::var(k).ok())
+            .map(|v| v.trim_end_matches('\\').to_lowercase())
+            .collect(),
+        videos: Mutex::default(),
+        images: Mutex::default(),
     };
-    let bytes: u64 = roots.par_iter().map(|r| walk(r, &ctx).0).sum();
+    let bytes: u64 = roots.par_iter().map(|r| walk(r, &ctx, true).0).sum();
     // Une racine de disque dans le top n'apprend rien à l'utilisateur.
     let roots_str: Vec<String> = roots.iter().map(|r| r.display().to_string()).collect();
     let mut top_dirs = ctx.dirs.into_sorted();
@@ -305,8 +344,16 @@ pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> Scan
         duration_ms: start.elapsed().as_millis() as u64,
         top_files: ctx.files.into_sorted(),
         top_dirs,
+        videos: sorted(ctx.videos),
+        images: sorted(ctx.images),
         categories,
     }
+}
+
+fn sorted(list: Mutex<Vec<Item>>) -> Vec<Item> {
+    let mut v = list.into_inner().unwrap();
+    v.sort_by(|a, b| b.cmp(a));
+    v
 }
 
 /// Disques fixes (pas les clés USB, lecteurs réseau ni CD).
@@ -410,6 +457,27 @@ mod tests {
             v
         };
         assert_eq!(key(list_backup(&s.0).unwrap()), key(list_std(&s.0).unwrap()));
+    }
+
+    #[test]
+    fn media_collected_with_size_floor() {
+        let s = Sandbox::new("media");
+        s.file("Vacances/film.mp4", 2 * 1024 * 1024);
+        s.file("Vacances/extrait.mp4", 1000);
+        s.file("Vacances/photo.JPG", 60 * 1024);
+        s.file("Vacances/icone.png", 2000);
+        let r = run(&s.0);
+        assert_eq!(r.videos.len(), 1);
+        assert!(r.videos[0].path.ends_with("film.mp4"));
+        assert_eq!(r.images.len(), 1);
+        assert!(r.images[0].path.ends_with("photo.JPG"));
+    }
+
+    #[test]
+    fn media_skipped_in_software_folders() {
+        let s = Sandbox::new("mediaskip");
+        s.file("$Recycle.Bin/x/film.mp4", 2 * 1024 * 1024);
+        assert!(run(&s.0).videos.is_empty());
     }
 
     #[test]

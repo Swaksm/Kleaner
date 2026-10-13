@@ -6,10 +6,11 @@ import { isElevated } from "./lib/api";
 import { Analyse } from "./pages/Analyse";
 import { Cleanup } from "./pages/Cleanup";
 import { Journal } from "./pages/Journal";
+import { Media } from "./pages/Media";
 import { Programs } from "./pages/Programs";
 import { Settings } from "./pages/Settings";
 
-const pages = ["analyse", "cleanup", "programs", "journal", "settings"] as const;
+const pages = ["analyse", "media", "cleanup", "programs", "journal", "settings"] as const;
 type Page = (typeof pages)[number];
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
         <div className="page" hidden={page !== "analyse"}>
           <Analyse />
         </div>
+        {page === "media" && <Media />}
         {page === "journal" && <Journal />}
         {page === "settings" && <Settings />}
         {page === "cleanup" && <Cleanup />}

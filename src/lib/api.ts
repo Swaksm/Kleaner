@@ -29,6 +29,8 @@ export type ScanResult = {
   duration_ms: number;
   top_files: Item[];
   top_dirs: Item[];
+  videos: Item[];
+  images: Item[];
   categories: { category: Category; bytes: number; files: number }[];
 };
 export type ActionReport = { files: number; bytes: number };

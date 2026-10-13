@@ -115,5 +115,20 @@
   "analyse.topDirsChart": "Où va l’espace : 10 plus gros dossiers",
   "cleanup.chart": "Espace récupérable par type",
   "cleanup.recoverable": "Récupérable",
-  "cleanup.chartAdminHint": "Les nettoyages système et lourds ne sont comptés qu’en mode admin."
+  "cleanup.chartAdminHint": "Les nettoyages système et lourds ne sont comptés qu’en mode admin.",
+  "nav.media": "Photos & vidéos",
+  "media.intro": "Toutes tes vidéos (1 Mo et plus) et photos (50 Ko et plus) trouvées par la dernière analyse, hors dossiers de Windows et des logiciels. Trie, coche, envoie à la Corbeille.",
+  "media.needScan": "Lance d’abord une analyse dans l’onglet Analyse : la liste des photos et vidéos vient de là.",
+  "media.videos": "Vidéos",
+  "media.images": "Photos",
+  "media.search": "Rechercher un nom ou un dossier",
+  "media.selectVisible": "Cocher tout ce qui est affiché",
+  "media.results": "résultats",
+  "media.more": "Afficher plus",
+  "sort.by": "Trier par",
+  "sort.size": "Taille",
+  "sort.name": "Nom",
+  "sort.date": "Date",
+  "sort.folder": "Dossier",
+  "sort.publisher": "Éditeur"
 }

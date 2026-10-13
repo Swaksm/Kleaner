@@ -20,3 +20,8 @@ export function formatBytes(bytes: number, lang: Lang): string {
 export function formatDate(ts: number, lang: Lang): string {
   return new Date(ts * 1000).toLocaleString(lang, { dateStyle: "medium", timeStyle: "short" });
 }
+
+/** Date courte (jour) à partir de secondes Unix ; vide si inconnue. */
+export function formatDay(ts: number, lang: Lang): string {
+  return ts > 0 ? new Date(ts * 1000).toLocaleDateString(lang) : "";
+}

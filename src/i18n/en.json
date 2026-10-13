@@ -115,5 +115,20 @@
   "analyse.topDirsChart": "Where the space goes: 10 largest folders",
   "cleanup.chart": "Recoverable space by type",
   "cleanup.recoverable": "Recoverable",
-  "cleanup.chartAdminHint": "System and heavy cleanups are only counted in admin mode."
+  "cleanup.chartAdminHint": "System and heavy cleanups are only counted in admin mode.",
+  "nav.media": "Photos & videos",
+  "media.intro": "All your videos (1 MB and up) and photos (50 KB and up) found by the last scan, excluding Windows and software folders. Sort, tick, send to the Recycle Bin.",
+  "media.needScan": "Run a scan in the Scan tab first: the photo and video list comes from there.",
+  "media.videos": "Videos",
+  "media.images": "Photos",
+  "media.search": "Search a name or folder",
+  "media.selectVisible": "Tick everything shown",
+  "media.results": "results",
+  "media.more": "Show more",
+  "sort.by": "Sort by",
+  "sort.size": "Size",
+  "sort.name": "Name",
+  "sort.date": "Date",
+  "sort.folder": "Folder",
+  "sort.publisher": "Publisher"
 }

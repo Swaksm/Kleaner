@@ -264,3 +264,9 @@ Avant l'IA, on ajoute en v1.x des **règles locales** sans réseau : vieux insta
 ## Mode admin : lecture complète
 
 En admin, l'analyse active le privilège de sauvegarde de Windows (`SeBackupPrivilege`) et relit en lecture seule (`FILE_FLAG_BACKUP_SEMANTICS`, `FILE_LIST_DIRECTORY`) les dossiers refusés : `System Volume Information`, `WindowsApps`, dossiers réservés à SYSTEM. Ce privilège ne sert qu'à lister ; aucune écriture. Un badge « Admin activé » est visible en permanence.
+
+## Photos & vidéos, tri et graphiques (v0.2)
+
+- **Onglet Photos & vidéos** : toutes les vidéos (≥ 1 Mo) et photos (≥ 50 Ko) trouvées par la dernière analyse, hors `C:\Windows`, Program Files, ProgramData, AppData, Corbeille et System Volume Information. Recherche, tri, sélection, envoi à la Corbeille (même garde que l'onglet Analyse), ouverture dans l'Explorateur. Affichage par pages de 300.
+- **Tri partout** : taille, nom, date (et dossier ou éditeur selon la liste). Un second clic inverse le sens.
+- **Graphiques** : anneau de répartition par type (Analyse) et d'espace récupérable par type de nettoyage (Nettoyage), barres des 10 plus gros dossiers. Couleurs catégorielles fixées par entité, palette validée (daltonisme, contraste) en clair et sombre, légende toujours accompagnée de la valeur et du pourcentage.

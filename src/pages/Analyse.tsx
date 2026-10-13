@@ -5,6 +5,7 @@ import { Donut } from "../components/Donut";
 import { SizeBar } from "../components/SizeBar";
 import { StatusPill } from "../components/StatusPill";
 import { ReportDialog } from "../components/ReportDialog";
+import { SortBar } from "../components/SortBar";
 import { TrashConfirm } from "../components/TrashConfirm";
 import { useT, type Key } from "../i18n/useT";
 import {
@@ -18,9 +19,10 @@ import {
   type Category,
   type Item,
   type ScanProgress,
-  type ScanResult,
 } from "../lib/api";
-import { formatBytes } from "../lib/format";
+import { formatBytes, formatDay } from "../lib/format";
+import { forgetPaths, setScanResult, useScanResult } from "../lib/scanStore";
+import { baseName, sortBy, type SortState } from "../lib/sort";
 
 // Ordre fixe des catégories = ordre des couleurs du graphique.
 const CATEGORY_ORDER: Category[] = ["videos", "images", "audio", "archives", "installers", "other"];
@@ -28,7 +30,14 @@ const CATEGORY_ORDER: Category[] = ["videos", "images", "audio", "archives", "in
 type Phase =
   | { kind: "idle" }
   | { kind: "scanning"; progress: ScanProgress; start: number }
-  | { kind: "done"; result: ScanResult };
+  | { kind: "done" };
+
+type ItemKey = "size" | "name" | "date";
+const itemGetters: Record<ItemKey, (i: Item) => string | number> = {
+  size: (i) => i.size,
+  name: (i) => baseName(i.path),
+  date: (i) => i.modified,
+};
 
 type Message = { status: "ok" | "danger"; text: string };
 
@@ -41,13 +50,17 @@ export function Analyse() {
   const [elevated, setElevated] = useState(true);
   const [report, setReport] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [fileSort, setFileSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
+  const [dirSort, setDirSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
+  const scan = useScanResult();
 
   useEffect(() => {
     listCleaners().then((v) => setElevated(v.elevated), () => {});
     const unlisten = [
       onScanProgress((progress) => setPhase((p) => (p.kind === "scanning" ? { ...p, progress } : p))),
       onScanDone((result) => {
-        setPhase({ kind: "done", result });
+        setScanResult(result);
+        setPhase({ kind: "done" });
         setSelected(new Set());
       }),
     ];
@@ -76,12 +89,7 @@ export function Analyse() {
     setConfirming([]);
     try {
       const r = await moveToTrash(items.map((i) => i.path));
-      const gone = new Set(items.map((i) => i.path));
-      setPhase((p) =>
-        p.kind === "done"
-          ? { ...p, result: { ...p.result, top_files: p.result.top_files.filter((i) => !gone.has(i.path)) } }
-          : p,
-      );
+      forgetPaths(items.map((i) => i.path));
       setSelected(new Set());
       setMessage({
         status: "ok",
@@ -127,9 +135,17 @@ export function Analyse() {
     );
   }
 
-  const r = phase.result;
+  const r = scan;
+  if (!r) return null;
+  const files = sortBy(r.top_files, fileSort, itemGetters);
+  const dirs = sortBy(r.top_dirs, dirSort, itemGetters);
   const chosen = r.top_files.filter((i) => selected.has(i.path));
   const chosenBytes = chosen.reduce((s, i) => s + i.size, 0);
+  const sortOptions: Record<ItemKey, [string, boolean]> = {
+    size: [t("sort.size"), true],
+    name: [t("sort.name"), false],
+    date: [t("sort.date"), true],
+  };
   const showAllButton = (r.top_files.length > 50 || r.top_dirs.length > 50) && (
     <button className="btn" onClick={() => setShowAll(!showAll)}>
       {showAll ? t("analyse.showLess") : t("analyse.showAll")}
@@ -197,13 +213,15 @@ export function Analyse() {
 
       <Card title={t("analyse.topFiles")}>
         <p className="muted">{t("analyse.topFilesHint")}</p>
+        <SortBar options={sortOptions} value={fileSort} onChange={setFileSort} />
         <ul className="items">
-          {r.top_files.slice(0, showAll ? undefined : 50).map((i) => (
+          {files.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <label className="check path" title={i.path}>
                 <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
                 <span>{i.path}</span>
               </label>
+              <span className="muted small">{formatDay(i.modified, lang)}</span>
               <span className="num">{formatBytes(i.size, lang)}</span>
               <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
                 {t("analyse.open")}
@@ -225,12 +243,14 @@ export function Analyse() {
       </Card>
 
       <Card title={t("analyse.topDirs")}>
+        <SortBar options={sortOptions} value={dirSort} onChange={setDirSort} />
         <ul className="items">
-          {r.top_dirs.slice(0, showAll ? undefined : 50).map((i) => (
+          {dirs.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <span className="path" title={i.path}>
                 {i.path}
               </span>
+              <span className="muted small">{formatDay(i.modified, lang)}</span>
               <span className="num">{formatBytes(i.size, lang)}</span>
               <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
                 {t("analyse.open")}

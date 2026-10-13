@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { SortBar } from "../components/SortBar";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
 import { listPrograms, programSizes, uninstallProgram, type Program } from "../lib/api";
 import { formatBytes } from "../lib/format";
+import { sortBy, type SortState } from "../lib/sort";
 
 function formatInstallDate(d: string, lang: string): string {
   if (!/^\d{8}$/.test(d)) return "";
@@ -15,6 +17,7 @@ export function Programs() {
   const { t, lang } = useT();
   const [programs, setPrograms] = useState<Program[] | null>(null);
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<SortState<"size" | "name" | "date" | "publisher">>({ key: "size", dir: "desc" });
   const [target, setTarget] = useState<Program | null>(null);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
 
@@ -45,9 +48,13 @@ export function Programs() {
   }
 
   const q = query.trim().toLowerCase();
-  const shown = programs
-    ?.filter((p) => !q || `${p.name} ${p.publisher}`.toLowerCase().includes(q))
-    .sort((a, b) => size(b) - size(a));
+  const shown =
+    programs &&
+    sortBy(
+      programs.filter((p) => !q || `${p.name} ${p.publisher}`.toLowerCase().includes(q)),
+      sort,
+      { size, name: (p) => p.name, date: (p) => p.install_date, publisher: (p) => p.publisher },
+    );
 
   return (
     <>
@@ -65,6 +72,16 @@ export function Programs() {
             {t("cleanup.refresh")}
           </button>
         </div>
+        <SortBar
+          options={{
+            size: [t("sort.size"), true],
+            name: [t("sort.name"), false],
+            date: [t("sort.date"), true],
+            publisher: [t("sort.publisher"), false],
+          }}
+          value={sort}
+          onChange={setSort}
+        />
         {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
       </Card>
 
