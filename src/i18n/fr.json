@@ -246,5 +246,12 @@
   "preview.button": "Voir la liste exacte",
   "preview.title": "Ce qui serait supprimé",
   "preview.intro": "Simulation : rien n’a été supprimé. Voici chaque fichier que les nettoyages choisis retireraient.",
-  "preview.openFull": "Ouvrir la liste complète (fichier texte)"
+  "preview.openFull": "Ouvrir la liste complète (fichier texte)",
+  "verdict.short.safe": "Supprimable",
+  "verdict.short.cleanup": "À nettoyer",
+  "verdict.short.uninstall": "À désinstaller",
+  "verdict.short.breaks": "Casse",
+  "verdict.short.personal": "Perso",
+  "verdict.short.system": "Système",
+  "verdict.short.unknown": "Inconnu"
 }

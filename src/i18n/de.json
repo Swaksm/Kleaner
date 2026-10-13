@@ -246,5 +246,12 @@
   "preview.button": "Genaue Liste ansehen",
   "preview.title": "Was gelöscht würde",
   "preview.intro": "Simulation: Es wurde nichts gelöscht. Hier ist jede Datei, die die gewählten Bereinigungen entfernen würden.",
-  "preview.openFull": "Vollständige Liste öffnen (Textdatei)"
+  "preview.openFull": "Vollständige Liste öffnen (Textdatei)",
+  "verdict.short.safe": "Löschbar",
+  "verdict.short.cleanup": "Bereinigen",
+  "verdict.short.uninstall": "Deinstallieren",
+  "verdict.short.breaks": "Macht kaputt",
+  "verdict.short.personal": "Persönlich",
+  "verdict.short.system": "System",
+  "verdict.short.unknown": "Unbekannt"
 }

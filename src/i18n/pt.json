@@ -246,5 +246,12 @@
   "preview.button": "Ver a lista exata",
   "preview.title": "O que seria apagado",
   "preview.intro": "Simulação: nada foi apagado. Aqui está cada arquivo que as limpezas escolhidas removeriam.",
-  "preview.openFull": "Abrir a lista completa (arquivo de texto)"
+  "preview.openFull": "Abrir a lista completa (arquivo de texto)",
+  "verdict.short.safe": "Apagável",
+  "verdict.short.cleanup": "Limpar",
+  "verdict.short.uninstall": "Desinstalar",
+  "verdict.short.breaks": "Quebra",
+  "verdict.short.personal": "Pessoal",
+  "verdict.short.system": "Sistema",
+  "verdict.short.unknown": "Desconhecido"
 }

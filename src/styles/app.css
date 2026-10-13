@@ -884,19 +884,44 @@ select {
 
 /* Verdicts */
 .items.grid-5 li {
-  grid-template-columns: minmax(0, 1fr) 190px 90px 84px 70px;
+  grid-template-columns: minmax(0, 1fr) 110px 90px 84px 70px;
 }
 
-.verdict-pill {
+.verdict-tag {
   all: unset;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.verdict-pill:focus-visible {
-  outline: 2px solid var(--accent);
-  border-radius: 999px;
+.verdict-tag:hover {
+  text-decoration: underline;
 }
+
+.verdict-tag:focus-visible {
+  outline: 2px solid var(--accent);
+  border-radius: 4px;
+}
+
+.verdict-tag .dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
+.tone-ok .dot { background: var(--ok); }
+.tone-warn .dot { background: var(--warn); }
+.tone-danger .dot { background: var(--danger); }
 
 .critical {
   border: 1px solid var(--danger);

@@ -14,25 +14,20 @@ const STATUS: Record<Verdict, "ok" | "warn" | "danger" | "neutral"> = {
   unknown: "neutral",
 };
 
-const ICON: Record<Verdict, string> = {
-  safe: "✓",
-  cleanup: "🧹",
-  uninstall: "📦",
-  personal: "👤",
-  breaks: "⚠",
-  system: "⛔",
-  unknown: "?",
-};
 
-/** Badge cliquable : icône + libellé (jamais la couleur seule). */
+/** Point de couleur + mot court (jamais la couleur seule) ; clic = fiche détaillée. */
 export function VerdictPill({ e, onOpen }: { e?: Explanation; onOpen: (e: Explanation) => void }) {
   const { t } = useT();
-  if (!e) return <span className="verdict-pill muted">…</span>;
+  if (!e) return <span className="verdict-tag muted">…</span>;
   return (
-    <button type="button" className="verdict-pill" title={t("verdict.open")} onClick={() => onOpen(e)}>
-      <StatusPill status={STATUS[e.verdict]}>
-        <span aria-hidden>{ICON[e.verdict]}</span> {t(`verdict.${e.verdict}` as Key)}
-      </StatusPill>
+    <button
+      type="button"
+      className={`verdict-tag tone-${STATUS[e.verdict]}`}
+      title={`${t(`verdict.${e.verdict}` as Key)} — ${t("verdict.open")}`}
+      onClick={() => onOpen(e)}
+    >
+      <span className="dot" aria-hidden />
+      {t(`verdict.short.${e.verdict}` as Key)}
     </button>
   );
 }
@@ -53,7 +48,7 @@ export function ExplainDialog({ e, onClose }: { e: Explanation; onClose: () => v
       <div className="dialog-body">
         <code>{e.path}</code>
         <StatusPill status={STATUS[e.verdict]}>
-          <span aria-hidden>{ICON[e.verdict]}</span> {t(`verdict.${e.verdict}` as Key)}
+          {t(`verdict.${e.verdict}` as Key)}
         </StatusPill>
         <dl className="cleaner-info">
           <dt>{t("verdict.what")}</dt>

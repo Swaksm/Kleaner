@@ -246,5 +246,12 @@
   "preview.button": "Vedi l’elenco esatto",
   "preview.title": "Cosa verrebbe eliminato",
   "preview.intro": "Simulazione: non è stato eliminato nulla. Ecco ogni file che le pulizie scelte rimuoverebbero.",
-  "preview.openFull": "Apri l’elenco completo (file di testo)"
+  "preview.openFull": "Apri l’elenco completo (file di testo)",
+  "verdict.short.safe": "Eliminabile",
+  "verdict.short.cleanup": "Da pulire",
+  "verdict.short.uninstall": "Disinstallare",
+  "verdict.short.breaks": "Rompe",
+  "verdict.short.personal": "Personale",
+  "verdict.short.system": "Sistema",
+  "verdict.short.unknown": "Sconosciuto"
 }

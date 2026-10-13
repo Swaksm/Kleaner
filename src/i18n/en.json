@@ -246,5 +246,12 @@
   "preview.button": "Preview the exact list",
   "preview.title": "What would be deleted",
   "preview.intro": "Simulation: nothing has been deleted. Here is every file the selected cleanups would remove.",
-  "preview.openFull": "Open the full list (text file)"
+  "preview.openFull": "Open the full list (text file)",
+  "verdict.short.safe": "Deletable",
+  "verdict.short.cleanup": "Clean",
+  "verdict.short.uninstall": "Uninstall",
+  "verdict.short.breaks": "Breaks",
+  "verdict.short.personal": "Personal",
+  "verdict.short.system": "System",
+  "verdict.short.unknown": "Unknown"
 }

@@ -246,5 +246,12 @@
   "preview.button": "Ver la lista exacta",
   "preview.title": "Lo que se borraría",
   "preview.intro": "Simulación: no se ha borrado nada. Aquí está cada archivo que quitarían las limpiezas elegidas.",
-  "preview.openFull": "Abrir la lista completa (archivo de texto)"
+  "preview.openFull": "Abrir la lista completa (archivo de texto)",
+  "verdict.short.safe": "Borrable",
+  "verdict.short.cleanup": "Limpiar",
+  "verdict.short.uninstall": "Desinstalar",
+  "verdict.short.breaks": "Rompe",
+  "verdict.short.personal": "Personal",
+  "verdict.short.system": "Sistema",
+  "verdict.short.unknown": "Desconocido"
 }
