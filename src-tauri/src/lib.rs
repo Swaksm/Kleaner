@@ -1,4 +1,5 @@
 pub mod actions;
+pub mod catalog;
 pub mod guard;
 pub mod journal;
 pub mod scan;

@@ -1,0 +1,231 @@
+[
+  {
+    "id": "user-temp",
+    "group": "windows",
+    "label": { "fr": "Fichiers temporaires", "en": "Temporary files" },
+    "what": { "fr": "Fichiers laissés dans %TEMP% par les installeurs et les applis.", "en": "Files left in %TEMP% by installers and apps." },
+    "why": { "fr": "Ils ne servent qu'au moment où ils sont créés. On ne touche qu'à ceux de plus de 24 h.", "en": "They are only used when created. Only files older than 24 h are touched." },
+    "effect": { "fr": "Rien.", "en": "Nothing." },
+    "paths": ["%TEMP%"],
+    "older_than_hours": 24,
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "thumbnails",
+    "group": "windows",
+    "label": { "fr": "Cache des miniatures", "en": "Thumbnail cache" },
+    "what": { "fr": "Aperçus d'images et d'icônes mémorisés par l'Explorateur.", "en": "Image and icon previews stored by File Explorer." },
+    "why": { "fr": "Windows les recrée automatiquement quand tu ouvres un dossier.", "en": "Windows rebuilds them automatically when you open a folder." },
+    "effect": { "fr": "Miniatures un peu plus lentes à apparaître la première fois.", "en": "Thumbnails appear a little slower the first time." },
+    "paths": ["%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"],
+    "only": ["thumbcache_*.db", "iconcache_*.db"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "inet-cache",
+    "group": "windows",
+    "label": { "fr": "Cache Internet de Windows", "en": "Windows Internet cache" },
+    "what": { "fr": "Copies de pages et fichiers web gardées par Windows et les anciennes applis.", "en": "Copies of web pages and files kept by Windows and older apps." },
+    "why": { "fr": "Ce sont des copies : elles sont retéléchargées au besoin.", "en": "They are copies: downloaded again when needed." },
+    "effect": { "fr": "Rien.", "en": "Nothing." },
+    "paths": ["%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "crash-dumps",
+    "group": "windows",
+    "label": { "fr": "Rapports de plantage", "en": "Crash dumps" },
+    "what": { "fr": "Copies de la mémoire des applis qui ont planté, et rapports d'erreurs Windows.", "en": "Memory copies of apps that crashed, and Windows error reports." },
+    "why": { "fr": "Utiles seulement à un développeur qui enquête sur un plantage précis.", "en": "Only useful to a developer investigating a specific crash." },
+    "effect": { "fr": "Rien.", "en": "Nothing." },
+    "paths": [
+      "%LOCALAPPDATA%\\CrashDumps",
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportArchive",
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\ReportQueue",
+      "%LOCALAPPDATA%\\Microsoft\\Windows\\WER\\Temp"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "shader-cache",
+    "group": "windows",
+    "label": { "fr": "Caches de la carte graphique", "en": "Graphics card caches" },
+    "what": { "fr": "Shaders compilés par DirectX et les pilotes NVIDIA ou AMD.", "en": "Shaders compiled by DirectX and NVIDIA or AMD drivers." },
+    "why": { "fr": "Ils se recompilent automatiquement au prochain lancement des jeux et applis.", "en": "They are recompiled automatically the next time games and apps start." },
+    "effect": { "fr": "Premier lancement des jeux un peu plus long.", "en": "Games take a little longer to start the first time." },
+    "paths": [
+      "%LOCALAPPDATA%\\D3DSCache",
+      "%LOCALAPPDATA%\\NVIDIA\\DXCache",
+      "%LOCALAPPDATA%\\NVIDIA\\GLCache",
+      "%LOCALAPPDATA%\\AMD\\DxCache",
+      "%LOCALAPPDATA%\\AMD\\DxcCache",
+      "%LOCALAPPDATA%\\AMD\\GLCache"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "recycle-bin",
+    "group": "windows",
+    "label": { "fr": "Corbeille", "en": "Recycle Bin" },
+    "what": { "fr": "Tous les fichiers actuellement dans la Corbeille, sur tous les disques.", "en": "All files currently in the Recycle Bin, on every drive." },
+    "why": { "fr": "Tu les as déjà supprimés : ils n'attendent qu'une confirmation.", "en": "You already deleted them: they are only waiting for confirmation." },
+    "effect": { "fr": "Irréversible : ces fichiers ne pourront plus être restaurés.", "en": "Irreversible: these files can no longer be restored." },
+    "mode": "command",
+    "level": "heavy"
+  },
+  {
+    "id": "browser-chrome",
+    "group": "browsers",
+    "label": { "fr": "Google Chrome : cache", "en": "Google Chrome: cache" },
+    "what": { "fr": "Copies locales des pages, scripts et shaders déjà chargés.", "en": "Local copies of pages, scripts and shaders already loaded." },
+    "why": { "fr": "Chrome les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Chrome downloads them again when needed. Cookies, passwords and history are untouched." },
+    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "paths": [
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\Cache",
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\Code Cache",
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\*\\GPUCache",
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\ShaderCache",
+      "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\GrShaderCache"
+    ],
+    "close": ["chrome.exe"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "browser-edge",
+    "group": "browsers",
+    "label": { "fr": "Microsoft Edge : cache", "en": "Microsoft Edge: cache" },
+    "what": { "fr": "Copies locales des pages, scripts et shaders déjà chargés.", "en": "Local copies of pages, scripts and shaders already loaded." },
+    "why": { "fr": "Edge les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Edge downloads them again when needed. Cookies, passwords and history are untouched." },
+    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "paths": [
+      "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\Cache",
+      "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\Code Cache",
+      "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\*\\GPUCache",
+      "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\ShaderCache",
+      "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\GrShaderCache"
+    ],
+    "close": ["msedge.exe"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "browser-brave",
+    "group": "browsers",
+    "label": { "fr": "Brave : cache", "en": "Brave: cache" },
+    "what": { "fr": "Copies locales des pages, scripts et shaders déjà chargés.", "en": "Local copies of pages, scripts and shaders already loaded." },
+    "why": { "fr": "Brave les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Brave downloads them again when needed. Cookies, passwords and history are untouched." },
+    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "paths": [
+      "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\*\\Cache",
+      "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\*\\Code Cache",
+      "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\*\\GPUCache",
+      "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\ShaderCache",
+      "%LOCALAPPDATA%\\BraveSoftware\\Brave-Browser\\User Data\\GrShaderCache"
+    ],
+    "close": ["brave.exe"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "browser-opera",
+    "group": "browsers",
+    "label": { "fr": "Opera : cache", "en": "Opera: cache" },
+    "what": { "fr": "Copies locales des pages et scripts déjà chargés.", "en": "Local copies of pages and scripts already loaded." },
+    "why": { "fr": "Opera les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Opera downloads them again when needed. Cookies, passwords and history are untouched." },
+    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "paths": [
+      "%LOCALAPPDATA%\\Opera Software\\Opera Stable\\Cache",
+      "%LOCALAPPDATA%\\Opera Software\\Opera GX Stable\\Cache"
+    ],
+    "close": ["opera.exe"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "browser-firefox",
+    "group": "browsers",
+    "label": { "fr": "Firefox : cache", "en": "Firefox: cache" },
+    "what": { "fr": "Copies locales des pages et fichiers déjà chargés (dossier cache2).", "en": "Local copies of pages and files already loaded (cache2 folder)." },
+    "why": { "fr": "Firefox les retélécharge au besoin. Cookies, mots de passe et historique ne sont pas touchés.", "en": "Firefox downloads them again when needed. Cookies, passwords and history are untouched." },
+    "effect": { "fr": "Tu restes connecté. Sites un peu plus lents au premier chargement.", "en": "You stay logged in. Sites load a little slower the first time." },
+    "paths": ["%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles\\*\\cache2"],
+    "close": ["firefox.exe"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "app-discord",
+    "group": "apps",
+    "label": { "fr": "Discord : cache", "en": "Discord: cache" },
+    "what": { "fr": "Images, vidéos et scripts déjà affichés dans Discord.", "en": "Images, videos and scripts already shown in Discord." },
+    "why": { "fr": "Discord les retélécharge au besoin. Ta session n'est pas touchée.", "en": "Discord downloads them again when needed. Your session is untouched." },
+    "effect": { "fr": "Tu restes connecté. Images un peu plus lentes à apparaître.", "en": "You stay logged in. Images appear a little slower." },
+    "paths": [
+      "%APPDATA%\\discord\\Cache",
+      "%APPDATA%\\discord\\Code Cache",
+      "%APPDATA%\\discord\\GPUCache"
+    ],
+    "close": ["Discord.exe"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "app-slack",
+    "group": "apps",
+    "label": { "fr": "Slack : cache", "en": "Slack: cache" },
+    "what": { "fr": "Images, fichiers et scripts déjà affichés dans Slack.", "en": "Images, files and scripts already shown in Slack." },
+    "why": { "fr": "Slack les retélécharge au besoin. Ta session n'est pas touchée.", "en": "Slack downloads them again when needed. Your session is untouched." },
+    "effect": { "fr": "Tu restes connecté. Images un peu plus lentes à apparaître.", "en": "You stay logged in. Images appear a little slower." },
+    "paths": [
+      "%APPDATA%\\Slack\\Cache",
+      "%APPDATA%\\Slack\\Code Cache",
+      "%APPDATA%\\Slack\\GPUCache"
+    ],
+    "close": ["slack.exe"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "app-teams",
+    "group": "apps",
+    "label": { "fr": "Microsoft Teams : cache", "en": "Microsoft Teams: cache" },
+    "what": { "fr": "Images, fichiers et scripts déjà affichés dans Teams (ancienne et nouvelle version).", "en": "Images, files and scripts already shown in Teams (classic and new)." },
+    "why": { "fr": "Teams les retélécharge au besoin. Ta session n'est pas touchée.", "en": "Teams downloads them again when needed. Your session is untouched." },
+    "effect": { "fr": "Tu restes connecté. Premier lancement un peu plus long.", "en": "You stay logged in. First start takes a little longer." },
+    "paths": [
+      "%APPDATA%\\Microsoft\\Teams\\Cache",
+      "%APPDATA%\\Microsoft\\Teams\\Code Cache",
+      "%APPDATA%\\Microsoft\\Teams\\GPUCache",
+      "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\EBWebView\\*\\Cache",
+      "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\EBWebView\\*\\Code Cache",
+      "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams\\EBWebView\\*\\GPUCache"
+    ],
+    "close": ["Teams.exe", "ms-teams.exe"],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "app-vscode",
+    "group": "apps",
+    "label": { "fr": "VS Code : cache", "en": "VS Code: cache" },
+    "what": { "fr": "Scripts précompilés et paquets d'extensions déjà installés.", "en": "Precompiled scripts and already-installed extension packages." },
+    "why": { "fr": "VS Code les recrée au besoin. Réglages, extensions et session ne sont pas touchés.", "en": "VS Code recreates them when needed. Settings, extensions and session are untouched." },
+    "effect": { "fr": "Premier lancement un peu plus long.", "en": "First start takes a little longer." },
+    "paths": [
+      "%APPDATA%\\Code\\Cache",
+      "%APPDATA%\\Code\\CachedData",
+      "%APPDATA%\\Code\\Code Cache",
+      "%APPDATA%\\Code\\GPUCache",
+      "%APPDATA%\\Code\\CachedExtensionVSIXs"
+    ],
+    "close": ["Code.exe"],
+    "mode": "delete",
+    "level": "safe"
+  }
+]

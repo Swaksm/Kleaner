@@ -47,17 +47,17 @@
 
 ## P3 — Nettoyage utilisateur
 
-- [ ] **T8 : Moteur du catalogue (`catalog.rs`)**
+- [x] **T8 : Moteur du catalogue (`catalog.rs`)**
   - Acceptance : charge `cleaners.json` embarqué. Le schéma exige `what`, `why` et `effect` en FR et en EN (140 caractères max), sinon le test échoue. Résout les variables d'environnement et les jokers. `estimate` donne la taille et le nombre de fichiers par entrée. `execute` supprime fichier par fichier via `guard`, sans traverser les liens, et ignore puis compte les fichiers verrouillés. Le champ `close` est respecté (processus actif = entrée ignorée).
   - Verify : `cargo test catalog` sur une arborescence temporaire, avec un fichier verrouillé et une jonction piégée.
   - Files : `src-tauri/src/catalog.rs`, `src-tauri/cleaners.json`
 
-- [ ] **T9 : Entrées utilisateur Windows**
+- [x] **T9 : Entrées utilisateur Windows**
   - Acceptance : `%TEMP%`, miniatures, INetCache, CrashDumps, WER utilisateur, caches de shaders, Corbeille.
   - Verify : test qui valide tout le catalogue (racines, schéma). Estimation lancée sur la machine réelle.
   - Files : `src-tauri/cleaners.json`, `src-tauri/src/catalog.rs` (test)
 
-- [ ] **T10 : Entrées navigateurs et applis**
+- [x] **T10 : Entrées navigateurs et applis**
   - Acceptance : Chrome, Edge, Brave, Opera, Firefox, Discord, Slack, Teams, VS Code et Spotify. Uniquement des dossiers de cache, chaque chemin justifié par un commentaire de source dans le PR.
   - Verify : un test fait échouer toute entrée qui cible `Cookies`, `Local Storage`, `IndexedDB`, `Login Data`, `Session Storage` ou `Service Worker`. Vérification sur VM : toujours connecté après le nettoyage.
   - Files : `src-tauri/cleaners.json`

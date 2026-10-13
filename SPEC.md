@@ -49,7 +49,9 @@ Chaque entrée contient :
 | `effect` | **Ce que ça change pour l'utilisateur** (« Rien » / « Sites un peu plus lents au 1er chargement » / « Hibernation désactivée ») |
 | `paths` | Chemins avec variables d'environnement et jokers (`%LOCALAPPDATA%\Google\Chrome\User Data\*\Cache`) |
 | `admin` | `true` si l'entrée demande les droits admin |
-| `mode` | `delete` (suppression directe), `command` (outil Windows officiel) ou `trash` |
+| `mode` | `delete` (vide le contenu des dossiers, garde le dossier) ou `command` (outil Windows officiel, géré par `id`) |
+| `only` | Optionnel : seuls les fichiers dont le nom correspond (`thumbcache_*.db`) |
+| `older_than_hours` | Optionnel : seuls les fichiers plus vieux que ça (`%TEMP%` : 24 h) |
 | `level` | `safe` (coché par défaut), `heavy` (carte dédiée et confirmation dédiée) |
 | `close` | Processus qui doivent être fermés (`chrome.exe`…). S'ils tournent, l'entrée est ignorée et signalée |
 
@@ -63,7 +65,7 @@ Chaque entrée contient :
 - Caches de shaders DirectX, NVIDIA et AMD
 - Corbeille
 - **Navigateurs** (Chrome, Edge, Brave, Opera, Firefox) : uniquement les dossiers `Cache`, `Code Cache`, `GPUCache` et `cache2`
-- **Applis** (Discord, Slack, Teams, VS Code, Spotify…) : uniquement leurs dossiers de cache
+- **Applis** (Discord, Slack, Teams, VS Code) : uniquement leurs dossiers de cache. Spotify exclu : son cache peut contenir les titres téléchargés hors ligne.
 - **Outils dev** : caches npm, Yarn, pip, NuGet, Gradle et Cargo
 
 **Système, admin, niveau `safe` :**
@@ -99,7 +101,7 @@ Chaque entrée contient :
 ## Stack technique
 
 - **Tauri 2** (cœur en Rust) + **React 19 + TypeScript + Vite**, **Recharts** pour les graphiques.
-- Crates Rust : `rayon` (parcours parallèle maison, `read_dir` donne les tailles sans appel système en plus), `trash` (Corbeille), `winreg` (lecture des programmes installés), `windows-sys` (disques, élévation, vidage de la Corbeille, processus), `serde` et `serde_json`, `globset`.
+- Crates Rust : `rayon` (parcours parallèle maison, `read_dir` donne les tailles sans appel système en plus), `trash` (Corbeille), `winreg` (lecture des programmes installés), `windows-sys` (disques, élévation, vidage de la Corbeille, processus), `serde` et `serde_json`. Jokers du catalogue gérés à la main (`*`, `?`).
 - i18n : deux fichiers `fr.json` / `en.json` et un petit hook React, sans librairie.
 - Polices Archivo et IBM Plex Sans/Mono **embarquées** dans l'exe, sans Google Fonts.
 - Pas de framework CSS : variables CSS du style guide.
