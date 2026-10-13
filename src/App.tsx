@@ -3,6 +3,7 @@ import { StatusPill } from "./components/StatusPill";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { useT, type Key } from "./i18n/useT";
 import { isElevated } from "./lib/api";
+import { About } from "./pages/About";
 import { Analyse } from "./pages/Analyse";
 import { Cleanup } from "./pages/Cleanup";
 import { Journal } from "./pages/Journal";
@@ -10,7 +11,7 @@ import { Media } from "./pages/Media";
 import { Programs } from "./pages/Programs";
 import { Settings } from "./pages/Settings";
 
-const pages = ["analyse", "media", "cleanup", "programs", "journal", "settings"] as const;
+const pages = ["analyse", "media", "cleanup", "programs", "journal", "settings", "about"] as const;
 type Page = (typeof pages)[number];
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
         {page === "media" && <Media />}
         {page === "journal" && <Journal />}
         {page === "settings" && <Settings />}
+        {page === "about" && <About />}
         {page === "cleanup" && <Cleanup />}
         {page === "programs" && <Programs />}
       </main>

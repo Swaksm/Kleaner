@@ -280,3 +280,13 @@ En admin, l'analyse active le privilège de sauvegarde de Windows (`SeBackupPriv
 - **Programmes** : colonnes « taille mesurée » et « taille déclarée », chacune masquable.
 - **Photos & vidéos** : affichage Liste (défaut) ou Grille avec miniatures chargées à l'affichage ; choix mémorisé.
 - **Nettoyage** : indicateur « Estimating… » pendant le rafraîchissement.
+
+## Révision 4
+
+- **Base de connaissances** (`knowledge.json`, ~95 règles) : verdict par fichier et dossier — fiches précises → catalogue → programme propriétaire → règles générales (type, emplacement) → inconnu. Kleaner ne devine jamais. Fichiers critiques (casse, système, à désinstaller) : avertissement + case « j'ai compris » avant la Corbeille (on avertit, on n'empêche pas).
+- **Choix des disques** : internes cochés, USB et réseau au choix. `start_scan` n'accepte que des racines de disques présents.
+- **Espace libre** par disque (stats et anneau). **Dernier lancement** des programmes via Prefetch (admin).
+- **Instance unique** : relancer l'exe ramène la fenêtre existante ; la relance admin attend la fermeture de l'ancienne.
+- **Thème** : Comme Windows (défaut, suit en direct) / Clair / Sombre.
+- **À propos** : ce que fait / ne fait pas Kleaner, crédits swaks, liens GitHub. Les liens ouvrent le navigateur ; Kleaner lui-même ne se connecte toujours à rien.
+- README anglais (`README.md`) et français (`README.fr.md`) séparés.
