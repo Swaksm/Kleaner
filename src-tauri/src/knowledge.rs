@@ -332,6 +332,13 @@ mod tests {
     }
 
     #[test]
+    fn modpack_instance_named() {
+        let e = ctx().explain(&profile(r"curseforge\minecraft\Instances\Cobblemon Academy (Legacy)\mods\x.jar"));
+        assert_eq!((e.verdict, e.rule.as_deref()), (Verdict::Uninstall, Some("curseforge-instance")));
+        assert!(e.what.en.contains("Cobblemon Academy (Legacy)"), "{}", e.what.en);
+    }
+
+    #[test]
     fn unknown_stays_unknown() {
         let e = ctx().explain(r"Z:\something\weird.xyz");
         assert_eq!(e.verdict, Verdict::Unknown);

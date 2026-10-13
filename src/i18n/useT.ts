@@ -1,18 +1,30 @@
 import { useSyncExternalStore } from "react";
-import fr from "./fr.json";
+import de from "./de.json";
 import en from "./en.json";
+import es from "./es.json";
+import fr from "./fr.json";
+import it from "./it.json";
+import pt from "./pt.json";
 
-export type Lang = "fr" | "en";
+export type Lang = "en" | "fr" | "es" | "de" | "it" | "pt";
+export const LANGS: [Lang, string][] = [
+  ["en", "English"],
+  ["fr", "Français"],
+  ["es", "Español"],
+  ["de", "Deutsch"],
+  ["it", "Italiano"],
+  ["pt", "Português"],
+];
 export type TextLang = "fr" | "en";
-export type Key = keyof typeof fr;
+export type Key = keyof typeof en;
 
-// Le typage force EN à contenir toutes les clés FR.
-const dicts: Record<Lang, Record<Key, string>> = { fr, en };
+// Le typage force chaque langue à contenir toutes les clés de l'anglais.
+const dicts: Record<Lang, Record<Key, string>> = { en, fr, es, de, it, pt };
 
 function initialLang(): Lang {
   try {
     const saved = localStorage.getItem("lang");
-    if (saved === "fr" || saved === "en") return saved;
+    if (LANGS.some(([l]) => l === saved)) return saved as Lang;
   } catch {}
   // English first : le français se choisit dans les Paramètres.
   return "en";

@@ -646,6 +646,124 @@
     }
   },
   {
+    "id": "curseforge-instance",
+    "match": [
+      "%USERPROFILE%\\curseforge\\minecraft\\Instances\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Minecraft modpack instance « {1} » (CurseForge): the game, its mods and its worlds.",
+      "fr": "Instance de modpack Minecraft « {1} » (CurseForge) : le jeu, ses mods et ses mondes."
+    },
+    "consequence": {
+      "en": "Its worlds (saves folder) are lost. If you don’t play it any more (see its date), it is a good candidate to remove.",
+      "fr": "Ses mondes (dossier saves) sont perdus. Si tu n’y joues plus (regarde sa date), c’est un bon candidat à supprimer."
+    },
+    "howto": {
+      "en": "CurseForge → My Modpacks → … on the modpack → Delete. Copy its saves folder first to keep your worlds.",
+      "fr": "CurseForge → Mes modpacks → … sur le modpack → Supprimer. Copie d’abord son dossier saves pour garder tes mondes."
+    }
+  },
+  {
+    "id": "modrinth-instance",
+    "match": [
+      "%APPDATA%\\ModrinthApp\\profiles\\*",
+      "%APPDATA%\\com.modrinth.theseus\\profiles\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Minecraft modpack instance « {1} » (Modrinth): the game, its mods and its worlds.",
+      "fr": "Instance de modpack Minecraft « {1} » (Modrinth) : le jeu, ses mods et ses mondes."
+    },
+    "consequence": {
+      "en": "Its worlds (saves folder) are lost. If you don’t play it any more (see its date), it is a good candidate to remove.",
+      "fr": "Ses mondes (dossier saves) sont perdus. Si tu n’y joues plus (regarde sa date), c’est un bon candidat à supprimer."
+    },
+    "howto": {
+      "en": "Modrinth App → Library → right-click the instance → Delete. Copy its saves folder first to keep your worlds.",
+      "fr": "Modrinth App → Bibliothèque → clic droit sur l’instance → Supprimer. Copie d’abord son dossier saves pour garder tes mondes."
+    }
+  },
+  {
+    "id": "prism-instance",
+    "match": [
+      "%APPDATA%\\PrismLauncher\\instances\\*",
+      "%APPDATA%\\PolyMC\\instances\\*",
+      "**\\MultiMC\\instances\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Minecraft modpack instance « {1} » (Prism / MultiMC): the game, its mods and its worlds.",
+      "fr": "Instance de modpack Minecraft « {1} » (Prism / MultiMC) : le jeu, ses mods et ses mondes."
+    },
+    "consequence": {
+      "en": "Its worlds (saves folder) are lost. If you don’t play it any more (see its date), it is a good candidate to remove.",
+      "fr": "Ses mondes (dossier saves) sont perdus. Si tu n’y joues plus (regarde sa date), c’est un bon candidat à supprimer."
+    },
+    "howto": {
+      "en": "In the launcher: right-click the instance → Delete. Copy its saves folder first to keep your worlds.",
+      "fr": "Dans le launcher : clic droit sur l’instance → Supprimer. Copie d’abord son dossier saves pour garder tes mondes."
+    }
+  },
+  {
+    "id": "gdlauncher-instance",
+    "match": [
+      "%APPDATA%\\gdlauncher_carbon\\data\\instances\\*",
+      "%APPDATA%\\gdlauncher_next\\instances\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Minecraft modpack instance « {1} » (GDLauncher): the game, its mods and its worlds.",
+      "fr": "Instance de modpack Minecraft « {1} » (GDLauncher) : le jeu, ses mods et ses mondes."
+    },
+    "consequence": {
+      "en": "Its worlds (saves folder) are lost. If you don’t play it any more (see its date), it is a good candidate to remove.",
+      "fr": "Ses mondes (dossier saves) sont perdus. Si tu n’y joues plus (regarde sa date), c’est un bon candidat à supprimer."
+    },
+    "howto": {
+      "en": "GDLauncher → right-click the instance → Delete. Copy its saves folder first to keep your worlds.",
+      "fr": "GDLauncher → clic droit sur l’instance → Supprimer. Copie d’abord son dossier saves pour garder tes mondes."
+    }
+  },
+  {
+    "id": "atlauncher-instance",
+    "match": [
+      "**\\ATLauncher\\instances\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Minecraft modpack instance « {1} » (ATLauncher): the game, its mods and its worlds.",
+      "fr": "Instance de modpack Minecraft « {1} » (ATLauncher) : le jeu, ses mods et ses mondes."
+    },
+    "consequence": {
+      "en": "Its worlds (saves folder) are lost. If you don’t play it any more (see its date), it is a good candidate to remove.",
+      "fr": "Ses mondes (dossier saves) sont perdus. Si tu n’y joues plus (regarde sa date), c’est un bon candidat à supprimer."
+    },
+    "howto": {
+      "en": "ATLauncher → Instances → Delete. Copy its saves folder first to keep your worlds.",
+      "fr": "ATLauncher → Instances → Supprimer. Copie d’abord son dossier saves pour garder tes mondes."
+    }
+  },
+  {
+    "id": "curseforge-shared",
+    "match": [
+      "%USERPROFILE%\\curseforge\\minecraft\\Install"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Minecraft versions and libraries shared by all your CurseForge modpacks.",
+      "fr": "Versions de Minecraft et bibliothèques partagées par tous tes modpacks CurseForge."
+    },
+    "consequence": {
+      "en": "Every modpack must download them again before it can start.",
+      "fr": "Chaque modpack devra les retélécharger avant de pouvoir démarrer."
+    },
+    "howto": {
+      "en": "Delete unused modpacks instead; CurseForge keeps only what they need.",
+      "fr": "Supprime plutôt les modpacks inutilisés ; CurseForge ne garde que ce qu’il leur faut."
+    }
+  },
+  {
     "id": "minecraft-saves",
     "match": [
       "%APPDATA%\\.minecraft\\saves"

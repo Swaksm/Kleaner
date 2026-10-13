@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { StatusPill } from "../components/StatusPill";
-import { setLang, useT, type Lang } from "../i18n/useT";
+import { LANGS, setLang, useT, type Lang } from "../i18n/useT";
 import { removeKleanerData } from "../lib/api";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
 
@@ -36,8 +36,11 @@ export function Settings() {
         <label>
           {t("settings.language")}{" "}
           <select value={lang} onChange={(e) => setLang(e.target.value as Lang)}>
-            <option value="en">English</option>
-            <option value="fr">Français</option>
+            {LANGS.map(([code, name]) => (
+              <option key={code} value={code}>
+                {name}
+              </option>
+            ))}
           </select>
         </label>
       </Card>
