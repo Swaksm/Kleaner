@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Le projet Tauri n'existe pas encore (T1) : on saute les tests tant que package.json est absent.
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.p.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: echo "ready=$([ -f package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: check
+    if: needs.check.outputs.ready == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+      - run: cargo test --manifest-path src-tauri/Cargo.toml

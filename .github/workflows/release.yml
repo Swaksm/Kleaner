@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
+      # Exe portable seul, pas d'installeur.
+      - run: npm run tauri build -- --no-bundle
+      - name: SHA-256
+        shell: pwsh
+        run: |
+          Copy-Item src-tauri/target/release/kleaner.exe kleaner.exe
+          (Get-FileHash kleaner.exe -Algorithm SHA256).Hash.ToLower() + "  kleaner.exe" | Out-File -Encoding ascii kleaner.exe.sha256
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            kleaner.exe
+            kleaner.exe.sha256
+          generate_release_notes: true
