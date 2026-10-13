@@ -32,6 +32,8 @@ export type ScanResult = {
   videos: Item[];
   images: Item[];
   drives: { root: string; total: number; free: number }[];
+  artifacts: Artifact[];
+  tree: Item[];
   categories: { category: Category; bytes: number; files: number }[];
 };
 export type ActionReport = { files: number; bytes: number };
@@ -112,3 +114,24 @@ export const explainPaths = (paths: string[]) => invoke<Explanation[]>("explain_
 
 export type DriveInfo = { root: string; kind: "fixed" | "removable" | "network" | "cdrom" | "other"; total: number; free: number };
 export const listDrives = () => invoke<DriveInfo[]>("list_drives");
+
+export type Artifact = {
+  path: string;
+  kind: "node" | "python" | "rust" | "gradle" | "build" | "dart" | "next" | "dotnet";
+  size: number;
+  project: string;
+  project_modified: number;
+};
+export const deleteArtifacts = (paths: string[]) => invoke<CleanReport>("delete_artifacts", { paths });
+
+export type DupGroup = { size: number; wasted: number; files: Item[] };
+export const findDuplicates = () => invoke<DupGroup[]>("find_duplicates");
+export const cancelDuplicates = () => invoke<void>("cancel_duplicates");
+export const onDupProgress = (fn: (p: { done: number; total: number }) => void) =>
+  listen<{ done: number; total: number }>("dup-progress", (e) => fn(e.payload));
+
+export type PreviewView = {
+  entries: { id: string; files: number; bytes: number; sample: Item[] }[];
+  file: string;
+};
+export const previewCleaners = (ids: string[]) => invoke<PreviewView>("preview_cleaners", { ids });

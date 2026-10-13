@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
+import { DiskMap } from "../components/DiskMap";
 import { Donut } from "../components/Donut";
 import { DrivePicker } from "../components/DrivePicker";
 import { SizeBar } from "../components/SizeBar";
@@ -244,6 +245,10 @@ export function Analyse() {
             { key: "free", label: t("analyse.free"), value: free, display: formatBytes(free, lang), slot: 7 },
           ]}
         />
+      </Card>
+
+      <Card title={t("map.title")}>
+        <DiskMap scan={r} />
       </Card>
 
       <Card title={t("analyse.topDirsChart")}>

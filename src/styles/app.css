@@ -959,3 +959,86 @@ select {
 .link:focus-visible {
   outline: 2px solid var(--accent);
 }
+
+/* Carte du disque */
+.diskmap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.crumbs {
+  gap: 6px;
+  font-size: 13px;
+}
+
+.diskmap-svg {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-ctl);
+}
+
+.tile-dir rect {
+  fill: var(--series-1);
+  fill-opacity: 0.75;
+  stroke: var(--card);
+  stroke-width: 2;
+}
+
+.tile-dir.enter {
+  cursor: zoom-in;
+}
+
+.tile-dir:hover rect {
+  fill-opacity: 1;
+}
+
+.tile-other rect {
+  fill: var(--series-7);
+  fill-opacity: 0.5;
+  stroke: var(--card);
+  stroke-width: 2;
+}
+
+.tile-label {
+  fill: #fff;
+  font: 600 13px var(--font-ui);
+  pointer-events: none;
+}
+
+.tile-size {
+  fill: #fff;
+  font: 500 12px var(--font-mono);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* Doublons */
+.dup-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 680px;
+  overflow-y: auto;
+}
+
+.dup-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-ctl);
+  padding: 10px 12px;
+}
+
+.items.grid-dup li {
+  grid-template-columns: minmax(0, 1fr) 96px 70px;
+}
+
+/* Vieux projets */
+.items.grid-projects li {
+  grid-template-columns: minmax(0, 1fr) 90px 96px 84px 70px;
+}
+
+/* Simulation */
+.preview-entry summary {
+  cursor: pointer;
+  padding: 4px 0;
+}

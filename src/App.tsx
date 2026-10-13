@@ -6,12 +6,14 @@ import { isElevated } from "./lib/api";
 import { About } from "./pages/About";
 import { Analyse } from "./pages/Analyse";
 import { Cleanup } from "./pages/Cleanup";
+import { Duplicates } from "./pages/Duplicates";
 import { Journal } from "./pages/Journal";
 import { Media } from "./pages/Media";
 import { Programs } from "./pages/Programs";
+import { Projects } from "./pages/Projects";
 import { Settings } from "./pages/Settings";
 
-const pages = ["analyse", "media", "cleanup", "programs", "journal", "settings", "about"] as const;
+const pages = ["analyse", "media", "duplicates", "projects", "cleanup", "programs", "journal", "settings", "about"] as const;
 type Page = (typeof pages)[number];
 
 function App() {
@@ -53,6 +55,8 @@ function App() {
           <Analyse />
         </div>
         {page === "media" && <Media />}
+        {page === "duplicates" && <Duplicates />}
+        {page === "projects" && <Projects />}
         {page === "journal" && <Journal />}
         {page === "settings" && <Settings />}
         {page === "about" && <About />}

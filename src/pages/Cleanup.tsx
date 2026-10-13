@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
 import { CleanerCard } from "../components/CleanerCard";
+import { CleanupPreview } from "../components/CleanupPreview";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Donut } from "../components/Donut";
 import { StatusPill } from "../components/StatusPill";
@@ -26,6 +27,7 @@ export function Cleanup() {
   const [estimates, setEstimates] = useState<Map<string, CleanReport> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirm, setConfirm] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [heavy, setHeavy] = useState<Cleaner | null>(null);
   const [heavyAck, setHeavyAck] = useState(false);
   const [running, setRunning] = useState(false);
@@ -111,6 +113,9 @@ export function Cleanup() {
         <div className="row">
           <button className="btn btn-primary" disabled={chosen.length === 0 || running} onClick={() => setConfirm(true)}>
             {running ? t("cleanup.running") : t("cleanup.run")}
+          </button>
+          <button className="btn" disabled={chosen.length === 0 || running} onClick={() => setPreview(true)}>
+            {t("preview.button")}
           </button>
           <span className="muted">
             {chosen.length} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
@@ -221,6 +226,8 @@ export function Cleanup() {
           ))}
       </Card>
 
+      {preview && <CleanupPreview cleaners={chosen} onClose={() => setPreview(false)} />}
+
       <ConfirmDialog
         open={confirm}
         title={t("cleanup.confirmTitle")}
@@ -234,6 +241,15 @@ export function Cleanup() {
           {chosen.length} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
         </p>
         <p className="danger">{t("cleanup.permanent")}</p>
+        <button
+          className="btn"
+          onClick={() => {
+            setConfirm(false);
+            setPreview(true);
+          }}
+        >
+          {t("preview.button")}
+        </button>
         <ul className="paths">
           {chosen.map((c) => (
             <li key={c.id}>

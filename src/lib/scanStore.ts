@@ -20,6 +20,7 @@ export function forgetPaths(paths: string[]) {
     top_files: keep(current.top_files),
     videos: keep(current.videos),
     images: keep(current.images),
+    artifacts: keep(current.artifacts),
   });
 }
 
