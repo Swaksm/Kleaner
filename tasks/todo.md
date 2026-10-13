@@ -2,12 +2,12 @@
 
 ## P0 — Socle
 
-- [ ] **T1 : Scaffold Tauri 2, React et TypeScript, plus git**
+- [x] **T1 : Scaffold Tauri 2, React et TypeScript, plus git**
   - Acceptance : `npm run tauri dev` ouvre une fenêtre vide. `git init` est fait, le remote pointe vers `Swaksm/Kleaner`, le `.gitignore` est en place et la licence MIT est ajoutée.
   - Verify : `npm run tauri build` produit `kleaner.exe`. Noter sa taille.
   - Files : `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `.gitignore`, `LICENSE`
 
-- [ ] **T2 : Style guide, thème et i18n**
+- [x] **T2 : Style guide, thème et i18n**
   - Acceptance : `tokens.css` contient les thèmes clair et sombre, avec la bascule mémorisée. Les polices sont embarquées. `useT` fonctionne avec `fr.json` et `en.json`, et la langue suit celle de Windows. La coquille de navigation contient Analyse, Nettoyage, Programmes, Journal et Paramètres. Les composants Card, StatusPill et Switch existent.
   - Verify : `npm test` (toutes les clés FR existent en EN, et inversement). Contrôle visuel des deux thèmes.
   - Files : `src/styles/tokens.css`, `src/i18n/*`, `src/App.tsx`, `src/components/*`
