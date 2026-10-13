@@ -52,7 +52,7 @@ Chaque entrée contient :
 | `mode` | `delete` (vide le contenu des dossiers, garde le dossier) ou `command` (outil Windows officiel, géré par `id`) |
 | `only` | Optionnel : seuls les fichiers dont le nom correspond (`thumbcache_*.db`) |
 | `older_than_hours` | Optionnel : seuls les fichiers plus vieux que ça (`%TEMP%` : 24 h) |
-| `level` | `safe` (coché par défaut), `heavy` (carte dédiée et confirmation dédiée) |
+| `level` | `safe` (proposé par « Cocher les éléments sans risque » ; rien n'est coché d'avance), `heavy` (carte dédiée et confirmation dédiée) |
 | `close` | Processus qui doivent être fermés (`chrome.exe`…). S'ils tournent, l'entrée est ignorée et signalée |
 
 ### Contenu v1
@@ -202,7 +202,7 @@ Conventions :
 
 1. `kleaner.exe` portable fait **moins de 15 Mo** et démarre en **moins de 2 s**.
 2. L'analyse de tous les disques fixes, fichiers cachés compris, prend **moins de 60 s pour 1 million de fichiers** sur SSD. La progression est visible et un bouton Annuler est disponible. La RAM reste sous 250 Mo.
-3. L'écran Nettoyage affiche l'espace récupérable par catégorie. Les entrées `safe` sont cochées par défaut. Le rapport après nettoyage indique la taille libérée et le nombre de fichiers ignorés.
+3. L'écran Nettoyage affiche l'espace récupérable par catégorie. Rien n'est coché d'avance ; un bouton coche les entrées `safe` utiles. Le rafraîchissement ne coche jamais rien. Le rapport après nettoyage indique la taille libérée et le nombre de fichiers ignorés.
 4. Après un nettoyage complet sur la VM de test, **l'utilisateur est toujours connecté** dans Chrome, Edge, Firefox, Discord et VS Code (check-list manuelle).
 5. Les tests prouvent que toute suppression hors catalogue est refusée, ainsi que toute traversée de lien.
 6. La relance admin fonctionne. Sans admin, les entrées `admin` sont affichées avec « Analyse complète requise ».
@@ -260,3 +260,7 @@ Avant l'IA, on ajoute en v1.x des **règles locales** sans réseau : vieux insta
 
 1. Logo et icône : à faire ?
 2. IA v2 : modèle cloud (avec la clé API de l'utilisateur) ou modèle local ? Un modèle local garde « aucun réseau », mais il pèse plusieurs Go, ce qui va contre « léger ».
+
+## Mode admin : lecture complète
+
+En admin, l'analyse active le privilège de sauvegarde de Windows (`SeBackupPrivilege`) et relit en lecture seule (`FILE_FLAG_BACKUP_SEMANTICS`, `FILE_LIST_DIRECTORY`) les dossiers refusés : `System Volume Information`, `WindowsApps`, dossiers réservés à SYSTEM. Ce privilège ne sert qu'à lister ; aucune écriture. Un badge « Admin activé » est visible en permanence.

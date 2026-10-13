@@ -162,6 +162,11 @@ async fn run_cleaners(ids: Vec<String>) -> Result<Vec<catalog::CleanReport>, Str
 
 /// Relance Kleaner en admin puis ferme cette instance. Si l'UAC est refusé, on reste ouvert.
 #[tauri::command]
+fn is_elevated() -> bool {
+    elevation::is_elevated()
+}
+
+#[tauri::command]
 fn relaunch_admin(app: tauri::AppHandle) -> Result<(), String> {
     elevation::relaunch_as_admin()?;
     app.exit(0);
@@ -209,7 +214,8 @@ pub fn run() {
             list_programs,
             uninstall_program,
             save_report,
-            program_sizes
+            program_sizes,
+            is_elevated
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

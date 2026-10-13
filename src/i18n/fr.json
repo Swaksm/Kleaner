@@ -57,7 +57,7 @@
   "trash.mode": "Mode : Corbeille. Les fichiers restent récupérables.",
   "trash.space": "L’espace sera libéré quand tu videras la Corbeille.",
   "trash.done": "envoyés à la Corbeille. Vide-la pour libérer l’espace.",
-  "cleanup.intro": "Kleaner a estimé ce qui peut être supprimé sans rien changer à ton utilisation du PC. Les cases cochées sont sans risque.",
+  "cleanup.intro": "Kleaner a estimé ce qui peut être supprimé sans rien changer à ton utilisation du PC. Rien n’est coché d’avance : choisis toi-même, ou coche d’un clic les éléments sans risque.",
   "cleanup.run": "Nettoyer la sélection",
   "cleanup.running": "Nettoyage en cours…",
   "cleanup.refresh": "Rafraîchir",
@@ -104,5 +104,11 @@
   "report.saved": "Enregistré dans %LOCALAPPDATA%\\Kleaner\\rapports.",
   "programs.real": "mesurée",
   "programs.declared": "déclarée",
-  "programs.measuring": "mesure…"
+  "programs.measuring": "mesure…",
+  "cleanup.selectSafe": "Cocher les éléments sans risque",
+  "cleanup.selectNone": "Tout décocher",
+  "admin.badge": "Admin activé",
+  "analyse.fullAccess": "Analyse complète : dossiers système protégés inclus",
+  "analyse.showAll": "Tout afficher",
+  "analyse.showLess": "Afficher moins"
 }

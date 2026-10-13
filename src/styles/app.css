@@ -512,3 +512,8 @@ select {
 .small {
   font-size: 11px;
 }
+
+.brand-badge {
+  padding: 0 10px 12px;
+  margin-top: -8px;
+}

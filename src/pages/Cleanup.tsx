@@ -29,7 +29,14 @@ export function Cleanup() {
   const [results, setResults] = useState<CleanReport[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function load(preselect: boolean) {
+  /// Sans risque et utile : niveau safe, quelque chose à gagner, rien qui bloque.
+  const selectable = (c: Cleaner, map: Map<string, CleanReport>) => {
+    const r = map.get(c.id);
+    return c.level === "safe" && !!r && r.bytes > 0 && r.blocked_by.length === 0;
+  };
+
+  // Jamais de sélection automatique : l'utilisateur coche lui-même, ou clique « Cocher les éléments sans risque ».
+  async function load() {
     setEstimates(null);
     try {
       const v = await listCleaners();
@@ -37,20 +44,20 @@ export function Cleanup() {
       const list = await estimateCleaners();
       const map = new Map(list.map((r) => [r.id, r]));
       setEstimates(map);
-      if (preselect) {
-        const ok = v.cleaners.filter((c) => {
-          const r = map.get(c.id);
-          return c.level === "safe" && r && r.bytes > 0 && r.blocked_by.length === 0;
-        });
-        setSelected(new Set(ok.map((c) => c.id)));
-      }
+      // On garde la sélection de l'utilisateur, sauf ce qui est devenu vide ou bloqué.
+      setSelected((prev) => new Set([...prev].filter((id) => v.cleaners.some((c) => c.id === id && selectable(c, map)))));
     } catch (e) {
       setError(String(e));
     }
   }
 
+  function selectSafe() {
+    if (!view || !estimates) return;
+    setSelected(new Set(view.cleaners.filter((c) => selectable(c, estimates)).map((c) => c.id)));
+  }
+
   useEffect(() => {
-    load(true);
+    load();
   }, []);
 
   function lockReason(c: Cleaner): string | undefined {
@@ -76,7 +83,7 @@ export function Cleanup() {
     try {
       setResults(await runCleaners(ids));
       setSelected(new Set());
-      await load(false);
+      await load();
     } catch (e) {
       setError(String(e));
     } finally {
@@ -103,7 +110,13 @@ export function Cleanup() {
           <span className="muted">
             {chosen.length} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
           </span>
-          <button className="btn" disabled={running} onClick={() => load(false)}>
+          <button className="btn" disabled={running || !estimates} onClick={selectSafe}>
+            {t("cleanup.selectSafe")}
+          </button>
+          <button className="btn" disabled={running || chosen.length === 0} onClick={() => setSelected(new Set())}>
+            {t("cleanup.selectNone")}
+          </button>
+          <button className="btn" disabled={running} onClick={load}>
             {t("cleanup.refresh")}
           </button>
         </div>

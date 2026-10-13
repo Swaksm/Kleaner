@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { StatusPill } from "./components/StatusPill";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { useT, type Key } from "./i18n/useT";
+import { isElevated } from "./lib/api";
 import { Analyse } from "./pages/Analyse";
 import { Cleanup } from "./pages/Cleanup";
 import { Journal } from "./pages/Journal";
@@ -14,6 +16,11 @@ function App() {
   const { t } = useT();
   const [accepted, setAccepted] = useState(isDisclaimerAccepted());
   const [page, setPage] = useState<Page>("analyse");
+  const [elevated, setElevated] = useState(false);
+
+  useEffect(() => {
+    isElevated().then(setElevated, () => {});
+  }, []);
 
   if (!accepted) return <Disclaimer onAccept={() => setAccepted(true)} />;
 
@@ -21,6 +28,11 @@ function App() {
     <div className="shell">
       <nav className="sidebar">
         <div className="brand">Kleaner</div>
+        {elevated && (
+          <div className="brand-badge">
+            <StatusPill status="ok">{t("admin.badge")}</StatusPill>
+          </div>
+        )}
         {pages.map((p) => (
           <button
             key={p}

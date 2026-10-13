@@ -57,7 +57,7 @@
   "trash.mode": "Mode: Recycle Bin. Files stay recoverable.",
   "trash.space": "Space is freed when you empty the Recycle Bin.",
   "trash.done": "sent to the Recycle Bin. Empty it to free the space.",
-  "cleanup.intro": "Kleaner estimated what can be removed without changing how you use your PC. Ticked boxes are risk-free.",
+  "cleanup.intro": "Kleaner estimated what can be removed without changing how you use your PC. Nothing is ticked in advance: choose yourself, or tick the risk-free items in one click.",
   "cleanup.run": "Clean selection",
   "cleanup.running": "Cleaning…",
   "cleanup.refresh": "Refresh",
@@ -104,5 +104,11 @@
   "report.saved": "Saved to %LOCALAPPDATA%\\Kleaner\\rapports.",
   "programs.real": "measured",
   "programs.declared": "declared",
-  "programs.measuring": "measuring…"
+  "programs.measuring": "measuring…",
+  "cleanup.selectSafe": "Tick risk-free items",
+  "cleanup.selectNone": "Untick all",
+  "admin.badge": "Admin on",
+  "analyse.fullAccess": "Full scan: protected system folders included",
+  "analyse.showAll": "Show all",
+  "analyse.showLess": "Show less"
 }

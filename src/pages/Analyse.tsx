@@ -35,6 +35,7 @@ export function Analyse() {
   const [message, setMessage] = useState<Message | null>(null);
   const [elevated, setElevated] = useState(true);
   const [report, setReport] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     listCleaners().then((v) => setElevated(v.elevated), () => {});
@@ -125,6 +126,11 @@ export function Analyse() {
   const maxCat = Math.max(1, ...r.categories.map((c) => c.bytes));
   const chosen = r.top_files.filter((i) => selected.has(i.path));
   const chosenBytes = chosen.reduce((s, i) => s + i.size, 0);
+  const showAllButton = (r.top_files.length > 50 || r.top_dirs.length > 50) && (
+    <button className="btn" onClick={() => setShowAll(!showAll)}>
+      {showAll ? t("analyse.showLess") : t("analyse.showAll")}
+    </button>
+  );
 
   return (
     <>
@@ -139,6 +145,7 @@ export function Analyse() {
           </span>
         </div>
         <div className="row">
+          {r.full_access && <StatusPill status="ok">{t("analyse.fullAccess")}</StatusPill>}
           {r.cancelled && <StatusPill status="warn">{t("analyse.cancelled")}</StatusPill>}
           {r.denied > 0 && (
             <StatusPill status="warn">
@@ -172,7 +179,7 @@ export function Analyse() {
       <Card title={t("analyse.topFiles")}>
         <p className="muted">{t("analyse.topFilesHint")}</p>
         <ul className="items">
-          {r.top_files.slice(0, 50).map((i) => (
+          {r.top_files.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <label className="check path" title={i.path}>
                 <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
@@ -194,12 +201,13 @@ export function Analyse() {
               {chosen.length} {t("trash.files")} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
             </span>
           )}
+          {showAllButton}
         </div>
       </Card>
 
       <Card title={t("analyse.topDirs")}>
         <ul className="items">
-          {r.top_dirs.slice(0, 50).map((i) => (
+          {r.top_dirs.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <span className="path" title={i.path}>
                 {i.path}
@@ -211,6 +219,7 @@ export function Analyse() {
             </li>
           ))}
         </ul>
+        {showAllButton}
       </Card>
 
       {report && <ReportDialog scan={r} onClose={() => setReport(false)} />}

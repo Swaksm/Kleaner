@@ -15,6 +15,7 @@ const scan: ScanResult = {
   files: 3,
   denied: 2,
   cancelled: false,
+  full_access: false,
   duration_ms: 1000,
   top_files: [{ path: "C:\\Users\\marie\\Videos\\film.mkv", size: 4 * 1024 ** 3, modified: 1_600_000_000 }],
   top_dirs: [{ path: "C:\\Users\\marie\\Projets\\vieux", size: 5 * 1024 ** 3, modified: 1_500_000_000 }],

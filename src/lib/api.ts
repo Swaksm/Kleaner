@@ -25,6 +25,7 @@ export type ScanResult = {
   files: number;
   denied: number;
   cancelled: boolean;
+  full_access: boolean;
   duration_ms: number;
   top_files: Item[];
   top_dirs: Item[];
@@ -74,6 +75,7 @@ export const listCleaners = () => invoke<CleanersView>("list_cleaners");
 export const estimateCleaners = () => invoke<CleanReport[]>("estimate_cleaners");
 export const runCleaners = (ids: string[]) => invoke<CleanReport[]>("run_cleaners", { ids });
 export const relaunchAdmin = () => invoke<void>("relaunch_admin");
+export const isElevated = () => invoke<boolean>("is_elevated");
 
 export type Program = {
   id: string;

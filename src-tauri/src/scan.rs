@@ -77,6 +77,8 @@ pub struct ScanResult {
     /// Dossiers illisibles (accès refusé), ignorés.
     pub denied: u64,
     pub cancelled: bool,
+    /// Analyse faite en admin avec le privilège de sauvegarde (dossiers protégés inclus).
+    pub full_access: bool,
     pub duration_ms: u64,
     pub top_files: Vec<Item>,
     pub top_dirs: Vec<Item>,
@@ -123,10 +125,103 @@ impl TopN {
 
 struct Ctx<'a> {
     cancel: &'a AtomicBool,
+    /// Privilège de sauvegarde actif : les dossiers refusés sont relus en mode sauvegarde.
+    backup: bool,
     progress: &'a Progress,
     files: TopN,
     dirs: TopN,
     cats: [(AtomicU64, AtomicU64); 6],
+}
+
+/// Une entrée de dossier, quelle que soit la façon dont elle a été lue.
+struct Entry {
+    path: PathBuf,
+    is_dir: bool,
+    attrs: u32,
+    len: u64,
+    modified: u64,
+}
+
+fn list_std(dir: &Path) -> Option<Vec<Entry>> {
+    let rd = fs::read_dir(dir).ok()?;
+    Some(
+        rd.flatten()
+            .filter_map(|e| {
+                // Sous Windows, ces métadonnées viennent de la lecture du dossier : pas d'appel système en plus.
+                let m = e.metadata().ok()?;
+                Some(Entry {
+                    path: e.path(),
+                    is_dir: m.is_dir(),
+                    attrs: m.file_attributes(),
+                    len: m.len(),
+                    modified: unix_secs(m.modified()),
+                })
+            })
+            .collect(),
+    )
+}
+
+/// Liste un dossier avec FILE_FLAG_BACKUP_SEMANTICS : avec le privilège de sauvegarde actif, Windows
+/// accorde la lecture même aux dossiers réservés à SYSTEM. Ouverture en lecture seule (FILE_LIST_DIRECTORY).
+fn list_backup(dir: &Path) -> Option<Vec<Entry>> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::Foundation::{CloseHandle, INVALID_HANDLE_VALUE};
+    use windows_sys::Win32::Storage::FileSystem::{
+        CreateFileW, FILE_FLAG_BACKUP_SEMANTICS, FILE_FULL_DIR_INFO, FILE_LIST_DIRECTORY, FILE_SHARE_DELETE,
+        FILE_SHARE_READ, FILE_SHARE_WRITE, FileFullDirectoryInfo, GetFileInformationByHandleEx, OPEN_EXISTING,
+    };
+    const FILE_ATTRIBUTE_DIRECTORY: u32 = 0x10;
+    // Écart entre 1601 (FILETIME) et 1970 (Unix), en unités de 100 ns.
+    const EPOCH_DIFF: i64 = 116_444_736_000_000_000;
+
+    let wide: Vec<u16> = dir.as_os_str().encode_wide().chain([0]).collect();
+    let h = unsafe {
+        CreateFileW(
+            wide.as_ptr(),
+            FILE_LIST_DIRECTORY,
+            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+            std::ptr::null(),
+            OPEN_EXISTING,
+            FILE_FLAG_BACKUP_SEMANTICS,
+            std::ptr::null_mut(),
+        )
+    };
+    if h == INVALID_HANDLE_VALUE {
+        return None;
+    }
+    let mut out = Vec::new();
+    let mut buf = vec![0u64; 8192]; // 64 Ko, aligné sur 8 octets
+    loop {
+        let ok = unsafe {
+            GetFileInformationByHandleEx(h, FileFullDirectoryInfo, buf.as_mut_ptr().cast(), (buf.len() * 8) as u32)
+        };
+        if ok == 0 {
+            break; // ERROR_NO_MORE_FILES ou erreur : on garde ce qui a été lu
+        }
+        let base = buf.as_ptr() as *const u8;
+        let mut offset = 0usize;
+        loop {
+            let info = unsafe { &*(base.add(offset) as *const FILE_FULL_DIR_INFO) };
+            let name_len = info.FileNameLength as usize / 2;
+            let name = unsafe { std::slice::from_raw_parts(info.FileName.as_ptr(), name_len) };
+            let name = String::from_utf16_lossy(name);
+            if name != "." && name != ".." {
+                out.push(Entry {
+                    path: dir.join(&name),
+                    is_dir: info.FileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0,
+                    attrs: info.FileAttributes,
+                    len: info.EndOfFile.max(0) as u64,
+                    modified: ((info.LastWriteTime - EPOCH_DIFF).max(0) / 10_000_000) as u64,
+                });
+            }
+            if info.NextEntryOffset == 0 {
+                break;
+            }
+            offset += info.NextEntryOffset as usize;
+        }
+    }
+    unsafe { CloseHandle(h) };
+    Some(out)
 }
 
 fn unix_secs(t: std::io::Result<std::time::SystemTime>) -> u64 {
@@ -139,32 +234,28 @@ fn walk(dir: &Path, ctx: &Ctx) -> (u64, u64) {
     if ctx.cancel.load(Relaxed) {
         return (0, 0);
     }
-    let Ok(rd) = fs::read_dir(dir) else {
+    let entries = list_std(dir).or_else(|| if ctx.backup { list_backup(dir) } else { None });
+    let Some(entries) = entries else {
         ctx.progress.denied.fetch_add(1, Relaxed);
         return (0, 0);
     };
     let mut own = 0u64;
     let mut newest = 0u64;
     let mut subdirs = Vec::new();
-    for entry in rd.flatten() {
-        // Sous Windows, ces métadonnées viennent de la lecture du dossier : pas d'appel système en plus.
-        let Ok(m) = entry.metadata() else { continue };
-        let attrs = m.file_attributes();
-        if attrs & FILE_ATTRIBUTE_REPARSE_POINT != 0 && m.is_dir() {
+    for e in entries {
+        if e.attrs & FILE_ATTRIBUTE_REPARSE_POINT != 0 && e.is_dir {
             continue; // jonction ou lien : déjà compté ailleurs, ou hors disque
         }
-        if m.is_dir() {
-            subdirs.push(entry.path());
+        if e.is_dir {
+            subdirs.push(e.path);
             continue;
         }
-        if attrs & FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS != 0 {
+        if e.attrs & FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS != 0 {
             continue;
         }
-        let len = m.len();
+        let (len, modified, path) = (e.len, e.modified, e.path);
         own += len;
-        let modified = unix_secs(m.modified());
         newest = newest.max(modified);
-        let path = entry.path();
         let c = category(&path) as usize;
         ctx.cats[c].0.fetch_add(len, Relaxed);
         ctx.cats[c].1.fetch_add(1, Relaxed);
@@ -184,8 +275,11 @@ fn walk(dir: &Path, ctx: &Ctx) -> (u64, u64) {
 
 pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> ScanResult {
     let start = Instant::now();
+    // Mode admin : on active le privilège de sauvegarde pour lire aussi les dossiers système protégés.
+    let backup = crate::elevation::is_elevated() && crate::elevation::enable_backup_privilege();
     let ctx = Ctx {
         cancel,
+        backup,
         progress,
         files: TopN::new(),
         dirs: TopN::new(),
@@ -207,6 +301,7 @@ pub fn scan(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) -> Scan
         files: progress.files.load(Relaxed),
         denied: progress.denied.load(Relaxed),
         cancelled: cancel.load(Relaxed),
+        full_access: backup,
         duration_ms: start.elapsed().as_millis() as u64,
         top_files: ctx.files.into_sorted(),
         top_dirs,
@@ -299,6 +394,22 @@ mod tests {
         assert_eq!(file.modified, 1_000_000_000);
         let dir = r.top_dirs.iter().find(|i| i.path.ends_with("proj")).unwrap();
         assert_eq!(dir.modified, 1_600_000_000);
+    }
+
+    #[test]
+    fn backup_listing_matches_standard_listing() {
+        let s = Sandbox::new("backuplist");
+        s.file("a.bin", 1234);
+        s.file("sub/b.bin", 10);
+        let key = |v: Vec<Entry>| {
+            let mut v: Vec<(String, bool, u64, u64)> = v
+                .into_iter()
+                .map(|e| (e.path.display().to_string(), e.is_dir, if e.is_dir { 0 } else { e.len }, e.modified))
+                .collect();
+            v.sort();
+            v
+        };
+        assert_eq!(key(list_backup(&s.0).unwrap()), key(list_std(&s.0).unwrap()));
     }
 
     #[test]

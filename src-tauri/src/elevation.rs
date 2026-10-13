@@ -26,6 +26,37 @@ pub fn is_elevated() -> bool {
     }
 }
 
+/// Active le privilège de sauvegarde pour ce processus (admin uniquement).
+/// Il permet de *lire* les dossiers réservés à SYSTEM (System Volume Information, WindowsApps…).
+/// Kleaner ne s'en sert que pour lister des dossiers, jamais pour écrire.
+pub fn enable_backup_privilege() -> bool {
+    use windows_sys::Win32::Foundation::{GetLastError, LUID};
+    use windows_sys::Win32::Security::{
+        AdjustTokenPrivileges, LUID_AND_ATTRIBUTES, LookupPrivilegeValueW, SE_PRIVILEGE_ENABLED,
+        TOKEN_ADJUST_PRIVILEGES, TOKEN_PRIVILEGES,
+    };
+    const ERROR_NOT_ALL_ASSIGNED: u32 = 1300;
+    unsafe {
+        let mut token: HANDLE = std::ptr::null_mut();
+        if OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &mut token) == 0 {
+            return false;
+        }
+        let name = wide("SeBackupPrivilege".as_ref());
+        let mut luid = LUID { LowPart: 0, HighPart: 0 };
+        let mut ok = LookupPrivilegeValueW(std::ptr::null(), name.as_ptr(), &mut luid) != 0;
+        if ok {
+            let tp = TOKEN_PRIVILEGES {
+                PrivilegeCount: 1,
+                Privileges: [LUID_AND_ATTRIBUTES { Luid: luid, Attributes: SE_PRIVILEGE_ENABLED }],
+            };
+            ok = AdjustTokenPrivileges(token, 0, &tp, 0, std::ptr::null_mut(), std::ptr::null_mut()) != 0
+                && GetLastError() != ERROR_NOT_ALL_ASSIGNED;
+        }
+        CloseHandle(token);
+        ok
+    }
+}
+
 fn wide(s: &std::ffi::OsStr) -> Vec<u16> {
     use std::os::windows::ffi::OsStrExt;
     s.encode_wide().chain([0]).collect()
