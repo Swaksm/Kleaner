@@ -3,10 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { previewMedia } from "../lib/api";
 
 /**
- * Miniature d'une photo, chargée seulement quand la tuile devient visible
+ * Miniature d'une photo ou d'une vidéo, chargée seulement quand la tuile devient visible
  * (le Rust n'autorise la lecture du fichier qu'à ce moment-là).
+ * Vidéo : une image prise à 1 s (métadonnées seulement, pas de lecture).
  */
-export function Thumb({ path, alt }: { path: string; alt: string }) {
+// shortcut: la photo est décodée en taille réelle pour la miniature ; générer des miniatures côté Rust si la grille rame.
+export function Thumb({ path, alt, video = false }: { path: string; alt: string; video?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [src, setSrc] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
@@ -29,14 +31,27 @@ export function Thumb({ path, alt }: { path: string; alt: string }) {
     return () => io.disconnect();
   }, [path]);
 
+  const fallback = (
+    <span className="thumb-icon" aria-hidden>
+      {video ? "▶" : failed ? "🖼" : ""}
+    </span>
+  );
+
   return (
     <div ref={ref} className="thumb">
       {src && !failed ? (
-        <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />
+        video ? (
+          <>
+            <video src={`${src}#t=1`} preload="metadata" muted playsInline onError={() => setFailed(true)} />
+            <span className="thumb-play" aria-hidden>
+              ▶
+            </span>
+          </>
+        ) : (
+          <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />
+        )
       ) : (
-        <span className="thumb-icon" aria-hidden>
-          {failed ? "🖼" : ""}
-        </span>
+        fallback
       )}
     </div>
   );

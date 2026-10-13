@@ -210,15 +210,7 @@ export function Media() {
               {visible.map((i, idx) => (
                 <li key={i.path} className={selected.has(i.path) ? "tile selected" : "tile"}>
                   <button className="tile-open" onClick={() => setViewing(idx)} title={i.path}>
-                    {kind === "images" ? (
-                      <Thumb path={i.path} alt={baseName(i.path)} />
-                    ) : (
-                      <div className="thumb">
-                        <span className="thumb-icon" aria-hidden>
-                          ▶
-                        </span>
-                      </div>
-                    )}
+                    <Thumb path={i.path} alt={baseName(i.path)} video={kind === "videos"} />
                   </button>
                   <label className="check tile-info">
                     <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />

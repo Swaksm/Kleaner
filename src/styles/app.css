@@ -837,6 +837,9 @@ select {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 12px;
+  /* Sans ça, max-height + overflow des tuiles écrase les lignes à quelques pixels. */
+  grid-auto-rows: max-content;
+  align-content: start;
   max-height: 680px;
   overflow-y: auto;
 }
@@ -873,10 +876,25 @@ select {
   overflow: hidden;
 }
 
-.thumb img {
+.thumb {
+  position: relative;
+}
+
+.thumb img,
+.thumb video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.thumb-play {
+  position: absolute;
+  inset: auto auto 8px 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 12px;
 }
 
 .thumb-icon {
