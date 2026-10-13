@@ -24,7 +24,7 @@
   - Verify : `cargo test journal`
   - Files : `src-tauri/src/journal.rs`
 
-- [ ] **T5 : Avertissement, Journal et Paramètres**
+- [x] **T5 : Avertissement, Journal et Paramètres**
   - Acceptance : l'avertissement bloque l'appli tant qu'il n'est pas accepté au premier lancement. La page Journal liste les actions. Les Paramètres permettent de changer le thème et la langue, et de retirer Kleaner (effacement de `%LOCALAPPDATA%\Kleaner`, dossier de données WebView2 redirigé dedans).
   - Verify : lancement manuel sur un profil vierge. Après « Retirer », le dossier n'existe plus.
   - Files : `src/pages/Journal.tsx`, `src/pages/Settings.tsx`, `src/components/Disclaimer.tsx`, `src-tauri/src/main.rs`

@@ -1,22 +1,30 @@
 import { useState } from "react";
 import { Card } from "./components/Card";
+import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { StatusPill } from "./components/StatusPill";
-import { Switch } from "./components/Switch";
-import { setLang, useT, type Key, type Lang } from "./i18n/useT";
-import { applyTheme, initialTheme } from "./lib/theme";
+import { useT, type Key } from "./i18n/useT";
+import { Journal } from "./pages/Journal";
+import { Settings } from "./pages/Settings";
 
 const pages = ["analyse", "cleanup", "programs", "journal", "settings"] as const;
 type Page = (typeof pages)[number];
 
-function App() {
-  const { t, lang } = useT();
-  const [page, setPage] = useState<Page>("analyse");
-  const [dark, setDark] = useState(initialTheme() === "dark");
+function Placeholder() {
+  const { t } = useT();
+  return (
+    <Card>
+      <StatusPill status="neutral">{t("status.planned")}</StatusPill>
+      <p>{t("page.soon")}</p>
+    </Card>
+  );
+}
 
-  function toggleTheme(next: boolean) {
-    setDark(next);
-    applyTheme(next ? "dark" : "light");
-  }
+function App() {
+  const { t } = useT();
+  const [accepted, setAccepted] = useState(isDisclaimerAccepted());
+  const [page, setPage] = useState<Page>("analyse");
+
+  if (!accepted) return <Disclaimer onAccept={() => setAccepted(true)} />;
 
   return (
     <div className="shell">
@@ -32,23 +40,10 @@ function App() {
             {t(`nav.${p}` as Key)}
           </button>
         ))}
-        <div className="sidebar-footer">
-          <Switch checked={dark} onChange={toggleTheme} label={t("settings.darkTheme")} />
-          <label>
-            {t("settings.language")}{" "}
-            <select value={lang} onChange={(e) => setLang(e.target.value as Lang)}>
-              <option value="fr">Français</option>
-              <option value="en">English</option>
-            </select>
-          </label>
-        </div>
       </nav>
       <main className="content">
         <h1>{t(`nav.${page}` as Key)}</h1>
-        <Card>
-          <StatusPill status="neutral">{t("status.planned")}</StatusPill>
-          <p>{t("page.soon")}</p>
-        </Card>
+        {page === "journal" ? <Journal /> : page === "settings" ? <Settings /> : <Placeholder />}
       </main>
     </div>
   );
