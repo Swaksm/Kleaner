@@ -33,7 +33,7 @@ jobs:
           Write-Host "WebView2 $v"
           Invoke-WebRequest "https://msedgedriver.microsoft.com/$v/edgedriver_win64.zip" -OutFile edgedriver.zip -UseBasicParsing
           Expand-Archive edgedriver.zip -DestinationPath edgedriver -Force
-      - name: Diagnostic : l'exe démarre-t-il seul ?
+      - name: "Diagnostic: does the exe start on its own?"
         shell: pwsh
         run: |
           Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" -ErrorAction SilentlyContinue | Select-Object pv, name
