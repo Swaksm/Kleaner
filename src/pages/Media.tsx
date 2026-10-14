@@ -1,3 +1,4 @@
+import { EmptyBin } from "../components/EmptyBin";
 import { useState } from "react";
 import { Card } from "../components/Card";
 import { SortHeader } from "../components/SortHeader";
@@ -40,7 +41,7 @@ export function Media() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [limit, setLimit] = useState(PAGE);
   const [confirming, setConfirming] = useState<Item[]>([]);
-  const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
+  const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string; bin?: boolean } | null>(null);
   const [viewing, setViewing] = useState<number | null>(null);
   const [view, setView] = useState<View>(savedView);
 
@@ -90,7 +91,7 @@ export function Media() {
       const r = await moveToTrash(items.map((i) => i.path));
       forgetPaths(items.map((i) => i.path));
       setSelected(new Set());
-      setMessage({ status: "ok", text: `${r.files} ${t("trash.files")} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}` });
+      setMessage({ status: "ok", bin: true, text: `${r.files} ${t("trash.files")} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}` });
     } catch (e) {
       setMessage({ status: "danger", text: String(e) });
     }
@@ -133,6 +134,7 @@ export function Media() {
           </div>
         </div>
         {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
+        {message?.bin && <EmptyBin />}
       </Card>
 
       <Card>

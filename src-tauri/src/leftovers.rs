@@ -4,7 +4,7 @@
 //! et qu'il n'a pas été modifié depuis 30 jours.
 
 use crate::knowledge::{self, Source};
-use crate::programs::Program;
+use crate::programs::{Program, version_key};
 use rayon::prelude::*;
 use serde::Serialize;
 use std::os::windows::fs::MetadataExt;
@@ -123,6 +123,27 @@ fn subdirs(dir: &Path) -> Vec<PathBuf> {
         .unwrap_or_default()
 }
 
+/// « 129.0.5823.70 » : au moins trois nombres séparés par des points.
+fn is_version(name: &str) -> bool {
+    let parts: Vec<&str> = name.split('.').collect();
+    parts.len() >= 3 && parts.iter().all(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
+}
+
+/// Sous-dossiers « numéro de version » d'un dossier d'installation, sauf la version installée et la plus récente.
+fn old_versions(location: &Path, current: &str) -> Vec<PathBuf> {
+    let mut versions: Vec<(Vec<u64>, PathBuf)> = subdirs(location)
+        .into_iter()
+        .filter_map(|p| {
+            let n = p.file_name()?.to_string_lossy().to_string();
+            is_version(&n).then(|| (version_key(&n), p))
+        })
+        .collect();
+    versions.sort_by(|a, b| a.0.cmp(&b.0));
+    versions.pop();
+    let current = version_key(current);
+    versions.into_iter().filter(|(v, _)| *v != current).map(|(_, p)| p).collect()
+}
+
 fn env(k: &str) -> Option<PathBuf> {
     std::env::var_os(k).map(PathBuf::from)
 }
@@ -161,6 +182,14 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
         for p in subdirs(&l.join("Programs")) {
             let name = name_of(&p);
             if !system(&name) && !owned(&name) && !programs.iter().any(|prog| under(&prog.location, &p)) {
+                candidates.push((p, Place::Programs));
+            }
+        }
+    }
+    // Anciennes versions laissées par une mise à jour (ex. Opera GX : 120.0…, 129.0… à côté de la version en cours).
+    if let Some(l) = &local {
+        for prog in programs.iter().filter(|p| under(&p.location, l)) {
+            for p in old_versions(Path::new(&prog.location), &prog.version) {
                 candidates.push((p, Place::Programs));
             }
         }
@@ -205,6 +234,20 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn old_version_folders_except_installed_and_latest() {
+        let root = std::env::temp_dir().join("kleaner-old-versions");
+        let _ = std::fs::remove_dir_all(&root);
+        for d in ["120.0.5543.85", "129.0.5823.70", "136.0.6008.111", "136.0.6008.76", "Assets", "autoupdate"] {
+            std::fs::create_dir_all(root.join(d)).unwrap();
+        }
+        let mut old: Vec<String> =
+            old_versions(&root, "136.0.6008.76").iter().map(|p| p.file_name().unwrap().to_string_lossy().into()).collect();
+        old.sort();
+        assert_eq!(old, ["120.0.5543.85", "129.0.5823.70"]);
+        let _ = std::fs::remove_dir_all(&root);
+    }
 
     fn prog(name: &str, publisher: &str) -> Program {
         Program {

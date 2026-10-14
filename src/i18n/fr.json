@@ -344,5 +344,9 @@
   "updates.uptime": "Allumé depuis",
   "updates.days": "jours",
   "updates.restartHint": "un redémarrage finit les mises à jour en attente",
-  "updates.diskHealthy": "En bon état"
+  "updates.diskHealthy": "En bon état",
+  "projects.recent": "Utilisé récemment",
+  "projects.recentHint": "Modifié ces 30 derniers jours : jamais coché automatiquement.",
+  "bin.empty": "Vider la Corbeille",
+  "bin.confirm": "Tout ce qui est dans la Corbeille, sur tous les disques, sera supprimé définitivement. Plus de restauration possible depuis le Journal."
 }

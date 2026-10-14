@@ -1,3 +1,4 @@
+import { EmptyBin } from "../components/EmptyBin";
 import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { StatusPill } from "../components/StatusPill";
@@ -23,7 +24,7 @@ export function Duplicates() {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState<Item[]>([]);
-  const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
+  const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string; bin?: boolean } | null>(null);
 
   useEffect(() => {
     const un = onDupProgress(setProgress);
@@ -80,7 +81,7 @@ export function Duplicates() {
             .map((g) => ({ ...g, wasted: g.size * (g.files.length - 1) })) ?? null,
       );
       setSelected(new Set());
-      setMessage({ status: "ok", text: `${r.files} ${t("trash.files")} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}` });
+      setMessage({ status: "ok", bin: true, text: `${r.files} ${t("trash.files")} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}` });
     } catch (e) {
       setMessage({ status: "danger", text: String(e) });
     }
@@ -119,6 +120,7 @@ export function Duplicates() {
           )}
         </div>
         {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
+        {message?.bin && <EmptyBin />}
       </Card>
 
       {groups && (

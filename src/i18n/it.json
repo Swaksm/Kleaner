@@ -344,5 +344,9 @@
   "updates.uptime": "Acceso da",
   "updates.days": "giorni",
   "updates.restartHint": "un riavvio completa gli aggiornamenti in sospeso",
-  "updates.diskHealthy": "In buono stato"
+  "updates.diskHealthy": "In buono stato",
+  "projects.recent": "Usato di recente",
+  "projects.recentHint": "Modificato negli ultimi 30 giorni: mai spuntato automaticamente.",
+  "bin.empty": "Svuota il Cestino",
+  "bin.confirm": "Tutto ciò che è nel Cestino, su tutte le unità, verrà eliminato definitivamente. Non sarà più ripristinabile dal Registro."
 }

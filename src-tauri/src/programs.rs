@@ -225,7 +225,7 @@ pub fn real_sizes(programs: &[Program]) -> Vec<RealSize> {
 }
 
 /// « 136.0.6008.111 » → [136, 0, 6008, 111], pour comparer des versions.
-fn version_key(v: &str) -> Vec<u64> {
+pub fn version_key(v: &str) -> Vec<u64> {
     v.split(|c: char| !c.is_ascii_digit()).filter(|s| !s.is_empty()).filter_map(|s| s.parse().ok()).collect()
 }
 

@@ -1,3 +1,4 @@
+import { EmptyBin } from "../components/EmptyBin";
 import { useEffect, useState } from "react";
 import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
@@ -45,7 +46,7 @@ type ItemKey = "size" | "name" | "date" | "verdict";
 // Tri par verdict : du plus dangereux au plus sûr.
 const VERDICT_ORDER: Verdict[] = ["system", "breaks", "uninstall", "personal", "unknown", "cleanup", "safe"];
 
-type Message = { status: "ok" | "danger"; text: string };
+type Message = { status: "ok" | "danger"; text: string; bin?: boolean };
 
 export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void; scanRequest: number }) {
   const { t, lang } = useT();
@@ -120,6 +121,7 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
       setSelected(new Set());
       setMessage({
         status: "ok",
+        bin: true,
         text: `${r.files} ${t("trash.files")} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}`,
       });
     } catch (e) {
@@ -127,7 +129,12 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
     }
   }
 
-  const feedback = message && <StatusPill status={message.status}>{message.text}</StatusPill>;
+  const feedback = message && (
+    <>
+      <StatusPill status={message.status}>{message.text}</StatusPill>
+      {message.bin && <EmptyBin />}
+    </>
+  );
 
   if (phase.kind === "idle") {
     return (
@@ -292,7 +299,12 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
           <SortHeader cells={headerCells(t("sort.name"))} value={fileSort} onChange={setFileSort} />
           {files.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
-              <label className="check path" title={isSystem(i.path) ? t("verdict.system") : locked(i.path) ? t("verdict.breaks") : i.path}>
+              <label
+                className="check path"
+                title={isSystem(i.path) ? t("verdict.system") : locked(i.path) ? t("verdict.breaks") : i.path}
+                // Case grisée : on ouvre la fiche, qui dit quoi faire à la place.
+                onClick={() => locked(i.path) && setExplaining(explanations.get(i.path) ?? null)}
+              >
                 <input
                   type="checkbox"
                   checked={selected.has(i.path)}

@@ -50,6 +50,8 @@ export function Projects() {
     { size: (a) => a.size, project: (a) => a.project, kind: (a) => a.kind, date: (a) => a.project_modified },
   );
   const chosen = scan.artifacts.filter((a) => selected.has(a.path));
+  // Projet touché ces 30 derniers jours : en cours, jamais coché d'office.
+  const recent = (a: Artifact) => a.project_modified > Date.now() / 1000 - 30 * DAY;
   const sum = (l: Artifact[]) => l.reduce((s, a) => s + a.size, 0);
 
   function toggle(path: string) {
@@ -98,7 +100,7 @@ export function Projects() {
           </span>
         </div>
         <div className="row">
-          <button className="btn" onClick={() => setSelected(new Set(shown.map((a) => a.path)))}>
+          <button className="btn" onClick={() => setSelected(new Set(shown.filter((a) => !recent(a)).map((a) => a.path)))}>
             {t("media.selectVisible")}
           </button>
           <button className="btn" disabled={selected.size === 0} onClick={() => setSelected(new Set())}>
@@ -137,7 +139,14 @@ export function Projects() {
                   <span>{a.path}</span>
                 </label>
                 <span className="muted small">{t(`projects.kind.${a.kind}` as Key)}</span>
-                <span className="muted small">{formatDay(a.project_modified, lang)}</span>
+                <span className="muted small">
+                  {formatDay(a.project_modified, lang)}
+                  {recent(a) && (
+                    <span className="block" title={t("projects.recentHint")}>
+                      <StatusPill status="warn">{t("projects.recent")}</StatusPill>
+                    </span>
+                  )}
+                </span>
                 <span className="num end">{formatBytes(a.size, lang)}</span>
                 <button className="btn btn-small" onClick={() => revealInExplorer(a.project)}>
                   {t("analyse.open")}

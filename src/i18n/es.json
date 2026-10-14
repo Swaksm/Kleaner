@@ -344,5 +344,9 @@
   "updates.uptime": "Encendido desde hace",
   "updates.days": "días",
   "updates.restartHint": "un reinicio termina las actualizaciones pendientes",
-  "updates.diskHealthy": "En buen estado"
+  "updates.diskHealthy": "En buen estado",
+  "projects.recent": "Usado recientemente",
+  "projects.recentHint": "Modificado en los últimos 30 días: nunca se marca automáticamente.",
+  "bin.empty": "Vaciar la Papelera",
+  "bin.confirm": "Todo lo que hay en la Papelera, en todas las unidades, se eliminará definitivamente. Ya no se podrá restaurar desde el Diario."
 }

@@ -1,3 +1,4 @@
+import { EmptyBin } from "./EmptyBin";
 import { useState } from "react";
 import { useT, type Key } from "../i18n/useT";
 import { findLeftovers, revealInExplorer, trashLeftovers, type Leftover } from "../lib/api";
@@ -13,7 +14,7 @@ export function Leftovers() {
   const [running, setRunning] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState<Leftover[]>([]);
-  const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
+  const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string; bin?: boolean } | null>(null);
 
   async function search() {
     setRunning(true);
@@ -43,7 +44,7 @@ export function Leftovers() {
       const gone = new Set(items.map((i) => i.path));
       setList((prev) => prev?.filter((l) => !gone.has(l.path)) ?? null);
       setSelected(new Set());
-      setMessage({ status: "ok", text: `${r.files} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}` });
+      setMessage({ status: "ok", bin: true, text: `${r.files} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}` });
     } catch (e) {
       setMessage({ status: "danger", text: String(e) });
     }
@@ -76,6 +77,7 @@ export function Leftovers() {
         )}
       </div>
       {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
+      {message?.bin && <EmptyBin />}
       {list && list.length === 0 && <p className="muted">{t("leftovers.none")}</p>}
       {list && list.length > 0 && (
         <>

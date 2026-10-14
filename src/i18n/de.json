@@ -344,5 +344,9 @@
   "updates.uptime": "Läuft seit",
   "updates.days": "Tagen",
   "updates.restartHint": "ein Neustart schließt ausstehende Updates ab",
-  "updates.diskHealthy": "Gesund"
+  "updates.diskHealthy": "Gesund",
+  "projects.recent": "Kürzlich benutzt",
+  "projects.recentHint": "In den letzten 30 Tagen geändert: wird nie automatisch angehakt.",
+  "bin.empty": "Papierkorb leeren",
+  "bin.confirm": "Alles im Papierkorb, auf allen Laufwerken, wird endgültig gelöscht. Eine Wiederherstellung über das Journal ist nicht mehr möglich."
 }

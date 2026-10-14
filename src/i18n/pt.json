@@ -344,5 +344,9 @@
   "updates.uptime": "Ligado há",
   "updates.days": "dias",
   "updates.restartHint": "reiniciar conclui as atualizações pendentes",
-  "updates.diskHealthy": "Saudável"
+  "updates.diskHealthy": "Saudável",
+  "projects.recent": "Usado recentemente",
+  "projects.recentHint": "Alterado nos últimos 30 dias: nunca é marcado automaticamente.",
+  "bin.empty": "Esvaziar a Lixeira",
+  "bin.confirm": "Tudo o que está na Lixeira, em todas as unidades, será apagado de vez. Não será mais possível restaurar pelo Diário."
 }

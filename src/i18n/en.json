@@ -344,5 +344,9 @@
   "updates.uptime": "Running for",
   "updates.days": "days",
   "updates.restartHint": "a restart finishes pending updates",
-  "updates.diskHealthy": "Healthy"
+  "updates.diskHealthy": "Healthy",
+  "projects.recent": "Used recently",
+  "projects.recentHint": "Changed in the last 30 days: never ticked automatically.",
+  "bin.empty": "Empty the Recycle Bin",
+  "bin.confirm": "Everything in the Recycle Bin, on every drive, will be deleted for good. It can no longer be restored from the Journal."
 }
