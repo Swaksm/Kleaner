@@ -999,6 +999,7 @@
   },
   {
     "id": "npm-global",
+    "whole": true,
     "match": [
       "%APPDATA%\\npm\\node_modules\\*"
     ],
@@ -1018,6 +1019,7 @@
   },
   {
     "id": "headless-browsers",
+    "whole": true,
     "match": [
       "%LOCALAPPDATA%\\ms-playwright",
       "%USERPROFILE%\\.cache\\puppeteer",
@@ -1039,6 +1041,7 @@
   },
   {
     "id": "node-modules",
+    "whole": true,
     "match": [
       "**\\node_modules"
     ],
@@ -1058,6 +1061,7 @@
   },
   {
     "id": "python-venv",
+    "whole": true,
     "match": [
       "**\\.venv",
       "**\\venv",
@@ -1164,6 +1168,7 @@
   },
   {
     "id": "git-repo",
+    "whole": true,
     "match": [
       "**\\.git"
     ],
@@ -1183,6 +1188,7 @@
   },
   {
     "id": "rustup-toolchains",
+    "whole": true,
     "match": [
       "%USERPROFILE%\\.rustup\\toolchains\\*"
     ],
@@ -1302,6 +1308,7 @@
   },
   {
     "id": "conda-envs",
+    "whole": true,
     "match": [
       "%USERPROFILE%\\anaconda3\\envs\\*",
       "%USERPROFILE%\\miniconda3\\envs\\*"
@@ -1342,6 +1349,7 @@
   },
   {
     "id": "vscode-extensions",
+    "whole": true,
     "match": [
       "%USERPROFILE%\\.vscode\\extensions"
     ],

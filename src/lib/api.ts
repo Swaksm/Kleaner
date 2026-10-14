@@ -107,6 +107,8 @@ export type Explanation = {
   what: Text;
   consequence: Text;
   howto: Text;
+  /** Mettre cet élément seul à la Corbeille casserait le dossier qui le contient. */
+  locked: boolean;
 };
 /** Supprimer à la main est dangereux : confirmation renforcée. */
 export const isCritical = (v: Verdict) => v === "breaks" || v === "system" || v === "uninstall";

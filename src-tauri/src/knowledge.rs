@@ -42,6 +42,9 @@ pub struct Rule {
     pub patterns: Vec<String>,
     #[serde(default)]
     pub generic: bool,
+    /// Le dossier ne se supprime qu'en entier : un fichier dedans le casse.
+    #[serde(default)]
+    pub whole: bool,
     pub verdict: Verdict,
     #[serde(default)]
     pub cleaner: Option<String>,
@@ -69,6 +72,8 @@ pub struct Explanation {
     pub what: Text,
     pub consequence: Text,
     pub howto: Text,
+    /// Mettre cet élément seul à la Corbeille casserait le dossier qui le contient.
+    pub locked: bool,
 }
 
 pub fn rules() -> &'static [Rule] {
@@ -115,14 +120,15 @@ fn chars(s: &str) -> Vec<char> {
     s.trim_end_matches('\\').chars().collect()
 }
 
-/// Le motif désigne-t-il ce chemin ou un dossier qui le contient ? Renvoie les captures des `*`.
-fn matches(pattern: &str, path: &[char]) -> Option<Vec<String>> {
+/// Le motif désigne-t-il ce chemin ou un dossier qui le contient ?
+/// Renvoie les captures des `*` et la longueur du dossier reconnu.
+fn matches(pattern: &str, path: &[char]) -> Option<(Vec<String>, usize)> {
     let pat = lower_chars(&catalog::expand_env(pattern)?);
     let ends = path.iter().enumerate().filter(|(_, c)| **c == '\\').map(|(i, _)| i).chain([path.len()]);
     for end in ends {
         let mut caps = Vec::new();
         if glob(&pat, &path[..end], &mut caps) {
-            return Some(caps);
+            return Some((caps, end));
         }
     }
     None
@@ -133,16 +139,38 @@ fn fill(t: &Text, caps: &[String]) -> Text {
     Text { en: sub(&t.en), fr: sub(&t.fr) }
 }
 
-fn from_rule(path: &str, r: &Rule, caps: &[String]) -> Explanation {
+fn from_rule(path: &str, r: &Rule, caps: &[String], dir: &str) -> Explanation {
+    let what = fill(&r.what, caps);
+    let howto = fill(&r.howto, caps);
+    if r.whole && dir.len() < path.trim_end_matches('\\').len() {
+        return Explanation {
+            path: path.to_string(),
+            verdict: Verdict::Breaks,
+            source: Source::Rule,
+            rule: Some(r.id.clone()),
+            cleaner: r.cleaner.clone(),
+            what: Text { en: format!("Inside {dir}. {}", what.en), fr: format!("Dans {dir}. {}", what.fr) },
+            consequence: Text {
+                en: "Deleting this file alone breaks the whole folder.".into(),
+                fr: "Supprimer ce fichier seul casse tout le dossier.".into(),
+            },
+            howto: Text {
+                en: format!("Only the whole folder can go: {dir}. {}", howto.en),
+                fr: format!("Seul le dossier entier peut partir : {dir}. {}", howto.fr),
+            },
+            locked: true,
+        };
+    }
     Explanation {
         path: path.to_string(),
         verdict: r.verdict,
         source: Source::Rule,
         rule: Some(r.id.clone()),
         cleaner: r.cleaner.clone(),
-        what: fill(&r.what, caps),
+        what,
         consequence: fill(&r.consequence, caps),
-        howto: fill(&r.howto, caps),
+        howto,
+        locked: false,
     }
 }
 
@@ -175,7 +203,9 @@ impl Context {
         let original = chars(path);
         let first = |generic: bool| {
             rules().iter().filter(|r| r.generic == generic).find_map(|r| {
-                r.patterns.iter().find_map(|p| matches(p, &original)).map(|caps| from_rule(path, r, &caps))
+                r.patterns.iter().find_map(|p| matches(p, &original)).map(|(caps, end)| {
+                    from_rule(path, r, &caps, &original[..end].iter().collect::<String>())
+                })
             })
         };
         if let Some(e) = first(false) {
@@ -186,6 +216,7 @@ impl Context {
                 path: path.to_string(),
                 verdict: Verdict::Cleanup,
                 source: Source::Cleaner,
+                locked: false,
                 rule: None,
                 cleaner: Some(c.id.clone()),
                 what: c.what.clone(),
@@ -202,6 +233,7 @@ impl Context {
                 path: path.to_string(),
                 verdict: Verdict::Uninstall,
                 source: Source::Program,
+                locked: false,
                 rule: None,
                 cleaner: None,
                 what: Text { en: format!("Part of the program {who}."), fr: format!("Fait partie du programme {who}.") },
@@ -222,6 +254,7 @@ impl Context {
             path: path.to_string(),
             verdict: Verdict::Unknown,
             source: Source::Unknown,
+            locked: false,
             rule: None,
             cleaner: None,
             what: Text { en: "Kleaner doesn’t know this item.".into(), fr: "Kleaner ne connaît pas cet élément.".into() },
@@ -286,6 +319,11 @@ mod tests {
     fn inside_a_known_folder_inherits() {
         let e = ctx().explain(&profile(r"Projects\web\node_modules\react\index.js"));
         assert_eq!(e.rule.as_deref(), Some("node-modules"));
+        // Un fichier seul casse node_modules : on bloque et on renvoie au dossier entier.
+        assert!(e.locked && e.verdict == Verdict::Breaks);
+        assert!(e.howto.en.contains(r"web\node_modules"), "{}", e.howto.en);
+        let dir = ctx().explain(&profile(r"Projects\web\node_modules"));
+        assert!(!dir.locked && dir.verdict == Verdict::Safe);
     }
 
     #[test]
