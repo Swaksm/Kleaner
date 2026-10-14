@@ -311,3 +311,34 @@ Dans l'onglet Programmes. Candidats : sous-dossiers d'`AppData\Local`, `AppData\
 - **Rapport de bug** : fichier local (version, Windows, admin, actions et erreurs, sans chemins) + ticket GitHub pré-rempli sans données ; rien n'est envoyé par Kleaner.
 - **OneDrive** : gros fichiers synchronisés gardés en local → « Libérer de l'espace » (attributs +Unpinned -Pinned, action officielle de Windows). Rien n'est supprimé.
 - **Mise à jour** : vérification optionnelle, **désactivée par défaut**, qui lit la liste publique des releases GitHub (`api.github.com`, autorisé dans la CSP). Seule exception à « aucun réseau », annoncée dans l'avertissement et À propos.
+
+## Révision 7
+
+- **Cases bloquées dans Analyse** : un fichier rangé dans un dossier qui ne se supprime qu'en entier (`.venv`, `node_modules`, `.git`, toolchain rustup, env conda, extension VS Code, navigateurs headless, paquets npm globaux : champ `whole` des règles) a le verdict « casse » et n'est pas cochable. Sa fiche, ouverte au clic sur la ligne grisée, renvoie au dossier entier.
+- **Programmes** : une entrée de désinstallation périmée laissée par une mise à jour (même désinstalleur, même dossier, ex. Opera GX) est fusionnée ; on garde la version la plus récente. La carte « Restes de programmes » est au-dessus de la liste.
+- **Restes** : aussi les dossiers d'anciennes versions (`120.0.5543.85`…) dans `AppData\Local\Programs\<appli>`, sauf la version installée et la plus récente, avec les mêmes seuils (≥ 10 Mo, rien de modifié depuis 30 jours).
+- **Vieux projets** : un projet modifié ces 30 derniers jours porte « Utilisé récemment » et n'est jamais coché d'office.
+- **Vider la Corbeille** : proposé juste après chaque envoi à la Corbeille (Analyse, restes, doublons, photos et vidéos), avec une confirmation qui dit que la restauration ne sera plus possible.
+
+## Feuille de route : au-delà du nettoyage (v0.3+)
+
+Kleaner devient un outil d'entretien du PC, avec les mêmes règles : il montre, il explique, il ne devine pas, et chaque action est réversible ou confirmée. Ordre prévu :
+
+1. **Démarrage** : tout ce qui se lance à l'ouverture de session (clés `Run` HKCU et HKLM, dossiers Démarrage, tâches planifiées « à l'ouverture de session », services tiers en démarrage automatique), avec éditeur, emplacement et fiche. Durée réelle du démarrage lue dans le journal `Microsoft-Windows-Diagnostics-Performance` (événement 100, admin). Désactiver passe par `StartupApproved`, le même mécanisme que le Gestionnaire des tâches : réversible en un clic, rien n'est supprimé. Les entrées Microsoft et pilotes sont marquées « à garder ».
+2. **Raccourcis cassés** : `.lnk` du Bureau, du menu Démarrer (utilisateur et commun) et de la barre des tâches dont la cible n'existe plus (ni les cibles réseau ou sur disque débranché : signalées « disque absent », pas cassées). Envoi à la Corbeille.
+3. **Santé**, en lecture seule :
+   - disques : état SMART, usure et température des SSD (`MSFT_PhysicalDisk`, `MSFT_StorageReliabilityCounter`) ;
+   - batterie : capacité restante par rapport à la capacité d'origine ;
+   - plantages d'applis et écrans bleus des 30 derniers jours (journal Application et `WER`) ;
+   - redémarrage en attente, intégrité du système (`DISM /Online /Cleanup-Image /CheckHealth`, sans réparation automatique) ;
+   - mémoire saturée, disque presque plein, mode d'alimentation.
+4. **Sécurité**, en lecture seule : Defender actif et définitions récentes, pare-feu, UAC, SmartScreen, Secure Boot, TPM, BitLocker, mises à jour en retard et fin de support. Chaque point a un bouton vers l'écran Windows qui le règle. Kleaner n'est pas un antivirus et ne change aucun réglage de sécurité lui-même.
+5. **Entrées de programmes fantômes** : entrées « Programmes » dont le dossier et le désinstalleur ont disparu. Suppression de la clé seulement après sauvegarde `.reg` dans `%LOCALAPPDATA%\Kleaner\backups` et confirmation, restaurable depuis le Journal.
+6. **Cloud** : dossiers locaux de Google Drive et Dropbox (cache, fichiers gardés hors ligne), sur le modèle d'OneDrive. Rien en ligne : pas de connexion aux comptes.
+
+### Ce que Kleaner ne fera pas
+
+- **« Nettoyer » ou « réparer » le registre** en général : Microsoft ne le prend pas en charge, aucun gain mesurable, risque de casser des programmes. Seul le cas vérifiable du point 5 est traité.
+- **« Boosts » et réglages miracles** (désactiver des services Windows, vider la RAM, « optimiser » le réseau) : placebo ou nuisible. Windows défragmente et fait le TRIM seul. Kleaner donne des recommandations vérifiables à la place.
+- **Antivirus maison** ou modification des réglages de sécurité.
+- **Connexion aux comptes cloud** : contraire à « aucun réseau ».
