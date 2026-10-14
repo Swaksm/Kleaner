@@ -50,6 +50,8 @@ scoop install kleaner/kleaner
 
 **Windows warning (SmartScreen).** The exe is not signed (a certificate is expensive for a free project). Windows shows "Windows protected your PC": click *More info* then *Run anyway*. Some antivirus tools may also react, because Kleaner deletes files and can ask for admin rights. All the code is readable here, and the exe is built by GitHub Actions from this code.
 
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
 Requires 64-bit Windows 10 or 11 (WebView2, included in Windows 11 and up-to-date Windows 10).
 
 ## Removing Kleaner

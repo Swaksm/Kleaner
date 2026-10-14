@@ -50,6 +50,8 @@ scoop install kleaner/kleaner
 
 **Avertissement Windows (SmartScreen).** L'exe n'est pas signé. Windows affiche « Windows a protégé votre ordinateur » : clique sur *Informations complémentaires* puis *Exécuter quand même*. Certains antivirus peuvent réagir, car Kleaner supprime des fichiers et peut demander les droits admin. Tout le code est lisible ici, et l'exe est compilé par GitHub Actions à partir de ce code.
 
+Signature de code gratuite fournie par [SignPath.io](https://signpath.io), certificat de la [SignPath Foundation](https://signpath.org).
+
 ## Retirer Kleaner
 
 *Paramètres → Retirer Kleaner* efface `%LOCALAPPDATA%\Kleaner` et `%LOCALAPPDATA%\com.swaksm.kleaner`. Supprime ensuite `kleaner.exe`.
