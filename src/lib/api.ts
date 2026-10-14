@@ -146,3 +146,11 @@ export type Leftover = {
 };
 export const findLeftovers = () => invoke<Leftover[]>("find_leftovers");
 export const trashLeftovers = (paths: string[]) => invoke<ActionReport>("trash_leftovers", { paths });
+
+export const restoreTrashed = (paths: string[]) => invoke<ActionReport>("restore_trashed", { paths });
+export const bugReport = () => invoke<string>("bug_report");
+
+export type CloudFile = { path: string; size: number; modified: number; pinned: boolean };
+export const onedriveRoots = () => invoke<string[]>("onedrive_roots");
+export const onedriveFiles = () => invoke<CloudFile[]>("onedrive_files");
+export const onedriveFree = (paths: string[]) => invoke<ActionReport>("onedrive_free", { paths });

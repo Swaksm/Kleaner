@@ -303,3 +303,11 @@ En admin, l'analyse active le privilège de sauvegarde de Windows (`SeBackupPriv
 ## Restes de programmes désinstallés
 
 Dans l'onglet Programmes. Candidats : sous-dossiers d'`AppData\Local`, `AppData\Roaming`, `AppData\LocalLow`, `AppData\Local\Programs`, dossiers cachés du profil liés à une appli précise (`.vscode`, `.cursor`, `.eclipse`…), et — signalés seulement — `Program Files` et `ProgramData`. Un dossier est proposé s'il n'est rattaché à aucun programme installé (nom, éditeur, dossier d'installation), ni à une règle précise ou au catalogue, ni à un dossier partagé (Microsoft, pilotes, Android, WSL…), pèse ≥ 10 Mo et n'a pas changé depuis 30 jours. Verdict « reste probable » : envoi à la Corbeille (restaurable), seulement des dossiers trouvés par la dernière recherche. Les racines d'AppData sont protégées par la garde.
+
+## Révision 6
+
+- **Accueil** (page par défaut) : espace libre des disques, gros bouton « Analyser », puis recommandations chiffrées (nettoyage sans risque, restes, vieux projets, gros fichiers, doublons, OneDrive).
+- **Restaurer** depuis le Journal ce que Kleaner a envoyé à la Corbeille.
+- **Rapport de bug** : fichier local (version, Windows, admin, actions et erreurs, sans chemins) + ticket GitHub pré-rempli sans données ; rien n'est envoyé par Kleaner.
+- **OneDrive** : gros fichiers synchronisés gardés en local → « Libérer de l'espace » (attributs +Unpinned -Pinned, action officielle de Windows). Rien n'est supprimé.
+- **Mise à jour** : vérification optionnelle, **désactivée par défaut**, qui lit la liste publique des releases GitHub (`api.github.com`, autorisé dans la CSP). Seule exception à « aucun réseau », annoncée dans l'avertissement et À propos.

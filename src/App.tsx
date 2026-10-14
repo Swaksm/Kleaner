@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { StatusPill } from "./components/StatusPill";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { useT, type Key } from "./i18n/useT";
-import { isElevated } from "./lib/api";
+import { isElevated, onedriveRoots } from "./lib/api";
 import { useScanResult } from "./lib/scanStore";
 import { About } from "./pages/About";
 import { Analyse } from "./pages/Analyse";
 import { Cleanup } from "./pages/Cleanup";
 import { Duplicates } from "./pages/Duplicates";
+import { Home } from "./pages/Home";
+import { OneDrive } from "./pages/OneDrive";
 import { Journal } from "./pages/Journal";
 import { Media } from "./pages/Media";
 import { Programs } from "./pages/Programs";
@@ -15,8 +18,8 @@ import { Projects } from "./pages/Projects";
 import { Settings } from "./pages/Settings";
 
 // L'essentiel, toujours visible ; outils avancés repliables ; pages secondaires en bas.
-const MAIN = ["analyse", "cleanup", "media", "programs"] as const;
-const MORE = ["duplicates", "projects", "journal"] as const;
+const MAIN = ["home", "analyse", "cleanup", "media", "programs"] as const;
+const MORE = ["duplicates", "projects", "onedrive", "journal"] as const;
 type Page = (typeof MAIN)[number] | (typeof MORE)[number] | "settings" | "about";
 
 function savedMoreOpen(): boolean {
@@ -30,12 +33,17 @@ function savedMoreOpen(): boolean {
 function App() {
   const { t } = useT();
   const [accepted, setAccepted] = useState(isDisclaimerAccepted());
-  const [page, setPage] = useState<Page>("analyse");
+  const [page, setPage] = useState<Page>("home");
+  // Incrémenté par l'Accueil : l'Analyse lance alors une analyse.
+  const [scanRequest, setScanRequest] = useState(0);
+  const [hasOneDrive, setHasOneDrive] = useState(false);
   const [elevated, setElevated] = useState(false);
   const [moreOpen, setMoreOpen] = useState(savedMoreOpen);
   const scan = useScanResult();
   // « Vieux projets » n'apparaît que si l'analyse a trouvé des projets de code.
-  const more = MORE.filter((p) => p !== "projects" || (scan?.artifacts.length ?? 0) > 0);
+  const more = MORE.filter(
+    (p) => (p !== "projects" || (scan?.artifacts.length ?? 0) > 0) && (p !== "onedrive" || hasOneDrive),
+  );
 
   function toggleMore() {
     setMoreOpen(!moreOpen);
@@ -52,6 +60,7 @@ function App() {
 
   useEffect(() => {
     isElevated().then(setElevated, () => {});
+    onedriveRoots().then((r) => setHasOneDrive(r.length > 0), () => {});
   }, []);
 
   if (!accepted) return <Disclaimer onAccept={() => setAccepted(true)} />;
@@ -91,10 +100,21 @@ function App() {
         </div>
       </nav>
       <main className="content">
+        <UpdateBanner />
         <h1>{t(`nav.${page}` as Key)}</h1>
+        {page === "home" && (
+          <Home
+            onScan={() => {
+              setScanRequest((n) => n + 1);
+              setPage("analyse");
+            }}
+            go={setPage}
+          />
+        )}
+        {page === "onedrive" && <OneDrive />}
         {/* Analyse reste montée : le résultat du scan survit aux changements d'onglet. */}
         <div className="page" hidden={page !== "analyse"}>
-          <Analyse onGoCleanup={() => setPage("cleanup")} />
+          <Analyse onGoCleanup={() => setPage("cleanup")} scanRequest={scanRequest} />
         </div>
         {page === "media" && <Media />}
         {page === "duplicates" && <Duplicates />}

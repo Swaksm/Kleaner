@@ -5,11 +5,13 @@ import { StatusPill } from "../components/StatusPill";
 import { LANGS, setLang, useT, type Lang } from "../i18n/useT";
 import { removeKleanerData } from "../lib/api";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
+import { setUpdateCheck, updateCheckEnabled } from "../lib/update";
 
 export function Settings() {
   const { t, lang } = useT();
   const [theme, setTheme] = useState<ThemeChoice>(savedThemeChoice());
   const [confirm, setConfirm] = useState(false);
+  const [autoUpdate, setAutoUpdate] = useState(updateCheckEnabled());
   const [error, setError] = useState<string | null>(null);
 
   function changeTheme(next: ThemeChoice) {
@@ -43,6 +45,21 @@ export function Settings() {
             ))}
           </select>
         </label>
+      </Card>
+
+      <Card title={t("update.title")}>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={autoUpdate}
+            onChange={(e) => {
+              setAutoUpdate(e.target.checked);
+              setUpdateCheck(e.target.checked);
+            }}
+          />
+          {t("update.auto")}
+        </label>
+        <p className="muted small">{t("update.privacy")}</p>
       </Card>
 
       <Card title={t("settings.remove.title")}>

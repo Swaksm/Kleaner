@@ -13,7 +13,6 @@ import { ExplainDialog, VerdictPill } from "../components/Verdict";
 import { useT, type Key } from "../i18n/useT";
 import {
   cancelScan,
-  estimateCleaners,
   explainPaths,
   listDrives,
   listCleaners,
@@ -31,6 +30,7 @@ import {
 } from "../lib/api";
 import { formatBytes, formatDay } from "../lib/format";
 import { forgetPaths, setScanResult, useScanResult } from "../lib/scanStore";
+import { useRecoverable } from "../lib/useRecoverable";
 import { baseName, sortBy, type SortState } from "../lib/sort";
 
 // Ordre fixe des catégories = ordre des couleurs du graphique.
@@ -47,7 +47,7 @@ const VERDICT_ORDER: Verdict[] = ["system", "breaks", "uninstall", "personal", "
 
 type Message = { status: "ok" | "danger"; text: string };
 
-export function Analyse({ onGoCleanup }: { onGoCleanup: () => void }) {
+export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void; scanRequest: number }) {
   const { t, lang } = useT();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -59,23 +59,13 @@ export function Analyse({ onGoCleanup }: { onGoCleanup: () => void }) {
   const [fileSort, setFileSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const [dirSort, setDirSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const scan = useScanResult();
-  // Espace libérable sans risque par le Nettoyage (mêmes règles que « Cocher les éléments sans risque »).
-  const [recoverable, setRecoverable] = useState<number | null>(null);
-  useEffect(() => {
-    if (!scan) return;
-    setRecoverable(null);
-    Promise.all([listCleaners(), estimateCleaners()])
-      .then(([view, list]) => {
-        const byId = new Map(view.cleaners.map((c) => [c.id, c]));
-        const sum = list
-          .filter((r) => byId.get(r.id)?.level === "safe" && r.blocked_by.length === 0)
-          .reduce((n, r) => n + r.bytes, 0);
-        setRecoverable(sum);
-      })
-      .catch(() => {});
-  }, [scan?.duration_ms]);
+  const recoverable = useRecoverable(scan);
   const [drives, setDrives] = useState<DriveInfo[]>([]);
   const [roots, setRoots] = useState<Set<string>>(new Set());
+  // Demande d'analyse venue de l'Accueil (une fois les disques connus).
+  useEffect(() => {
+    if (scanRequest > 0 && drives.length > 0) start();
+  }, [scanRequest, drives.length > 0]);
   const [explanations, setExplanations] = useState<Map<string, Explanation>>(new Map());
   const [explaining, setExplaining] = useState<Explanation | null>(null);
 

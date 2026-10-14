@@ -1120,3 +1120,36 @@ select {
   gap: 16px;
   border-color: var(--accent);
 }
+
+/* Accueil */
+.hero {
+  align-items: flex-start;
+  gap: 16px;
+  padding: 32px;
+}
+
+.btn-big {
+  font-size: 16px;
+  padding: 12px 28px;
+}
+
+.recs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recs li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.recs li:last-child {
+  border-bottom: none;
+}

@@ -1,7 +1,9 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
+import { BugReportButton } from "../components/BugReportButton";
 import { Card } from "../components/Card";
+import { findUpdate } from "../lib/update";
 import { useT, type Key } from "../i18n/useT";
 
 const REPO = "https://github.com/Swaksm/Kleaner";
@@ -13,6 +15,19 @@ const NEVER: Key[] = ["about.never.confirm", "about.never.sessions", "about.neve
 export function About() {
   const { t } = useT();
   const [version, setVersion] = useState("");
+  const [check, setCheck] = useState<string | null>(null);
+  const [updateUrl, setUpdateUrl] = useState<string | null>(null);
+
+  async function checkNow() {
+    setCheck(t("update.checking"));
+    try {
+      const u = await findUpdate(version);
+      setUpdateUrl(u?.url ?? null);
+      setCheck(u ? `${t("update.available")} ${u.version}` : t("update.upToDate"));
+    } catch (e) {
+      setCheck(String(e));
+    }
+  }
   useEffect(() => {
     getVersion().then(setVersion, () => {});
   }, []);
@@ -35,12 +50,21 @@ export function About() {
           <button className="btn btn-primary" onClick={() => openUrl(REPO)}>
             {t("about.github")}
           </button>
-          <button className="btn" onClick={() => openUrl(`${REPO}/issues`)}>
-            {t("about.issue")}
-          </button>
           <button className="btn" onClick={() => openUrl(`${REPO}/releases`)}>
             {t("about.releases")}
           </button>
+          <BugReportButton />
+        </div>
+        <div className="row">
+          <button className="btn" disabled={!version} onClick={checkNow}>
+            {t("update.checkNow")}
+          </button>
+          {check && <span className="muted">{check}</span>}
+          {updateUrl && (
+            <button className="btn btn-primary" onClick={() => openUrl(updateUrl)}>
+              {t("update.download")} →
+            </button>
+          )}
         </div>
       </Card>
 
