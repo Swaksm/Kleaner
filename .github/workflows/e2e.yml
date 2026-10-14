@@ -1,0 +1,40 @@
+name: E2E
+
+# Pilote le vrai kleaner.exe (WebDriver) sur une machine Windows jetable :
+# avertissement, programmes, restes, nettoyage réel, analyse de C:\, visionneuse, langue.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npm run tauri build -- --debug --no-bundle
+      - run: cargo install tauri-driver --locked
+      - name: msedgedriver matching WebView2
+        shell: pwsh
+        run: |
+          $key = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+          $v = (Get-ItemProperty $key).pv
+          Write-Host "WebView2 $v"
+          Invoke-WebRequest "https://msedgedriver.microsoft.com/$v/edgedriver_win64.zip" -OutFile edgedriver.zip -UseBasicParsing
+          Expand-Archive edgedriver.zip -DestinationPath edgedriver -Force
+      - name: Run E2E
+        shell: pwsh
+        env:
+          KLEANER_E2E_DESTRUCTIVE: "1"
+        run: node e2e/run.mjs "$PWD\src-tauri\target\debug\kleaner.exe" "$PWD\edgedriver\msedgedriver.exe"

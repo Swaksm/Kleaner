@@ -66,7 +66,9 @@ pub fn single_instance() -> bool {
     use windows_sys::Win32::Foundation::{WAIT_ABANDONED, WAIT_OBJECT_0};
     use windows_sys::Win32::System::Threading::{CreateMutexW, WaitForSingleObject};
     let relaunch = std::env::args().any(|a| a == RELAUNCH_ARG);
-    let name = wide("Local\\Kleaner.SingleInstance".as_ref());
+    // Les builds de développement ont leur propre verrou : ils tournent à côté de la version installée.
+    let lock = if cfg!(debug_assertions) { "Local\\Kleaner.SingleInstance.Dev" } else { "Local\\Kleaner.SingleInstance" };
+    let name = wide(lock.as_ref());
     let mutex = unsafe { CreateMutexW(std::ptr::null(), 0, name.as_ptr()) };
     if mutex.is_null() {
         // Mutex créé par une instance admin, illisible depuis une instance utilisateur.
