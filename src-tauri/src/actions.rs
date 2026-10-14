@@ -66,7 +66,13 @@ pub fn trash_dirs(paths: &[PathBuf], protected: &guard::Protected, journal_dir: 
 fn same_item(i: &trash::TrashItem, path: &Path) -> bool {
     let eq = |a: &std::ffi::OsStr, b: &str| a.to_string_lossy().eq_ignore_ascii_case(b);
     let Some(parent) = path.parent() else { return false };
-    if !i.original_parent.as_os_str().eq_ignore_ascii_case(parent.as_os_str()) {
+    // Forme longue des deux côtés : « RUNNER~1 » et « runneradmin » désignent le même dossier.
+    let full = |p: &Path| {
+        std::fs::canonicalize(p)
+            .map(|c| PathBuf::from(c.to_string_lossy().trim_start_matches(r"\\?\").to_string()))
+            .unwrap_or_else(|_| p.to_path_buf())
+    };
+    if !full(&i.original_parent).as_os_str().eq_ignore_ascii_case(full(parent).as_os_str()) {
         return false;
     }
     let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
