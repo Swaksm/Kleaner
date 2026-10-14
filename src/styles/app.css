@@ -1071,3 +1071,35 @@ select {
 .items.grid-leftovers li {
   grid-template-columns: minmax(0, 1fr) 110px 90px 80px 70px;
 }
+
+/* Navigation : groupe repliable et pied de barre */
+.nav-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.chevron {
+  font-size: 11px;
+}
+
+.nav-sub {
+  padding-left: 22px;
+  font-size: 13px;
+}
+
+.nav-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-small {
+  font-size: 13px;
+  padding: 6px 10px;
+}

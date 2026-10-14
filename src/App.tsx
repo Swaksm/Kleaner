@@ -3,6 +3,7 @@ import { StatusPill } from "./components/StatusPill";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { useT, type Key } from "./i18n/useT";
 import { isElevated } from "./lib/api";
+import { useScanResult } from "./lib/scanStore";
 import { About } from "./pages/About";
 import { Analyse } from "./pages/Analyse";
 import { Cleanup } from "./pages/Cleanup";
@@ -13,14 +14,42 @@ import { Programs } from "./pages/Programs";
 import { Projects } from "./pages/Projects";
 import { Settings } from "./pages/Settings";
 
-const pages = ["analyse", "media", "duplicates", "projects", "cleanup", "programs", "journal", "settings", "about"] as const;
-type Page = (typeof pages)[number];
+// L'essentiel, toujours visible ; outils avancés repliables ; pages secondaires en bas.
+const MAIN = ["analyse", "cleanup", "media", "programs"] as const;
+const MORE = ["duplicates", "projects"] as const;
+const FOOTER = ["journal", "settings", "about"] as const;
+type Page = (typeof MAIN)[number] | (typeof MORE)[number] | (typeof FOOTER)[number];
+
+function savedMoreOpen(): boolean {
+  try {
+    return localStorage.getItem("navMore") === "1";
+  } catch {
+    return false;
+  }
+}
 
 function App() {
   const { t } = useT();
   const [accepted, setAccepted] = useState(isDisclaimerAccepted());
   const [page, setPage] = useState<Page>("analyse");
   const [elevated, setElevated] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(savedMoreOpen);
+  const scan = useScanResult();
+  // « Vieux projets » n'apparaît que si l'analyse a trouvé des projets de code.
+  const more = MORE.filter((p) => p !== "projects" || (scan?.artifacts.length ?? 0) > 0);
+
+  function toggleMore() {
+    setMoreOpen(!moreOpen);
+    try {
+      localStorage.setItem("navMore", moreOpen ? "0" : "1");
+    } catch {}
+  }
+
+  const item = (p: Page, className = "nav-item") => (
+    <button key={p} className={className} aria-current={page === p ? "page" : undefined} onClick={() => setPage(p)}>
+      {t(`nav.${p}` as Key)}
+    </button>
+  );
 
   useEffect(() => {
     isElevated().then(setElevated, () => {});
@@ -37,16 +66,16 @@ function App() {
             <StatusPill status="ok">{t("admin.badge")}</StatusPill>
           </div>
         )}
-        {pages.map((p) => (
-          <button
-            key={p}
-            className="nav-item"
-            aria-current={page === p ? "page" : undefined}
-            onClick={() => setPage(p)}
-          >
-            {t(`nav.${p}` as Key)}
-          </button>
-        ))}
+        {MAIN.map((p) => item(p))}
+        <button className="nav-item nav-group" aria-expanded={moreOpen} onClick={toggleMore}>
+          <span>{t("nav.more")}</span>
+          <span className="chevron" aria-hidden>
+            {moreOpen ? "▾" : "▸"}
+          </span>
+        </button>
+        {/* La page ouverte reste visible même si le groupe est replié. */}
+        {more.filter((p) => moreOpen || page === p).map((p) => item(p, "nav-item nav-sub"))}
+        <div className="nav-footer">{FOOTER.map((p) => item(p, "nav-item nav-small"))}</div>
       </nav>
       <main className="content">
         <h1>{t(`nav.${page}` as Key)}</h1>

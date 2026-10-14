@@ -266,5 +266,6 @@
   "leftovers.place.programs": "Programa do usuário",
   "leftovers.place.profile": "Config. de ferramenta",
   "leftovers.place.programfiles": "Program Files (admin)",
-  "leftovers.place.programdata": "ProgramData (admin)"
+  "leftovers.place.programdata": "ProgramData (admin)",
+  "nav.more": "Mais ferramentas"
 }

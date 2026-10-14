@@ -266,5 +266,6 @@
   "leftovers.place.programs": "User program",
   "leftovers.place.profile": "Tool settings",
   "leftovers.place.programfiles": "Program Files (admin)",
-  "leftovers.place.programdata": "ProgramData (admin)"
+  "leftovers.place.programdata": "ProgramData (admin)",
+  "nav.more": "More tools"
 }
