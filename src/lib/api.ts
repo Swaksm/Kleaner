@@ -154,3 +154,31 @@ export type CloudFile = { path: string; size: number; modified: number; pinned: 
 export const onedriveRoots = () => invoke<string[]>("onedrive_roots");
 export const onedriveFiles = () => invoke<CloudFile[]>("onedrive_files");
 export const onedriveFree = (paths: string[]) => invoke<ActionReport>("onedrive_free", { paths });
+
+export type Gpu = { name: string; vendor: string; driver_version: string; driver_date: string };
+export type Disk = { name: string; media: string; health: string; size: number };
+export type SystemInfo = {
+  os_name: string;
+  os_release: string;
+  os_build: number;
+  manufacturer: string;
+  model: string;
+  memory: number;
+  bios_version: string;
+  bios_date: string;
+  uptime: number;
+  support_end: string | null;
+  gpus: Gpu[];
+  disks: Disk[];
+};
+export type WinUpdateStatus = {
+  updates: { title: string; kind: "Software" | "Driver"; size: number; mandatory: boolean }[];
+  reboot_required: boolean;
+  last_check: string;
+};
+export type AppUpdate = { name: string; id: string; version: string; available: string };
+export const systemInfo = () => invoke<SystemInfo>("system_info");
+export const windowsUpdates = () => invoke<WinUpdateStatus>("windows_updates");
+export const openWindowsUpdate = () => invoke<void>("open_windows_update");
+export const appUpdates = () => invoke<AppUpdate[]>("app_updates");
+export const upgradeApps = (ids: string[]) => invoke<[number, string]>("upgrade_apps", { ids });

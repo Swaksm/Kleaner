@@ -9,6 +9,7 @@ pub mod leftovers;
 pub mod onedrive;
 pub mod programs;
 pub mod scan;
+pub mod system;
 
 use serde::Serialize;
 use std::os::windows::process::CommandExt;
@@ -66,6 +67,7 @@ struct ScanState {
     dup_cancel: Arc<AtomicBool>,
     leftovers: Arc<Mutex<Vec<leftovers::Leftover>>>,
     cloud: Arc<Mutex<Vec<String>>>,
+    apps: Arc<Mutex<Vec<String>>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -404,6 +406,40 @@ async fn onedrive_free(paths: Vec<String>, state: State<'_, ScanState>) -> Resul
     Ok(actions::ActionReport { files: n, bytes })
 }
 
+#[tauri::command]
+async fn system_info() -> Result<system::SystemInfo, String> {
+    tauri::async_runtime::spawn_blocking(system::info).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn windows_updates() -> Result<system::WinUpdateStatus, String> {
+    tauri::async_runtime::spawn_blocking(system::windows_updates).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+fn open_windows_update() -> Result<(), String> {
+    system::open_windows_update()
+}
+
+#[tauri::command]
+async fn app_updates(state: State<'_, ScanState>) -> Result<Vec<system::AppUpdate>, String> {
+    let list = tauri::async_runtime::spawn_blocking(system::app_updates).await.map_err(|e| e.to_string())??;
+    *state.apps.lock().unwrap() = list.iter().map(|a| a.id.clone()).collect();
+    Ok(list)
+}
+
+/// Met à jour des applications avec winget ; seulement des identifiants de la dernière liste.
+#[tauri::command]
+async fn upgrade_apps(ids: Vec<String>, state: State<'_, ScanState>) -> Result<(u64, String), String> {
+    let known = state.apps.lock().unwrap().clone();
+    if let Some(id) = ids.iter().find(|i| !known.contains(i)) {
+        return Err(format!("Refused: {id} was not in the last list"));
+    }
+    tauri::async_runtime::spawn_blocking(move || system::upgrade_apps(&ids, &journal::data_dir()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if !elevation::single_instance() {
@@ -441,7 +477,12 @@ pub fn run() {
             bug_report,
             onedrive_roots,
             onedrive_files,
-            onedrive_free
+            onedrive_free,
+            system_info,
+            windows_updates,
+            open_windows_update,
+            app_updates,
+            upgrade_apps
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

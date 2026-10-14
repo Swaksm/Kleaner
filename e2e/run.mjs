@@ -126,6 +126,13 @@ try {
     await (await b.$(".recs li")).waitForExist({ timeout: 120_000 });
   });
 
+  await step("mises à jour : machine et applis (winget)", async () => {
+    await nav("Updates & health");
+    await b.waitUntil(async () => (await (await b.$(".content")).getText()).includes("BIOS"), { timeout: 30_000, timeoutMsg: "infos machine absentes" });
+    await (await b.$("button=Check app updates")).click();
+    await b.waitUntil(async () => !(await (await b.$(".loading")).isExisting()), { timeout: 180_000, timeoutMsg: "winget trop long" });
+  });
+
   await step("paramètres : passage en français", async () => {
     await (await b.$(".sidebar button[aria-label=Settings]")).click();
     const selects = await b.$$("select");

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { StatusPill } from "./components/StatusPill";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useT, type Key } from "./i18n/useT";
 import { isElevated, onedriveRoots } from "./lib/api";
@@ -16,9 +17,10 @@ import { Media } from "./pages/Media";
 import { Programs } from "./pages/Programs";
 import { Projects } from "./pages/Projects";
 import { Settings } from "./pages/Settings";
+import { Updates } from "./pages/Updates";
 
 // L'essentiel, toujours visible ; outils avancés repliables ; pages secondaires en bas.
-const MAIN = ["home", "analyse", "cleanup", "media", "programs"] as const;
+const MAIN = ["home", "analyse", "cleanup", "media", "programs", "updates"] as const;
 const MORE = ["duplicates", "projects", "onedrive", "journal"] as const;
 type Page = (typeof MAIN)[number] | (typeof MORE)[number] | "settings" | "about";
 
@@ -102,28 +104,31 @@ function App() {
       <main className="content">
         <UpdateBanner />
         <h1>{t(`nav.${page}` as Key)}</h1>
-        {page === "home" && (
-          <Home
-            onScan={() => {
-              setScanRequest((n) => n + 1);
-              setPage("analyse");
-            }}
-            go={setPage}
-          />
-        )}
-        {page === "onedrive" && <OneDrive />}
-        {/* Analyse reste montée : le résultat du scan survit aux changements d'onglet. */}
-        <div className="page" hidden={page !== "analyse"}>
-          <Analyse onGoCleanup={() => setPage("cleanup")} scanRequest={scanRequest} />
-        </div>
-        {page === "media" && <Media />}
-        {page === "duplicates" && <Duplicates />}
-        {page === "projects" && <Projects />}
-        {page === "journal" && <Journal />}
-        {page === "settings" && <Settings />}
-        {page === "about" && <About />}
-        {page === "cleanup" && <Cleanup />}
-        {page === "programs" && <Programs />}
+        <ErrorBoundary resetKey={page}>
+          {page === "home" && (
+            <Home
+              onScan={() => {
+                setScanRequest((n) => n + 1);
+                setPage("analyse");
+              }}
+              go={setPage}
+            />
+          )}
+          {page === "onedrive" && <OneDrive />}
+          {page === "updates" && <Updates />}
+          {/* Analyse reste montée : le résultat du scan survit aux changements d'onglet. */}
+          <div className="page" hidden={page !== "analyse"}>
+            <Analyse onGoCleanup={() => setPage("cleanup")} scanRequest={scanRequest} />
+          </div>
+          {page === "media" && <Media />}
+          {page === "duplicates" && <Duplicates />}
+          {page === "projects" && <Projects />}
+          {page === "journal" && <Journal />}
+          {page === "settings" && <Settings />}
+          {page === "about" && <About />}
+          {page === "cleanup" && <Cleanup />}
+          {page === "programs" && <Programs />}
+        </ErrorBoundary>
       </main>
     </div>
   );

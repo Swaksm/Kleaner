@@ -33,8 +33,17 @@ jobs:
           Write-Host "WebView2 $v"
           Invoke-WebRequest "https://msedgedriver.microsoft.com/$v/edgedriver_win64.zip" -OutFile edgedriver.zip -UseBasicParsing
           Expand-Archive edgedriver.zip -DestinationPath edgedriver -Force
+      - name: Diagnostic : l'exe démarre-t-il seul ?
+        shell: pwsh
+        run: |
+          Get-ItemProperty "HKLM:SOFTWAREWOW6432NodeMicrosoftEdgeUpdateClients{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" -ErrorAction SilentlyContinue | Select-Object pv, name
+          $p = Start-Process "$PWDsrc-tauri	argetdebugkleaner.exe" -PassThru
+          Start-Sleep 15
+          if ($p.HasExited) { Write-Host "EXITED code $($p.ExitCode)" } else { Write-Host "alive after 15 s"; Stop-Process $p -Force }
       - name: Run E2E
         shell: pwsh
         env:
           KLEANER_E2E_DESTRUCTIVE: "1"
-        run: node e2e/run.mjs "$PWD\src-tauri\target\debug\kleaner.exe" "$PWD\edgedriver\msedgedriver.exe"
+        run: |
+          $env:RUST_LOG = "debug"
+          node e2e/run.mjs "$PWD\src-tauri\target\debug\kleaner.exe" "$PWD\edgedriver\msedgedriver.exe"

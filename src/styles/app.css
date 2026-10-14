@@ -1153,3 +1153,7 @@ select {
 .recs li:last-child {
   border-bottom: none;
 }
+
+.items.grid-apps li {
+  grid-template-columns: minmax(0, 1fr) 140px 140px;
+}
