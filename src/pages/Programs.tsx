@@ -165,6 +165,9 @@ export function Programs() {
         {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
       </Card>
 
+      {/* Avant la longue liste : sinon on ne la voit pas. */}
+      <Leftovers />
+
       <Card>
         {real === null && (
           <span className="loading" role="status">
@@ -224,8 +227,6 @@ export function Programs() {
           </ul>
         )}
       </Card>
-
-      <Leftovers />
 
       <ConfirmDialog
         open={target !== null}
