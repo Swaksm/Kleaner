@@ -6,6 +6,7 @@ pub mod guard;
 pub mod journal;
 pub mod knowledge;
 pub mod leftovers;
+pub mod onedrive;
 pub mod programs;
 pub mod scan;
 
@@ -64,6 +65,7 @@ struct ScanState {
     artifacts: Arc<Mutex<Vec<String>>>,
     dup_cancel: Arc<AtomicBool>,
     leftovers: Arc<Mutex<Vec<leftovers::Leftover>>>,
+    cloud: Arc<Mutex<Vec<String>>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -362,6 +364,46 @@ async fn trash_leftovers(paths: Vec<String>, state: State<'_, ScanState>) -> Res
         .map_err(|e| e.to_string())?
 }
 
+/// Remet à leur place des éléments que Kleaner a envoyés à la Corbeille.
+#[tauri::command]
+async fn restore_trashed(paths: Vec<String>) -> Result<actions::ActionReport, String> {
+    tauri::async_runtime::spawn_blocking(move || actions::restore_from_trash(&paths, &journal::data_dir()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Prépare un rapport de bug (fichier local) ; l'interface ouvre ensuite GitHub dans le navigateur.
+#[tauri::command]
+fn bug_report(app: tauri::AppHandle) -> Result<String, String> {
+    actions::bug_report(&app.package_info().version.to_string(), &journal::data_dir()).map(|p| p.display().to_string())
+}
+
+#[tauri::command]
+fn onedrive_roots() -> Vec<String> {
+    onedrive::roots().iter().map(|p| p.display().to_string()).collect()
+}
+
+#[tauri::command]
+async fn onedrive_files(state: State<'_, ScanState>) -> Result<Vec<onedrive::CloudFile>, String> {
+    let list = tauri::async_runtime::spawn_blocking(onedrive::local_files).await.map_err(|e| e.to_string())?;
+    *state.cloud.lock().unwrap() = list.iter().map(|f| f.path.clone()).collect();
+    Ok(list)
+}
+
+/// « Libérer de l'espace » OneDrive, seulement pour des fichiers de la dernière liste.
+#[tauri::command]
+async fn onedrive_free(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
+    let known = state.cloud.lock().unwrap().clone();
+    if let Some(p) = paths.iter().find(|p| !known.contains(p)) {
+        return Err(format!("Refused: {p} was not in the last OneDrive list"));
+    }
+    let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
+    let (n, bytes) = tauri::async_runtime::spawn_blocking(move || onedrive::free_up(&files, &journal::data_dir()))
+        .await
+        .map_err(|e| e.to_string())??;
+    Ok(actions::ActionReport { files: n, bytes })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if !elevation::single_instance() {
@@ -394,7 +436,12 @@ pub fn run() {
             delete_artifacts,
             preview_cleaners,
             find_leftovers,
-            trash_leftovers
+            trash_leftovers,
+            restore_trashed,
+            bug_report,
+            onedrive_roots,
+            onedrive_files,
+            onedrive_free
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
