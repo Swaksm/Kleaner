@@ -224,19 +224,37 @@ pub fn real_sizes(programs: &[Program]) -> Vec<RealSize> {
         .collect()
 }
 
-/// Tous les programmes, triés par taille décroissante, sans doublons (même nom + version).
+/// « 136.0.6008.111 » → [136, 0, 6008, 111], pour comparer des versions.
+fn version_key(v: &str) -> Vec<u64> {
+    v.split(|c: char| !c.is_ascii_digit()).filter(|s| !s.is_empty()).filter_map(|s| s.parse().ok()).collect()
+}
+
+/// Tous les programmes, triés par taille décroissante, sans doublons : même nom + version, ou
+/// même désinstalleur dans le même dossier (entrée périmée laissée par une mise à jour,
+/// ex. Opera GX) — on garde la version la plus récente.
 pub fn list() -> Vec<Program> {
-    let mut out: Vec<Program> = Vec::new();
+    let mut out: Vec<(Program, String)> = Vec::new();
     for (prefix, ..) in SOURCES {
         let Some(root) = open(prefix) else { continue };
         for key_name in root.enum_keys().flatten() {
-            if let Some(p) = read(prefix, &root, &key_name)
-                && !out.iter().any(|o| o.name == p.name && o.version == p.version)
-            {
-                out.push(p);
+            let Some(p) = read(prefix, &root, &key_name) else { continue };
+            let cmd = root
+                .open_subkey(&key_name)
+                .and_then(|k| k.get_value::<String, _>("UninstallString"))
+                .unwrap_or_default()
+                .trim()
+                .to_lowercase();
+            let same = out.iter().position(|(o, c)| {
+                (o.name == p.name && o.version == p.version) || (!p.location.is_empty() && o.location == p.location && *c == cmd)
+            });
+            match same {
+                Some(i) if version_key(&p.version) > version_key(&out[i].0.version) => out[i] = (p, cmd),
+                Some(_) => {}
+                None => out.push((p, cmd)),
             }
         }
     }
+    let mut out: Vec<Program> = out.into_iter().map(|(p, _)| p).collect();
     out.sort_by(|a, b| b.bytes.cmp(&a.bytes).then_with(|| a.name.cmp(&b.name)));
     out
 }
@@ -302,6 +320,12 @@ mod tests {
 
     fn split(s: &str) -> (String, String) {
         split_command(s).unwrap()
+    }
+
+    #[test]
+    fn versions_compare_numerically() {
+        assert!(version_key("136.0.6008.111") > version_key("133.0.5932.39"));
+        assert!(version_key("10.2") > version_key("9.99"));
     }
 
     #[test]
