@@ -166,8 +166,10 @@ export function Analyse() {
     verdict: (i) => VERDICT_ORDER.indexOf(explanations.get(i.path)?.verdict ?? "unknown"),
   };
   const files = sortBy(r.top_files, fileSort, itemGetters);
+  // Système : la garde refuserait de toute façon, on ne propose pas la case.
+  const locked = (path: string) => explanations.get(path)?.verdict === "system";
   const dirs = sortBy(r.top_dirs, dirSort, itemGetters);
-  const chosen = r.top_files.filter((i) => selected.has(i.path));
+  const chosen = r.top_files.filter((i) => selected.has(i.path) && !locked(i.path));
   const free = r.drives.reduce((sum, d) => sum + d.free, 0);
   const chosenBytes = chosen.reduce((s, i) => s + i.size, 0);
   const headerCells = (first: string): HeaderCell<ItemKey>[] => [
@@ -268,8 +270,13 @@ export function Analyse() {
           <SortHeader cells={headerCells(t("sort.name"))} value={fileSort} onChange={setFileSort} />
           {files.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
-              <label className="check path" title={i.path}>
-                <input type="checkbox" checked={selected.has(i.path)} onChange={() => toggle(i.path)} />
+              <label className="check path" title={locked(i.path) ? t("verdict.system") : i.path}>
+                <input
+                  type="checkbox"
+                  checked={selected.has(i.path)}
+                  disabled={locked(i.path)}
+                  onChange={() => toggle(i.path)}
+                />
                 <span>{i.path}</span>
               </label>
               <VerdictPill e={explanations.get(i.path)} onOpen={setExplaining} />
