@@ -10,6 +10,7 @@ import { About } from "./pages/About";
 import { Analyse } from "./pages/Analyse";
 import { Cleanup } from "./pages/Cleanup";
 import { Duplicates } from "./pages/Duplicates";
+import { Health } from "./pages/Health";
 import { Home } from "./pages/Home";
 import { OneDrive } from "./pages/OneDrive";
 import { Journal } from "./pages/Journal";
@@ -17,11 +18,13 @@ import { Media } from "./pages/Media";
 import { Programs } from "./pages/Programs";
 import { Projects } from "./pages/Projects";
 import { Settings } from "./pages/Settings";
+import { Shortcuts } from "./pages/Shortcuts";
+import { Startup } from "./pages/Startup";
 import { Updates } from "./pages/Updates";
 
 // L'essentiel, toujours visible ; outils avancés repliables ; pages secondaires en bas.
-const MAIN = ["home", "analyse", "cleanup", "media", "programs", "updates"] as const;
-const MORE = ["duplicates", "projects", "onedrive", "journal"] as const;
+const MAIN = ["home", "analyse", "cleanup", "media", "programs", "startup", "health", "updates"] as const;
+const MORE = ["duplicates", "projects", "shortcuts", "onedrive", "journal"] as const;
 type Page = (typeof MAIN)[number] | (typeof MORE)[number] | "settings" | "about";
 
 function savedMoreOpen(): boolean {
@@ -116,6 +119,9 @@ function App() {
           )}
           {page === "onedrive" && <OneDrive />}
           {page === "updates" && <Updates />}
+          {page === "startup" && <Startup />}
+          {page === "health" && <Health />}
+          {page === "shortcuts" && <Shortcuts />}
           {/* Analyse reste montée : le résultat du scan survit aux changements d'onglet. */}
           <div className="page" hidden={page !== "analyse"}>
             <Analyse onGoCleanup={() => setPage("cleanup")} scanRequest={scanRequest} />

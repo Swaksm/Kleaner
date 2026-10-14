@@ -3,11 +3,11 @@ import { BugReportButton } from "../components/BugReportButton";
 import { Card } from "../components/Card";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
-import { readJournal, restoreTrashed, revealInExplorer, type JournalEntry, type JournalView } from "../lib/api";
+import { readJournal, restoreGhost, restoreTrashed, revealInExplorer, type JournalEntry, type JournalView } from "../lib/api";
 import { formatBytes, formatDate } from "../lib/format";
 
 /** Actions qui passent par la Corbeille : on peut les annuler. */
-const RESTORABLE = ["trash", "trash-leftovers"];
+const RESTORABLE = ["trash", "trash-leftovers", "ghost-remove"];
 
 export function Journal() {
   const { t, lang } = useT();
@@ -23,8 +23,13 @@ export function Journal() {
 
   async function restore(e: JournalEntry, key: number) {
     try {
-      const r = await restoreTrashed(e.paths);
-      setRestored((m) => new Map(m).set(key, `${r.files} ${t("journal.restoredCount")}`));
+      if (e.action === "ghost-remove" && e.output) {
+        await restoreGhost(e.output);
+        setRestored((m) => new Map(m).set(key, `1 ${t("journal.restoredCount")}`));
+      } else {
+        const r = await restoreTrashed(e.paths);
+        setRestored((m) => new Map(m).set(key, `${r.files} ${t("journal.restoredCount")}`));
+      }
       load();
     } catch (err) {
       setRestored((m) => new Map(m).set(key, String(err)));

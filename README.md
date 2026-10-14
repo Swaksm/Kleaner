@@ -13,7 +13,11 @@ Free, open-source and **transparent** Windows cleaner. Kleaner scans your drives
 - **Disk map**: every folder as a rectangle sized by its space; click to go inside.
 - **Photos & videos**: lists every personal photo and video, sortable and searchable, with a list or grid view and a built-in viewer; send the ones you no longer need to the Recycle Bin.
 - **Cleans** the items of the [catalog](#catalog): each one says what it removes, why it is useless and what changes for you. Nothing is ticked in advance, and « Preview the exact list » shows every file before anything is deleted.
-- **Uninstalls** programs by launching their official uninstaller, with real size on disk and last launch date.
+- **Uninstalls** programs by launching their official uninstaller, with real size on disk and last launch date. Finds leftovers of uninstalled programs and dead entries in the programs list.
+- **Startup**: lists what starts with Windows (registry, startup folders, scheduled tasks, services) with the measured boot time. Turning an item off deletes nothing and can be undone.
+- **Health & security** (read-only): disks, battery, crashes, pending restart, Windows files integrity, antivirus, firewall, Secure Boot, BitLocker… Kleaner changes nothing and is not an antivirus: each alert opens the Windows screen that fixes it.
+- **Broken shortcuts**: Desktop, Start menu and taskbar shortcuts whose target is gone, sent to the Recycle Bin.
+- **Cloud**: large OneDrive and Dropbox files also kept on this PC can be set to online-only.
 - **AI report** (optional, offline): generates a Markdown summary + prompt you paste into the AI of your choice; it asks you questions ("do you still use…?") and tells you what to remove. Kleaner sends nothing.
 - **Logs** every action to `%LOCALAPPDATA%\Kleaner\journal.log`.
 - **Admin mode** (on demand): full scan including protected system folders, read-only.
@@ -22,7 +26,7 @@ Free, open-source and **transparent** Windows cleaner. Kleaner scans your drives
 
 - Act without your confirmation.
 - Touch your passwords, cookies, sessions or history.
-- Write to the registry.
+- Clean or "repair" the registry. It writes there only on your request, and only two things: the on/off switch of a startup item, and the removal of a dead program entry (saved to a .reg file first, restorable from the Log).
 - Connect to the Internet: **no telemetry, no automatic updates**.
 - Ask for admin rights unless you click "Full scan (admin)".
 - Permanently delete a file outside the folders listed in [`src-tauri/cleaners.json`](src-tauri/cleaners.json). This is enforced in Rust ([`guard.rs`](src-tauri/src/guard.rs)) and covered by tests. Personal files only ever go to the Recycle Bin.

@@ -9,9 +9,10 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - **Aucun réseau**, sauf la vérification de mise à jour optionnelle (désactivée par défaut, `api.github.com`, autorisée dans la CSP). Windows Update et winget ne contactent Internet que sur clic.
 - **Suppression définitive** seulement dans les dossiers de `src-tauri/cleaners.json` (vérifié par `guard::check_delete`), ou les dossiers régénérables de projets trouvés par la dernière analyse (`delete_artifacts`).
 - **Fichiers personnels et restes de programmes** : Corbeille uniquement (`guard::check_trash`, restaurable depuis le Journal).
+- **Registre** : aucun nettoyage ni « réparation ». Seulement, sur demande et réversible : `StartupApproved` (démarrage) et la suppression d'une entrée fantôme de la liste des programmes, après sauvegarde `.reg` (SPEC, révision 8).
 - **Liens et jonctions jamais suivis.** Fichiers verrouillés ignorés et comptés.
 - **Chaque action qui modifie le disque** écrit une ligne dans `%LOCALAPPDATA%\Kleaner\journal.log`.
-- **Les commandes qui suppriment** n'acceptent que des éléments trouvés par la dernière liste côté Rust (`ScanState` : artifacts, leftovers, cloud, apps), jamais un chemin libre envoyé par l'interface.
+- **Les commandes qui suppriment** n'acceptent que des éléments trouvés par la dernière liste côté Rust (`ScanState` : artifacts, leftovers, cloud, apps, startup, shortcuts, ghosts), jamais un chemin libre envoyé par l'interface.
 - **Kleaner ne devine jamais** : sans règle, le verdict est « inconnu ».
 
 ## Architecture
@@ -30,6 +31,10 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `system.rs` : infos machine, Windows Update (COM, lecture), winget (tableau lu), fin de support Windows.
 - `elevation.rs` : admin, relance UAC (`--relaunch`), privilège de sauvegarde, verrou d'instance unique (`.Dev` en debug).
 - `journal.rs` : journal JSON lignes.
+- `startup.rs` : programmes au démarrage (Run, dossiers, tâches ; services en lecture seule), activation par `StartupApproved`.
+- `shortcuts.rs` : raccourcis `.lnk` cassés.
+- `health.rs` : santé et sécurité en lecture seule ; `PAGES` = liste fermée des écrans Windows ouvrables.
+- `programs.rs` gère aussi les entrées fantômes (`ghosts`, `remove_ghost`, `restore_ghost`).
 
 `src/` : `App.tsx` (navigation : essentiel / « Plus d'outils » / À propos + engrenage), `pages/*`, `components/*`, `lib/api.ts` (seul point de contact avec Rust), `lib/scanStore.ts` (dernier résultat partagé), `i18n/*.json` (6 langues : en, fr, es, de, it, pt ; textes du catalogue et des fiches en en/fr seulement, via `tl`).
 
@@ -70,5 +75,5 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **SignPath** : candidature envoyée (projet récent, refus possible). Une fois acceptée : projet `kleaner`, politique `release-signing`, configuration `portable-exe`, secret et variable dans GitHub (`docs/signing.md`).
 - **E2E en CI** : en lancement manuel. Sur les machines GitHub, WebView2 n'ouvre pas son port de débogage (« DevToolsActivePort file doesn't exist ») alors que l'exe démarre. En local, tout passe.
 - **Jamais testés en vrai** : nettoyages lourds (Windows.old, DISM, hibernation, points de restauration), recherche Windows Update, mise à jour d'une appli par winget, restauration et OneDrive dans l'exe.
-- **Feuille de route v0.3+** (`SPEC.md`, fin ; tâches T18 à T22) : démarrage, raccourcis cassés, santé et sécurité en lecture seule, entrées fantômes, cloud local. Pas de « nettoyage du registre » ni de « boosts ».
+- **Feuille de route v0.3+ réalisée** (T18 à T22, `SPEC.md` révision 8) : démarrage, raccourcis cassés, santé et sécurité, entrées fantômes, Dropbox. Jamais testés dans l'exe : désactivation d'un élément de démarrage, suppression d'une entrée fantôme, durées de démarrage (admin). Pas de « nettoyage du registre » ni de « boosts ».
 - Dernière release : v0.1.0-rc9. Pas encore de v0.1.0 stable (nécessaire pour winget et le `checkver` de Scoop).

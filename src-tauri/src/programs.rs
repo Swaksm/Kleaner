@@ -259,6 +259,130 @@ pub fn list() -> Vec<Program> {
     out
 }
 
+// ---------- Entrées fantômes ----------
+
+/// Entrée « Programmes » dont le désinstalleur et le dossier d'installation n'existent plus.
+#[derive(Serialize, Debug, Clone)]
+pub struct Ghost {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub publisher: String,
+    pub command: String,
+}
+
+/// Vrai seulement si on est sûr : désinstalleur sur un chemin absolu complet, dans un disque présent,
+/// introuvable, et dossier d'installation absent ou inexistant.
+fn is_ghost(command: &str, install_location: &str) -> bool {
+    let Some((exe, _)) = split_command(command) else { return false };
+    let b = exe.as_bytes();
+    if exe.contains('%') || b.len() < 4 || b[1] != b':' || b[2] != b'\\' || !Path::new(&exe[..3]).exists() {
+        return false;
+    }
+    let gone = |p: &str| matches!(std::fs::symlink_metadata(p), Err(e) if e.kind() == std::io::ErrorKind::NotFound);
+    let loc = install_location.trim().trim_matches('"');
+    gone(&exe) && (loc.is_empty() || (!loc.contains('%') && gone(loc)))
+}
+
+pub fn ghosts() -> Vec<Ghost> {
+    let mut out = Vec::new();
+    for (prefix, ..) in SOURCES {
+        let Some(root) = open(prefix) else { continue };
+        for key_name in root.enum_keys().flatten() {
+            let Some(p) = read(prefix, &root, &key_name) else { continue };
+            let Ok(k) = root.open_subkey(&key_name) else { continue };
+            let command: String = k.get_value("UninstallString").unwrap_or_default();
+            let install: String = k.get_value("InstallLocation").unwrap_or_default();
+            if is_ghost(&command, &install) {
+                out.push(Ghost { id: p.id, name: p.name, version: p.version, publisher: p.publisher, command });
+            }
+        }
+    }
+    out.sort_by_key(|a| a.name.to_lowercase());
+    out
+}
+
+fn reg_exe(args: &[&str]) -> Result<(), String> {
+    use std::os::windows::process::CommandExt;
+    let out = std::process::Command::new("reg").args(args).creation_flags(0x0800_0000).output().map_err(|e| e.to_string())?;
+    if out.status.success() {
+        Ok(())
+    } else {
+        Err(String::from_utf8_lossy(&out.stderr).trim().to_string())
+    }
+}
+
+/// (ruche lisible par reg.exe, option de vue)
+fn reg_target(prefix: &str) -> Option<(&'static str, Option<&'static str>)> {
+    Some(match prefix {
+        "HKLM64" => ("HKLM", Some("/reg:64")),
+        "HKLM32" => ("HKLM", Some("/reg:32")),
+        "HKCU" => ("HKCU", None),
+        _ => return None,
+    })
+}
+
+/// Sauvegarde la clé dans un fichier `.reg`, puis la supprime. Une ligne de journal par entrée, avec le fichier.
+pub fn remove_ghost(id: &str, backup_dir: &Path, journal_dir: &Path) -> Result<String, String> {
+    let (prefix, key_name) = id.split_once('\\').ok_or("Invalid id")?;
+    let (hive, view) = reg_target(prefix).ok_or("Invalid id")?;
+    let (_, hkey, flags) = SOURCES.iter().find(|(p, ..)| *p == prefix).ok_or("Invalid id")?;
+    // Dernière vérification : l'entrée est toujours un fantôme.
+    let root = open(prefix).ok_or("Entry not found")?;
+    let k = root.open_subkey(key_name).map_err(|_| "Entry not found")?;
+    let command: String = k.get_value("UninstallString").unwrap_or_default();
+    let install: String = k.get_value("InstallLocation").unwrap_or_default();
+    if !is_ghost(&command, &install) {
+        return Err(format!("Refused: {key_name} is not a ghost entry any more"));
+    }
+    std::fs::create_dir_all(backup_dir).map_err(|e| e.to_string())?;
+    let safe: String = key_name.chars().map(|c| if c.is_ascii_alphanumeric() { c } else { '_' }).take(40).collect();
+    let file = backup_dir.join(format!("ghost-{prefix}-{safe}-{}.reg", journal::Entry::new("x").ts));
+    let key_path = format!("{hive}\\{UNINSTALL}\\{key_name}");
+    let mut args = vec!["export", key_path.as_str(), file.to_str().ok_or("Bad path")?, "/y"];
+    args.extend(view);
+    reg_exe(&args).map_err(|e| format!("Backup failed, nothing removed: {e}"))?;
+
+    let result = RegKey::predef(*hkey)
+        .open_subkey_with_flags(UNINSTALL, winreg::enums::KEY_ALL_ACCESS | flags)
+        .and_then(|u| u.delete_subkey_all(key_name))
+        .map_err(|e| {
+            if e.kind() == std::io::ErrorKind::PermissionDenied {
+                "Access denied: relaunch Kleaner as administrator".to_string()
+            } else {
+                e.to_string()
+            }
+        });
+    let mut j = journal::Entry::new("ghost-remove");
+    j.paths = vec![id.to_string(), command];
+    j.files = u64::from(result.is_ok());
+    j.output = Some(file.display().to_string());
+    j.error = result.as_ref().err().cloned();
+    journal::append(journal_dir, &j).map_err(|e| format!("Log: {e}"))?;
+    result.map(|()| file.display().to_string())
+}
+
+/// Remet une entrée supprimée par Kleaner : seulement un fichier `ghost-*.reg` du dossier de sauvegardes.
+pub fn restore_ghost(file: &str, backup_dir: &Path, journal_dir: &Path) -> Result<(), String> {
+    let path = Path::new(file).canonicalize().map_err(|e| format!("{file}: {e}"))?;
+    let dir = backup_dir.canonicalize().map_err(|e| e.to_string())?;
+    let name = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+    if path.parent() != Some(dir.as_path()) || !name.starts_with("ghost-") || !name.ends_with(".reg") {
+        return Err(format!("Refused: {file} is not a Kleaner backup"));
+    }
+    let (_, view) = reg_target(name.split('-').nth(1).unwrap_or("")).ok_or("Unknown backup")?;
+    let path_str = path.to_str().ok_or("Bad path")?.trim_start_matches(r"\\?\").to_string();
+    let mut args = vec!["import", path_str.as_str()];
+    args.extend(view);
+    let result = reg_exe(&args);
+    let mut j = journal::Entry::new("ghost-restore");
+    j.paths = vec![file.to_string()];
+    j.files = u64::from(result.is_ok());
+    j.error = result.as_ref().err().cloned();
+    journal::append(journal_dir, &j).map_err(|e| format!("Log: {e}"))?;
+    result
+}
+
 /// Sépare une ligne de commande de désinstallation en (programme, arguments).
 /// `MsiExec /I{GUID}` (réparer) devient `/X{GUID}` (désinstaller).
 pub fn split_command(cmd: &str) -> Option<(String, String)> {
@@ -320,6 +444,62 @@ mod tests {
 
     fn split(s: &str) -> (String, String) {
         split_command(s).unwrap()
+    }
+
+    #[test]
+    fn ghost_only_when_sure() {
+        let dir = std::env::temp_dir().join(format!("kleaner-ghost-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let real = dir.join("unins.exe");
+        std::fs::write(&real, b"x").unwrap();
+        let gone = dir.join("gone.exe");
+        let q = |p: &Path| format!("\"{}\" /S", p.display());
+        assert!(!is_ghost(&q(&real), ""), "désinstalleur présent");
+        assert!(is_ghost(&q(&gone), ""), "désinstalleur et dossier absents");
+        assert!(!is_ghost(&q(&gone), &dir.display().to_string()), "le dossier d'installation existe encore");
+        assert!(is_ghost(&q(&gone), &dir.join("nope").display().to_string()));
+        assert!(!is_ghost("MsiExec.exe /X{ABC}", ""), "chemin relatif : on ne conclut pas");
+        assert!(!is_ghost("\"%ProgramFiles%\\x\\u.exe\"", ""), "variable : on ne conclut pas");
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    /// Cycle complet dans HKCU (ruche de l'utilisateur) : repérée, sauvegardée, supprimée, restaurée.
+    #[test]
+    fn ghost_round_trip_in_hkcu() {
+        let key_name = format!("KleanerGhostTest-{}", std::process::id());
+        let dir = std::env::temp_dir().join(format!("kleaner-ghost-rt-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+        let (k, _) = hkcu.create_subkey(format!(r"{UNINSTALL}\{key_name}")).unwrap();
+        k.set_value("DisplayName", &"Kleaner ghost test").unwrap();
+        k.set_value("UninstallString", &r#""C:\Kleaner-ghost-test-absent\unins000.exe" /S"#).unwrap();
+        let id = format!("HKCU\\{key_name}");
+
+        assert!(ghosts().iter().any(|g| g.id == id), "repérée");
+        let backup = remove_ghost(&id, &dir.join("backups"), &dir).unwrap();
+        assert!(Path::new(&backup).is_file(), "sauvegarde .reg écrite");
+        assert!(hkcu.open_subkey(format!(r"{UNINSTALL}\{key_name}")).is_err(), "clé supprimée");
+        assert!(remove_ghost(&id, &dir.join("backups"), &dir).is_err(), "plus rien à supprimer");
+
+        restore_ghost(&backup, &dir.join("backups"), &dir).unwrap();
+        assert!(hkcu.open_subkey(format!(r"{UNINSTALL}\{key_name}")).is_ok(), "clé restaurée");
+        let journal = std::fs::read_to_string(dir.join("journal.log")).unwrap();
+        assert!(journal.contains("ghost-remove") && journal.contains("ghost-restore"));
+
+        hkcu.delete_subkey_all(format!(r"{UNINSTALL}\{key_name}")).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn restore_refuses_files_outside_the_backup_folder() {
+        let dir = std::env::temp_dir().join(format!("kleaner-ghost-bk-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let other = std::env::temp_dir().join(format!("ghost-HKCU-x-{}.reg", std::process::id()));
+        std::fs::write(&other, b"x").unwrap();
+        let err = restore_ghost(&other.display().to_string(), &dir, &dir).unwrap_err();
+        assert!(err.starts_with("Refused"), "{err}");
+        std::fs::remove_file(&other).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]
@@ -409,5 +589,17 @@ mod tests {
         let all = list();
         assert!(!all.is_empty(), "au moins un programme installé");
         assert!(all.windows(2).all(|w| w[0].bytes >= w[1].bytes), "trié par taille");
+    }
+}
+
+#[cfg(test)]
+mod ghost_real_tests {
+    /// Sur la vraie machine : `cargo test --release ghost_real_tests -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn real() {
+        for g in super::ghosts() {
+            println!("{} | {} {} | {}", g.id, g.name, g.version, g.command);
+        }
     }
 }

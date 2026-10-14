@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { Ghosts } from "../components/Ghosts";
 import { Leftovers } from "../components/Leftovers";
 import { SortHeader, type HeaderCell } from "../components/SortHeader";
 import { StatusPill } from "../components/StatusPill";
@@ -167,6 +168,7 @@ export function Programs() {
 
       {/* Avant la longue liste : sinon on ne la voit pas. */}
       <Leftovers />
+      <Ghosts onChange={load} />
 
       <Card>
         {real === null && (

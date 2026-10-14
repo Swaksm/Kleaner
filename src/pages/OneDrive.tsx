@@ -100,6 +100,7 @@ export function OneDrive() {
                   <input type="checkbox" checked={selected.has(f.path)} onChange={() => toggle(f.path)} />
                   <span>
                     {f.path}
+                    {f.provider !== "OneDrive" && <span className="muted small"> · {f.provider}</span>}
                     {f.pinned && <span className="muted small"> · {t("onedrive.pinnedShort")}</span>}
                   </span>
                 </label>

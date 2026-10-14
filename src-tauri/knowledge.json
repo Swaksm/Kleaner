@@ -862,6 +862,44 @@
     }
   },
   {
+    "id": "dropbox-cache",
+    "match": [
+      "**\\Dropbox\\.dropbox.cache"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Dropbox cache: copies of files you deleted or replaced, kept for a few days.",
+      "fr": "Cache de Dropbox : copies de fichiers supprimés ou remplacés, gardées quelques jours."
+    },
+    "consequence": {
+      "en": "Nothing important: Dropbox empties it by itself. You lose the quick local undo of a recent deletion (the online version history stays).",
+      "fr": "Rien d’important : Dropbox le vide tout seul. Tu perds l’annulation locale rapide d’une suppression récente (l’historique en ligne reste)."
+    },
+    "howto": {
+      "en": "Quit Dropbox, then delete the .dropbox.cache folder.",
+      "fr": "Quitte Dropbox, puis supprime le dossier .dropbox.cache."
+    }
+  },
+  {
+    "id": "google-drive-cache",
+    "match": [
+      "%LOCALAPPDATA%\\Google\\DriveFS"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Google Drive for desktop: its cache, including files kept offline and changes not uploaded yet.",
+      "fr": "Google Drive pour ordinateur : son cache, avec les fichiers gardés hors ligne et les modifications pas encore envoyées."
+    },
+    "consequence": {
+      "en": "Deleting it by hand can lose changes that are not uploaded yet and breaks the sync.",
+      "fr": "Le supprimer à la main peut faire perdre des modifications pas encore envoyées et casse la synchronisation."
+    },
+    "howto": {
+      "en": "In Google Drive, right-click a folder → Offline access → Online only to free the space. Kleaner cannot do it for you: Google Drive uses its own virtual drive.",
+      "fr": "Dans Google Drive, clic droit sur un dossier → Accès hors connexion → En ligne uniquement pour libérer l’espace. Kleaner ne peut pas le faire : Google Drive utilise son propre disque virtuel."
+    }
+  },
+  {
     "id": "cloud-sync",
     "match": [
       "%USERPROFILE%\\Dropbox",

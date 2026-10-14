@@ -3,12 +3,15 @@ pub mod catalog;
 pub mod duplicates;
 pub mod elevation;
 pub mod guard;
+pub mod health;
 pub mod journal;
 pub mod knowledge;
 pub mod leftovers;
 pub mod onedrive;
 pub mod programs;
 pub mod scan;
+pub mod shortcuts;
+pub mod startup;
 pub mod system;
 
 use serde::Serialize;
@@ -68,6 +71,9 @@ struct ScanState {
     leftovers: Arc<Mutex<Vec<leftovers::Leftover>>>,
     cloud: Arc<Mutex<Vec<String>>>,
     apps: Arc<Mutex<Vec<String>>>,
+    startup: Arc<Mutex<Vec<String>>>,
+    shortcuts: Arc<Mutex<Vec<String>>>,
+    ghosts: Arc<Mutex<Vec<String>>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -440,6 +446,104 @@ async fn upgrade_apps(ids: Vec<String>, state: State<'_, ScanState>) -> Result<(
         .map_err(|e| e.to_string())?
 }
 
+/// Programmes lancés au démarrage de Windows. La liste est gardée pour valider les changements.
+#[tauri::command]
+async fn list_startup(state: State<'_, ScanState>) -> Result<startup::StartupView, String> {
+    let view = tauri::async_runtime::spawn_blocking(startup::list).await.map_err(|e| e.to_string())?;
+    *state.startup.lock().unwrap() = view.items.iter().filter(|i| i.can_toggle).map(|i| i.id.clone()).collect();
+    Ok(view)
+}
+
+/// Active ou désactive un élément de la dernière liste (réversible, écrit au journal).
+#[tauri::command]
+async fn set_startup(id: String, enabled: bool, state: State<'_, ScanState>) -> Result<(), String> {
+    if !state.startup.lock().unwrap().contains(&id) {
+        return Err(format!("Refused: {id} was not in the last startup list"));
+    }
+    tauri::async_runtime::spawn_blocking(move || startup::set_enabled(&id, enabled, &journal::data_dir()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Raccourcis dont la cible n'existe plus. Lecture seule.
+#[tauri::command]
+async fn find_shortcuts(state: State<'_, ScanState>) -> Result<Vec<shortcuts::BrokenShortcut>, String> {
+    let list = tauri::async_runtime::spawn_blocking(shortcuts::find).await.map_err(|e| e.to_string())??;
+    *state.shortcuts.lock().unwrap() = list.iter().map(|s| s.path.clone()).collect();
+    Ok(list)
+}
+
+/// Envoie à la Corbeille des raccourcis trouvés par la dernière recherche (et seulement ceux-là).
+#[tauri::command]
+async fn trash_shortcuts(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
+    let known = state.shortcuts.lock().unwrap().clone();
+    if let Some(p) = paths.iter().find(|p| !known.contains(p) || !p.to_lowercase().ends_with(".lnk")) {
+        return Err(format!("Refused: {p} was not found by the last search"));
+    }
+    let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
+    tauri::async_runtime::spawn_blocking(move || actions::trash_files(&files, &guard::Protected::from_env(), &journal::data_dir()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn health_report() -> Result<health::HealthReport, String> {
+    tauri::async_runtime::spawn_blocking(health::report).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn health_dism() -> Result<health::HealthItem, String> {
+    tauri::async_runtime::spawn_blocking(health::dism_check).await.map_err(|e| e.to_string())?
+}
+
+/// Ouvre un écran de Windows connu (liste fermée dans `health::PAGES`).
+#[tauri::command]
+fn open_system_page(uri: String) -> Result<(), String> {
+    if !health::PAGES.contains(&uri.as_str()) {
+        return Err(format!("Refused: {uri}"));
+    }
+    system::open_uri(&uri)
+}
+
+/// Entrées « Programmes » sans désinstalleur ni dossier. Lecture seule.
+#[tauri::command]
+async fn find_ghosts(state: State<'_, ScanState>) -> Result<Vec<programs::Ghost>, String> {
+    let list = tauri::async_runtime::spawn_blocking(programs::ghosts).await.map_err(|e| e.to_string())?;
+    *state.ghosts.lock().unwrap() = list.iter().map(|g| g.id.clone()).collect();
+    Ok(list)
+}
+
+/// Supprime des entrées fantômes de la dernière recherche, après sauvegarde `.reg`. Renvoie le nombre supprimé.
+#[tauri::command]
+async fn remove_ghosts(ids: Vec<String>, state: State<'_, ScanState>) -> Result<u64, String> {
+    let known = state.ghosts.lock().unwrap().clone();
+    if let Some(id) = ids.iter().find(|i| !known.contains(i)) {
+        return Err(format!("Refused: {id} was not found by the last search"));
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let (dir, backups) = (journal::data_dir(), journal::data_dir().join("backups"));
+        let mut done = 0;
+        for id in &ids {
+            programs::remove_ghost(id, &backups, &dir)?;
+            done += 1;
+        }
+        Ok(done)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Remet une entrée supprimée par Kleaner, depuis sa sauvegarde `.reg`.
+#[tauri::command]
+async fn restore_ghost(file: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let dir = journal::data_dir();
+        programs::restore_ghost(&file, &dir.join("backups"), &dir)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if !elevation::single_instance() {
@@ -482,7 +586,17 @@ pub fn run() {
             windows_updates,
             open_windows_update,
             app_updates,
-            upgrade_apps
+            upgrade_apps,
+            list_startup,
+            set_startup,
+            find_shortcuts,
+            trash_shortcuts,
+            health_report,
+            health_dism,
+            open_system_page,
+            find_ghosts,
+            remove_ghosts,
+            restore_ghost
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

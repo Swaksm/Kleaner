@@ -1157,3 +1157,26 @@ select {
 .items.grid-apps li {
   grid-template-columns: minmax(0, 1fr) 140px 140px;
 }
+
+/* Démarrage, santé, raccourcis, entrées fantômes */
+.items.grid-startup li {
+  grid-template-columns: minmax(0, 1fr) 120px 110px 96px;
+}
+
+.items.grid-startup .tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.items.grid-health li {
+  grid-template-columns: minmax(0, 1fr) 90px 140px;
+}
+
+.items.grid-shortcuts li {
+  grid-template-columns: minmax(0, 1fr) 130px 90px 70px;
+}
+
+.items.grid-ghosts li {
+  grid-template-columns: minmax(0, 1fr) 160px 110px;
+}

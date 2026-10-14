@@ -13,7 +13,11 @@ Nettoyeur Windows gratuit, open source et **transparent**. Kleaner analyse tes d
 - **Carte du disque** : chaque dossier en rectangle à la taille de sa place ; clique pour entrer.
 - **Photos & vidéos** : toutes tes photos et vidéos personnelles, triables et cherchables, en liste ou en grille, avec une visionneuse intégrée ; envoie à la Corbeille celles dont tu n'as plus besoin.
 - **Nettoie** les éléments du [catalogue](#catalogue) : chacun dit ce qu'il supprime, pourquoi c'est inutile et ce que ça change. Rien n'est coché d'avance, et « Voir la liste exacte » montre chaque fichier avant toute suppression.
-- **Désinstalle** des programmes via leur désinstalleur officiel, avec taille réelle et date du dernier lancement.
+- **Désinstalle** des programmes via leur désinstalleur officiel, avec taille réelle et date du dernier lancement. Retrouve les restes de programmes désinstallés et les entrées mortes de la liste des programmes.
+- **Démarrage** : liste ce qui se lance avec Windows (registre, dossiers Démarrage, tâches planifiées, services) avec la durée de démarrage mesurée. Désactiver un élément ne supprime rien et se défait.
+- **Santé et sécurité** (lecture seule) : disques, batterie, plantages, redémarrage en attente, intégrité des fichiers de Windows, antivirus, pare-feu, Secure Boot, BitLocker… Kleaner ne change rien et n’est pas un antivirus : chaque alerte ouvre l’écran de Windows qui la règle.
+- **Raccourcis cassés** : raccourcis du Bureau, du menu Démarrer et de la barre des tâches dont la cible a disparu, envoyés à la Corbeille.
+- **Cloud** : les gros fichiers OneDrive et Dropbox aussi gardés sur ce PC peuvent passer en ligne uniquement.
 - **Rapport pour une IA** (optionnel, hors ligne) : un résumé Markdown + un prompt à coller dans l'IA de ton choix ; elle te pose des questions (« utilises-tu encore… ? ») et te dit quoi supprimer. Kleaner n'envoie rien.
 - **Journalise** chaque action dans `%LOCALAPPDATA%\Kleaner\journal.log`.
 - **Mode admin** (à la demande) : analyse complète, dossiers système protégés compris, en lecture seule.
@@ -22,7 +26,7 @@ Nettoyeur Windows gratuit, open source et **transparent**. Kleaner analyse tes d
 
 - Agir sans ta confirmation.
 - Toucher à tes mots de passe, cookies, sessions ou historique.
-- Écrire dans le registre.
+- Nettoyer ou « réparer » le registre. Il n’y écrit que sur ta demande, et seulement deux choses : l’interrupteur d’un programme au démarrage, et le retrait d’une entrée de programme morte (sauvegardée d’abord dans un fichier .reg, restaurable depuis le Journal).
 - Se connecter à Internet : **aucune télémétrie, aucune mise à jour automatique**.
 - Demander les droits admin sans que tu cliques sur « Analyse complète (admin) ».
 - Supprimer définitivement un fichier hors des dossiers listés dans [`src-tauri/cleaners.json`](src-tauri/cleaners.json) (vérifié en Rust par [`guard.rs`](src-tauri/src/guard.rs), couvert par des tests). Les fichiers personnels vont toujours à la Corbeille.

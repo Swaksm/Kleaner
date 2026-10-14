@@ -111,17 +111,17 @@
 
 ## P7 — Au-delà du nettoyage (feuille de route, SPEC.md)
 
-- [ ] **T18 : Démarrage**
+- [x] **T18 : Démarrage**
   - Acceptance : onglet listant clés `Run` (HKCU, HKLM 32 et 64 bits), dossiers Démarrage, tâches planifiées à l'ouverture de session et services tiers automatiques, avec éditeur, chemin, fiche et état. Désactiver et réactiver via `StartupApproved`, écrit au journal. Durée des derniers démarrages (événement 100) en admin.
   - Verify : tests de lecture et d'écriture `StartupApproved` sur une clé de test ; le Gestionnaire des tâches affiche le même état après bascule.
   - Files : `src-tauri/src/startup.rs`, `src/pages/Startup.tsx`
-- [ ] **T19 : Raccourcis cassés**
+- [x] **T19 : Raccourcis cassés**
   - Acceptance : `.lnk` du Bureau, du menu Démarrer et de la barre des tâches dont la cible locale n'existe plus ; cibles réseau ou sur disque absent exclues. Corbeille, seulement des raccourcis trouvés par la dernière recherche.
   - Verify : test avec un raccourci vers un fichier supprimé et un vers un disque absent.
   - Files : `src-tauri/src/shortcuts.rs`
-- [ ] **T20 : Santé et sécurité**
+- [x] **T20 : Santé et sécurité**
   - Acceptance : onglet « Santé » en lecture seule (disques, batterie, plantages, redémarrage en attente, DISM CheckHealth, sécurité Windows), chaque alerte avec son explication et un lien vers l'écran Windows concerné.
   - Verify : `system::tests::real` sur la vraie machine ; aucune écriture.
   - Files : `src-tauri/src/health.rs`, `src/pages/Health.tsx`
-- [ ] **T21 : Entrées de programmes fantômes** (sauvegarde `.reg` avant suppression, restaurable)
-- [ ] **T22 : Google Drive et Dropbox en local**
+- [x] **T21 : Entrées de programmes fantômes** (sauvegarde `.reg` avant suppression, restaurable)
+- [x] **T22 : Dropbox en local, Google Drive expliqué** (le disque virtuel de Google Drive ne se libère pas de l'extérieur, voir SPEC révision 8)

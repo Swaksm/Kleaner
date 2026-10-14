@@ -152,7 +152,7 @@ export const trashLeftovers = (paths: string[]) => invoke<ActionReport>("trash_l
 export const restoreTrashed = (paths: string[]) => invoke<ActionReport>("restore_trashed", { paths });
 export const bugReport = () => invoke<string>("bug_report");
 
-export type CloudFile = { path: string; size: number; modified: number; pinned: boolean };
+export type CloudFile = { path: string; size: number; modified: number; pinned: boolean; provider: "OneDrive" | "Dropbox" };
 export const onedriveRoots = () => invoke<string[]>("onedrive_roots");
 export const onedriveFiles = () => invoke<CloudFile[]>("onedrive_files");
 export const onedriveFree = (paths: string[]) => invoke<ActionReport>("onedrive_free", { paths });
@@ -184,3 +184,39 @@ export const windowsUpdates = () => invoke<WinUpdateStatus>("windows_updates");
 export const openWindowsUpdate = () => invoke<void>("open_windows_update");
 export const appUpdates = () => invoke<AppUpdate[]>("app_updates");
 export const upgradeApps = (ids: string[]) => invoke<[number, string]>("upgrade_apps", { ids });
+
+export type StartupItem = {
+  id: string;
+  name: string;
+  command: string;
+  source: "registry" | "folder" | "task" | "service";
+  machine: boolean;
+  enabled: boolean;
+  can_toggle: boolean;
+  keep: boolean;
+  slow_ms: number;
+};
+export type Boot = { time: number; boot_ms: number };
+export const listStartup = () => invoke<{ items: StartupItem[]; boots: Boot[] }>("list_startup");
+export const setStartup = (id: string, enabled: boolean) => invoke<void>("set_startup", { id, enabled });
+
+export type BrokenShortcut = { path: string; target: string; place: "desktop" | "startmenu" | "taskbar"; modified: number; machine: boolean };
+export const findShortcuts = () => invoke<BrokenShortcut[]>("find_shortcuts");
+export const trashShortcuts = (paths: string[]) => invoke<ActionReport>("trash_shortcuts", { paths });
+
+export type HealthItem = {
+  id: string;
+  group: "system" | "disk" | "security";
+  status: "ok" | "warn" | "bad" | "info" | "unknown";
+  title: Text;
+  detail: Text;
+  fix: string | null;
+};
+export const healthReport = () => invoke<{ items: HealthItem[]; elevated: boolean }>("health_report");
+export const healthDism = () => invoke<HealthItem>("health_dism");
+export const openSystemPage = (uri: string) => invoke<void>("open_system_page", { uri });
+
+export type Ghost = { id: string; name: string; version: string; publisher: string; command: string };
+export const findGhosts = () => invoke<Ghost[]>("find_ghosts");
+export const removeGhosts = (ids: string[]) => invoke<number>("remove_ghosts", { ids });
+export const restoreGhost = (file: string) => invoke<void>("restore_ghost", { file });

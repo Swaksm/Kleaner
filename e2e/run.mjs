@@ -127,10 +127,31 @@ try {
   });
 
   await step("mises à jour : machine et applis (winget)", async () => {
-    await nav("Updates & health");
+    await nav("Updates & drivers");
     await b.waitUntil(async () => (await (await b.$(".content")).getText()).includes("BIOS"), { timeout: 30_000, timeoutMsg: "infos machine absentes" });
     await (await b.$("button=Check app updates")).click();
     await b.waitUntil(async () => !(await (await b.$(".loading")).isExisting()), { timeout: 180_000, timeoutMsg: "winget trop long" });
+  });
+
+  await step("démarrage : programmes lus", async () => {
+    await nav("Startup");
+    await b.waitUntil(async () => (await b.$$(".items.grid-startup li")).length > 0, { timeout: 90_000, timeoutMsg: "aucun programme au démarrage" });
+  });
+
+  await step("santé : bilan en lecture seule", async () => {
+    await nav("Health & security");
+    await b.waitUntil(async () => (await b.$$(".items.grid-health li")).length > 3, { timeout: 120_000, timeoutMsg: "bilan vide" });
+  });
+
+  await step("raccourcis cassés et entrées fantômes : recherches", async () => {
+    const link = await (await b.$(".sidebar")).$("button=Broken shortcuts");
+    if (!(await link.isExisting())) await nav("More tools");
+    await nav("Broken shortcuts");
+    await (await inContent("button=Find broken shortcuts")).click();
+    await b.waitUntil(async () => !(await (await b.$(".loading")).isExisting()), { timeout: 120_000, timeoutMsg: "recherche trop longue" });
+    await nav("Programs");
+    await (await inContent("button=Find ghost entries")).click();
+    await (await b.$("p=No ghost entry found.")).waitForExist({ timeout: 60_000 }).catch(() => {});
   });
 
   await step("paramètres : passage en français", async () => {

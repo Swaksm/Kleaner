@@ -10,22 +10,27 @@ use std::process::Command;
 
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
-/// Lance un script PowerShell qui écrit du JSON (ConvertTo-Json) et le relit.
-fn ps_json<T: for<'de> Deserialize<'de>>(script: &str) -> Result<T, String> {
+/// Lance un script PowerShell : (sortie standard, erreurs, réussite).
+pub(crate) fn ps_run(script: &str) -> Result<(String, String, bool), String> {
     let script = format!("$ProgressPreference='SilentlyContinue'; [Console]::OutputEncoding=[Text.Encoding]::UTF8; {script}");
     let out = Command::new("powershell.exe")
         .args(["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", &script])
         .creation_flags(CREATE_NO_WINDOW)
         .output()
         .map_err(|e| e.to_string())?;
-    let text = String::from_utf8_lossy(&out.stdout);
-    serde_json::from_str(text.trim()).map_err(|e| format!("{e}: {}", String::from_utf8_lossy(&out.stderr).trim()))
+    Ok((String::from_utf8_lossy(&out.stdout).trim().to_string(), String::from_utf8_lossy(&out.stderr).trim().to_string(), out.status.success()))
+}
+
+/// Lance un script PowerShell qui écrit du JSON (ConvertTo-Json) et le relit.
+pub(crate) fn ps_json<T: for<'de> Deserialize<'de>>(script: &str) -> Result<T, String> {
+    let (out, err, _) = ps_run(script)?;
+    serde_json::from_str(&out).map_err(|e| format!("{e}: {err}"))
 }
 
 /// ConvertTo-Json renvoie un objet seul au lieu d'une liste quand il n'y a qu'un élément.
 #[derive(Deserialize)]
 #[serde(untagged)]
-enum OneOrMany<T> {
+pub(crate) enum OneOrMany<T> {
     One(T),
     Many(Vec<T>),
 }
@@ -166,12 +171,17 @@ pub fn windows_updates() -> Result<WinUpdateStatus, String> {
 
 /// Ouvre Paramètres → Windows Update : c'est Windows qui installe.
 pub fn open_windows_update() -> Result<(), String> {
+    open_uri("ms-settings:windowsupdate")
+}
+
+/// Ouvre un écran de Windows (`ms-settings:…`). L'appelant vérifie que l'adresse est dans une liste fermée.
+pub fn open_uri(uri: &str) -> Result<(), String> {
     use windows_sys::Win32::UI::Shell::ShellExecuteW;
     use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
     let w = |s: &str| s.encode_utf16().chain([0]).collect::<Vec<u16>>();
-    let (verb, uri) = (w("open"), w("ms-settings:windowsupdate"));
-    let r = unsafe { ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), uri.as_ptr(), std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL) };
-    if r as isize > 32 { Ok(()) } else { Err("Could not open Windows Update settings.".into()) }
+    let (verb, target) = (w("open"), w(uri));
+    let r = unsafe { ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), target.as_ptr(), std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL) };
+    if r as isize > 32 { Ok(()) } else { Err(format!("Could not open {uri}.")) }
 }
 
 // ---------- Applications (winget) ----------

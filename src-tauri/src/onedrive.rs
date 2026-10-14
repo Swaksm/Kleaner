@@ -1,6 +1,6 @@
-//! OneDrive : gros fichiers synchronisés mais aussi gardés sur ce PC.
+//! Cloud (OneDrive et Dropbox) : gros fichiers synchronisés mais aussi gardés sur ce PC.
 //! « Libérer de l'espace » = l'action officielle de Windows : attributs Unpinned (+U) et non Pinned (-P),
-//! OneDrive retire alors la copie locale ; le fichier reste en ligne et se retélécharge à l'ouverture.
+//! le fournisseur retire alors la copie locale ; le fichier reste en ligne et se retélécharge à l'ouverture.
 
 use crate::journal;
 use rayon::prelude::*;
@@ -22,10 +22,12 @@ pub struct CloudFile {
     pub modified: u64,
     /// « Toujours garder sur cet appareil » : l'utilisateur l'a voulu ainsi.
     pub pinned: bool,
+    /// OneDrive ou Dropbox.
+    pub provider: &'static str,
 }
 
 /// Dossiers OneDrive (personnel et professionnel) définis par Windows.
-pub fn roots() -> Vec<PathBuf> {
+fn onedrive_roots() -> Vec<PathBuf> {
     let mut v: Vec<PathBuf> = ["OneDrive", "OneDriveConsumer", "OneDriveCommercial"]
         .iter()
         .filter_map(|k| std::env::var_os(k).map(PathBuf::from))
@@ -36,7 +38,35 @@ pub fn roots() -> Vec<PathBuf> {
     v
 }
 
-fn walk(dir: &Path, out: &mut Vec<CloudFile>) {
+/// Dossiers Dropbox déclarés dans `info.json`. Un compte personnel gratuit (Basic) n'a pas la synchronisation
+/// intelligente : « libérer de l'espace » n'y ferait rien, on ne le propose pas.
+fn dropbox_roots() -> Vec<PathBuf> {
+    let mut v = Vec::new();
+    for var in ["LOCALAPPDATA", "APPDATA"] {
+        let Some(base) = std::env::var_os(var) else { continue };
+        let Ok(text) = std::fs::read_to_string(PathBuf::from(base).join("Dropbox").join("info.json")) else { continue };
+        let Ok(info) = serde_json::from_str::<serde_json::Value>(&text) else { continue };
+        for kind in ["personal", "business"] {
+            let Some(acc) = info.get(kind) else { continue };
+            let basic = acc.get("subscription_type").and_then(|s| s.as_str()).is_some_and(|s| s.eq_ignore_ascii_case("basic"));
+            if let Some(p) = acc.get("path").and_then(|p| p.as_str()).map(PathBuf::from).filter(|p| p.is_dir() && !basic) {
+                v.push(p);
+            }
+        }
+    }
+    v.sort();
+    v.dedup();
+    v
+}
+
+/// Tous les dossiers cloud, avec leur fournisseur.
+pub fn roots() -> Vec<PathBuf> {
+    let mut v = onedrive_roots();
+    v.extend(dropbox_roots());
+    v
+}
+
+fn walk(dir: &Path, provider: &'static str, out: &mut Vec<CloudFile>) {
     let Ok(rd) = std::fs::read_dir(dir) else { return };
     let mut subdirs = Vec::new();
     for e in rd.flatten() {
@@ -53,13 +83,13 @@ fn walk(dir: &Path, out: &mut Vec<CloudFile>) {
             continue;
         }
         let modified = m.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_secs());
-        out.push(CloudFile { path: e.path().display().to_string(), size: m.len(), modified, pinned: a & PINNED != 0 });
+        out.push(CloudFile { path: e.path().display().to_string(), size: m.len(), modified, pinned: a & PINNED != 0, provider });
     }
     let found: Vec<Vec<CloudFile>> = subdirs
         .par_iter()
         .map(|d| {
             let mut v = Vec::new();
-            walk(d, &mut v);
+            walk(d, provider, &mut v);
             v
         })
         .collect();
@@ -69,8 +99,10 @@ fn walk(dir: &Path, out: &mut Vec<CloudFile>) {
 /// Gros fichiers OneDrive présents sur le disque, du plus gros au plus petit.
 pub fn local_files() -> Vec<CloudFile> {
     let mut out = Vec::new();
-    for r in roots() {
-        walk(&r, &mut out);
+    for (list, provider) in [(onedrive_roots(), "OneDrive"), (dropbox_roots(), "Dropbox")] {
+        for r in list {
+            walk(&r, provider, &mut out);
+        }
     }
     out.sort_by_key(|f| std::cmp::Reverse(f.size));
     out
@@ -90,7 +122,7 @@ pub fn free_up(paths: &[PathBuf], journal_dir: &Path) -> Result<(u64, u64), Stri
     for p in paths {
         let lower = p.display().to_string().to_lowercase();
         if !roots.iter().any(|r| lower.starts_with(r)) {
-            return Err(format!("Refused: {} is not in a OneDrive folder", p.display()));
+            return Err(format!("Refused: {} is not in a OneDrive or Dropbox folder", p.display()));
         }
         let m = std::fs::symlink_metadata(p).map_err(|e| format!("{}: {e}", p.display()))?;
         // Garder les autres attributs ; retirer « toujours garder », ajouter « libérer ».
@@ -102,7 +134,7 @@ pub fn free_up(paths: &[PathBuf], journal_dir: &Path) -> Result<(u64, u64), Stri
             failed += 1;
         }
     }
-    let mut j = journal::Entry::new("onedrive-free-up");
+    let mut j = journal::Entry::new("cloud-free-up");
     j.paths = paths.iter().map(|p| p.display().to_string()).collect();
     j.files = files;
     j.bytes = bytes;
