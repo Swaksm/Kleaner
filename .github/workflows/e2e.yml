@@ -36,8 +36,8 @@ jobs:
       - name: Diagnostic : l'exe démarre-t-il seul ?
         shell: pwsh
         run: |
-          Get-ItemProperty "HKLM:SOFTWAREWOW6432NodeMicrosoftEdgeUpdateClients{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" -ErrorAction SilentlyContinue | Select-Object pv, name
-          $p = Start-Process "$PWDsrc-tauri	argetdebugkleaner.exe" -PassThru
+          Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" -ErrorAction SilentlyContinue | Select-Object pv, name
+          $p = Start-Process "$PWD\src-tauri\target\debug\kleaner.exe" -PassThru
           Start-Sleep 15
           if ($p.HasExited) { Write-Host "EXITED code $($p.ExitCode)" } else { Write-Host "alive after 15 s"; Stop-Process $p -Force }
       - name: Run E2E
