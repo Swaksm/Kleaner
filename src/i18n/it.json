@@ -267,5 +267,9 @@
   "leftovers.place.profile": "Impostazioni strumento",
   "leftovers.place.programfiles": "Program Files (admin)",
   "leftovers.place.programdata": "ProgramData (admin)",
-  "nav.more": "Altri strumenti"
+  "nav.more": "Altri strumenti",
+  "cta.free": "Puoi liberare",
+  "cta.safely": "senza rischi",
+  "cta.detail": "Cache e file temporanei che si ricreano da soli. Resti connesso ovunque.",
+  "cta.go": "Vai alla pulizia"
 }

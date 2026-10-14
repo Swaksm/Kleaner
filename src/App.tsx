@@ -16,9 +16,8 @@ import { Settings } from "./pages/Settings";
 
 // L'essentiel, toujours visible ; outils avancés repliables ; pages secondaires en bas.
 const MAIN = ["analyse", "cleanup", "media", "programs"] as const;
-const MORE = ["duplicates", "projects"] as const;
-const FOOTER = ["journal", "settings", "about"] as const;
-type Page = (typeof MAIN)[number] | (typeof MORE)[number] | (typeof FOOTER)[number];
+const MORE = ["duplicates", "projects", "journal"] as const;
+type Page = (typeof MAIN)[number] | (typeof MORE)[number] | "settings" | "about";
 
 function savedMoreOpen(): boolean {
   try {
@@ -75,13 +74,27 @@ function App() {
         </button>
         {/* La page ouverte reste visible même si le groupe est replié. */}
         {more.filter((p) => moreOpen || page === p).map((p) => item(p, "nav-item nav-sub"))}
-        <div className="nav-footer">{FOOTER.map((p) => item(p, "nav-item nav-small"))}</div>
+        <div className="nav-footer">
+          {item("about", "nav-item nav-small")}
+          <button
+            className="nav-item nav-icon"
+            aria-current={page === "settings" ? "page" : undefined}
+            aria-label={t("nav.settings")}
+            title={t("nav.settings")}
+            onClick={() => setPage("settings")}
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        </div>
       </nav>
       <main className="content">
         <h1>{t(`nav.${page}` as Key)}</h1>
         {/* Analyse reste montée : le résultat du scan survit aux changements d'onglet. */}
         <div className="page" hidden={page !== "analyse"}>
-          <Analyse />
+          <Analyse onGoCleanup={() => setPage("cleanup")} />
         </div>
         {page === "media" && <Media />}
         {page === "duplicates" && <Duplicates />}

@@ -97,7 +97,7 @@ h2 {
 
 .content {
   overflow-y: auto;
-  padding: 32px 40px;
+  padding: 32px max(40px, calc((100% - 1280px) / 2));
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -997,9 +997,9 @@ select {
   font-size: 13px;
 }
 
+
 .diskmap-svg {
-  width: 100%;
-  height: auto;
+  display: block;
   border-radius: var(--radius-ctl);
 }
 
@@ -1095,11 +1095,28 @@ select {
   padding-top: 12px;
   border-top: 1px solid var(--border);
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
 }
 
 .nav-small {
   font-size: 13px;
   padding: 6px 10px;
+}
+
+/* Appel à l'action : vers le Nettoyage */
+.cta {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-color: var(--accent);
 }

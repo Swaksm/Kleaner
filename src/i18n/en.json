@@ -267,5 +267,9 @@
   "leftovers.place.profile": "Tool settings",
   "leftovers.place.programfiles": "Program Files (admin)",
   "leftovers.place.programdata": "ProgramData (admin)",
-  "nav.more": "More tools"
+  "nav.more": "More tools",
+  "cta.free": "You can free",
+  "cta.safely": "without risk",
+  "cta.detail": "Caches and temporary files that rebuild themselves. You stay logged in everywhere.",
+  "cta.go": "Go to cleanup"
 }

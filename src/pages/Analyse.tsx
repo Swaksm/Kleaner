@@ -13,6 +13,7 @@ import { ExplainDialog, VerdictPill } from "../components/Verdict";
 import { useT, type Key } from "../i18n/useT";
 import {
   cancelScan,
+  estimateCleaners,
   explainPaths,
   listDrives,
   listCleaners,
@@ -46,7 +47,7 @@ const VERDICT_ORDER: Verdict[] = ["system", "breaks", "uninstall", "personal", "
 
 type Message = { status: "ok" | "danger"; text: string };
 
-export function Analyse() {
+export function Analyse({ onGoCleanup }: { onGoCleanup: () => void }) {
   const { t, lang } = useT();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -58,6 +59,21 @@ export function Analyse() {
   const [fileSort, setFileSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const [dirSort, setDirSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const scan = useScanResult();
+  // Espace libérable sans risque par le Nettoyage (mêmes règles que « Cocher les éléments sans risque »).
+  const [recoverable, setRecoverable] = useState<number | null>(null);
+  useEffect(() => {
+    if (!scan) return;
+    setRecoverable(null);
+    Promise.all([listCleaners(), estimateCleaners()])
+      .then(([view, list]) => {
+        const byId = new Map(view.cleaners.map((c) => [c.id, c]));
+        const sum = list
+          .filter((r) => byId.get(r.id)?.level === "safe" && r.blocked_by.length === 0)
+          .reduce((n, r) => n + r.bytes, 0);
+        setRecoverable(sum);
+      })
+      .catch(() => {});
+  }, [scan?.duration_ms]);
   const [drives, setDrives] = useState<DriveInfo[]>([]);
   const [roots, setRoots] = useState<Set<string>>(new Set());
   const [explanations, setExplanations] = useState<Map<string, Explanation>>(new Map());
@@ -227,6 +243,20 @@ export function Analyse() {
         {r.denied > 0 && !elevated && <AdminBanner elevated={false} />}
         {feedback}
       </Card>
+
+      {recoverable !== null && recoverable > 0 && (
+        <div className="card cta">
+          <div>
+            <strong>
+              {t("cta.free")} <span className="num">{formatBytes(recoverable, lang)}</span> {t("cta.safely")}
+            </strong>
+            <p className="muted small">{t("cta.detail")}</p>
+          </div>
+          <button className="btn btn-primary" onClick={onGoCleanup}>
+            {t("cta.go")} →
+          </button>
+        </div>
+      )}
 
       <Card title={t("analyse.categories")}>
         <Donut

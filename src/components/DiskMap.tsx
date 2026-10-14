@@ -1,17 +1,27 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useT } from "../i18n/useT";
 import { revealInExplorer, type ScanResult } from "../lib/api";
 import { formatBytes } from "../lib/format";
 import { childrenOf, norm, squarify } from "../lib/treemap";
 
-const W = 1000;
-const H = 420;
+// Hauteur fixe ; la largeur suit le conteneur (pas d’étirement en plein écran).
+const H = 320;
 const OTHER = "\u0000other";
 
 /** Carte du disque : rectangles proportionnels aux dossiers ; clic = entrer dans le dossier. */
 export function DiskMap({ scan }: { scan: ScanResult }) {
   const { t, lang } = useT();
   const [chosen, setPath] = useState<string[]>([]);
+  const box = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(900);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    setW(Math.max(200, el.clientWidth));
+    const ro = new ResizeObserver(([e]) => setW(Math.max(200, Math.round(e.contentRect.width))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const roots = scan.roots.map((r) => scan.tree.find((i) => norm(i.path) === norm(r))).filter((i) => !!i);
   // Un seul disque : on part directement de son contenu.
   const path = chosen.length === 0 && roots.length === 1 ? [roots[0].path] : chosen;
@@ -25,7 +35,7 @@ export function DiskMap({ scan }: { scan: ScanResult }) {
   const name = (p: string) => p.slice(norm(p).lastIndexOf("\\") + 1) || p;
 
   return (
-    <div className="diskmap">
+    <div className="diskmap" ref={box}>
       <nav className="row crumbs" aria-label={t("map.path")}>
         <button className="link" onClick={() => setPath([])}>
           {t("map.all")}
@@ -44,7 +54,7 @@ export function DiskMap({ scan }: { scan: ScanResult }) {
           </button>
         )}
       </nav>
-      <svg viewBox={`0 0 ${W} ${H}`} className="diskmap-svg" role="img" aria-label={t("map.title")}>
+      <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="diskmap-svg" role="img" aria-label={t("map.title")}>
         {tiles.map((tile) => {
           const other = tile.item.path === OTHER;
           const label = other ? t("map.other") : name(tile.item.path);
