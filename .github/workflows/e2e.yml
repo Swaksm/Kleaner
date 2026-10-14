@@ -2,10 +2,9 @@ name: E2E
 
 # Pilote le vrai kleaner.exe (WebDriver) sur une machine Windows jetable :
 # avertissement, programmes, restes, nettoyage réel, analyse de C:\, visionneuse, langue.
+# shortcut: lancement manuel tant que WebView2 n'ouvre pas son port de débogage sur les machines GitHub
+# (« DevToolsActivePort file doesn't exist ») ; en local, node e2e/run.mjs passe entièrement.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 jobs:
