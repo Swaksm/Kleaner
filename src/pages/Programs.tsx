@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { Leftovers } from "../components/Leftovers";
 import { SortHeader, type HeaderCell } from "../components/SortHeader";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
@@ -223,6 +224,8 @@ export function Programs() {
           </ul>
         )}
       </Card>
+
+      <Leftovers />
 
       <ConfirmDialog
         open={target !== null}

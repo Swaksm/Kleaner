@@ -253,5 +253,18 @@
   "verdict.short.breaks": "Rompe",
   "verdict.short.personal": "Personale",
   "verdict.short.system": "Sistema",
-  "verdict.short.unknown": "Sconosciuto"
+  "verdict.short.unknown": "Sconosciuto",
+  "leftovers.title": "Residui di programmi disinstallati",
+  "leftovers.intro": "I programmi di disinstallazione lasciano spesso i loro dati in AppData. Kleaner elenca le cartelle che non appartengono a nessun programma installato e che non cambiano da 30 giorni.",
+  "leftovers.search": "Cerca i residui",
+  "leftovers.searching": "Ricerca…",
+  "leftovers.none": "Nessun residuo trovato.",
+  "leftovers.warning": "Residui probabili, non certi: una cartella può appartenere a uno strumento non elencato in Programmi (strumenti da riga di comando, app portatili). Finiscono nel Cestino, quindi recuperabili.",
+  "leftovers.adminOnly": "In Program Files o ProgramData: Kleaner lo segnala soltanto. Eliminalo da Esplora file con i diritti di amministratore se sei sicuro.",
+  "leftovers.lastChange": "Ultima modifica all’interno",
+  "leftovers.place.appdata": "Dati app",
+  "leftovers.place.programs": "Programma utente",
+  "leftovers.place.profile": "Impostazioni strumento",
+  "leftovers.place.programfiles": "Program Files (admin)",
+  "leftovers.place.programdata": "ProgramData (admin)"
 }

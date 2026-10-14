@@ -37,6 +37,30 @@ pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir:
     result.map(|_| ActionReport { files: entry.files, bytes })
 }
 
+/// Envoie des dossiers entiers à la Corbeille (restes de programmes désinstallés).
+/// Tout ou rien : si un seul dossier est refusé par la garde, rien n'est déplacé.
+pub fn trash_dirs(paths: &[PathBuf], protected: &guard::Protected, journal_dir: &Path, sizes: &[u64]) -> Result<ActionReport, String> {
+    let mut checked = Vec::with_capacity(paths.len());
+    for p in paths {
+        let c = guard::check_trash(p, protected).map_err(|e| format!("Refused: {} ({e})", p.display()))?;
+        if !std::fs::metadata(&c).is_ok_and(|m| m.is_dir()) {
+            return Err(format!("Refused: {} (not a folder)", p.display()));
+        }
+        checked.push(c);
+    }
+    let bytes = sizes.iter().sum();
+    let mut entry = journal::Entry::new("trash-leftovers");
+    entry.paths = checked.iter().map(|p| p.display().to_string()).collect();
+    entry.files = checked.len() as u64;
+    entry.bytes = bytes;
+    let result = trash::delete_all(&checked).map_err(|e| e.to_string());
+    if let Err(e) = &result {
+        entry.error = Some(e.clone());
+    }
+    journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
+    result.map(|_| ActionReport { files: entry.files, bytes })
+}
+
 /// Enregistre un rapport Markdown dans `<data_dir>\rapports` et le journalise. Renvoie son chemin.
 pub fn save_report(content: &str, data_dir: &Path) -> Result<PathBuf, String> {
     let mut entry = journal::Entry::new("report");
@@ -127,6 +151,15 @@ mod tests {
         assert!(check_media(&d.join("absent.mp4")).is_err());
         assert!(check_media(Path::new(r"\\serveur\partage\film.mp4")).is_err());
         assert!(check_media(Path::new("relatif.mp4")).is_err());
+        fs::remove_dir_all(&d).unwrap();
+    }
+
+    #[test]
+    fn appdata_roots_themselves_refused() {
+        let d = temp("appdataroot");
+        let local = PathBuf::from(std::env::var_os("LOCALAPPDATA").unwrap());
+        let err = trash_dirs(&[local], &guard::Protected::from_env(), &d, &[0]).unwrap_err();
+        assert!(err.starts_with("Refused"), "{err}");
         fs::remove_dir_all(&d).unwrap();
     }
 

@@ -5,6 +5,7 @@ pub mod elevation;
 pub mod guard;
 pub mod journal;
 pub mod knowledge;
+pub mod leftovers;
 pub mod programs;
 pub mod scan;
 
@@ -62,6 +63,7 @@ struct ScanState {
     dups: Arc<Mutex<Vec<scan::DupCandidate>>>,
     artifacts: Arc<Mutex<Vec<String>>>,
     dup_cancel: Arc<AtomicBool>,
+    leftovers: Arc<Mutex<Vec<leftovers::Leftover>>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -334,6 +336,32 @@ async fn preview_cleaners(ids: Vec<String>) -> Result<PreviewView, String> {
     .map_err(|e| e.to_string())?
 }
 
+/// Restes de programmes désinstallés. Lecture seule ; la liste est gardée pour valider la suppression.
+#[tauri::command]
+async fn find_leftovers(state: State<'_, ScanState>) -> Result<Vec<leftovers::Leftover>, String> {
+    let list = tauri::async_runtime::spawn_blocking(|| leftovers::find(&programs::list())).await.map_err(|e| e.to_string())?;
+    *state.leftovers.lock().unwrap() = list.clone();
+    Ok(list)
+}
+
+/// Envoie à la Corbeille des restes trouvés par la dernière recherche (et seulement ceux-là).
+#[tauri::command]
+async fn trash_leftovers(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
+    let known = state.leftovers.lock().unwrap().clone();
+    let mut sizes = Vec::new();
+    for p in &paths {
+        match known.iter().find(|l| &l.path == p) {
+            Some(l) if l.trashable => sizes.push(l.size),
+            Some(_) => return Err(format!("Refused: {p} needs admin rights, delete it from Explorer")),
+            None => return Err(format!("Refused: {p} was not found by the last search")),
+        }
+    }
+    let dirs: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
+    tauri::async_runtime::spawn_blocking(move || actions::trash_dirs(&dirs, &guard::Protected::from_env(), &journal::data_dir(), &sizes))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if !elevation::single_instance() {
@@ -364,7 +392,9 @@ pub fn run() {
             find_duplicates,
             cancel_duplicates,
             delete_artifacts,
-            preview_cleaners
+            preview_cleaners,
+            find_leftovers,
+            trash_leftovers
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

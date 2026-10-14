@@ -253,5 +253,18 @@
   "verdict.short.breaks": "Macht kaputt",
   "verdict.short.personal": "Persönlich",
   "verdict.short.system": "System",
-  "verdict.short.unknown": "Unbekannt"
+  "verdict.short.unknown": "Unbekannt",
+  "leftovers.title": "Reste deinstallierter Programme",
+  "leftovers.intro": "Deinstallationsprogramme lassen ihre Daten oft in AppData. Kleaner listet Ordner auf, die keinem installierten Programm gehören und sich seit 30 Tagen nicht geändert haben.",
+  "leftovers.search": "Reste suchen",
+  "leftovers.searching": "Suche läuft…",
+  "leftovers.none": "Keine Reste gefunden.",
+  "leftovers.warning": "Wahrscheinliche Reste, nicht sicher: Ein Ordner kann zu einem Tool gehören, das nicht in Programme steht (Kommandozeilentools, portable Apps). Sie landen im Papierkorb und sind wiederherstellbar.",
+  "leftovers.adminOnly": "In Program Files oder ProgramData: Kleaner meldet es nur. Lösche es mit Administratorrechten im Explorer, wenn du dir sicher bist.",
+  "leftovers.lastChange": "Letzte Änderung darin",
+  "leftovers.place.appdata": "App-Daten",
+  "leftovers.place.programs": "Benutzerprogramm",
+  "leftovers.place.profile": "Tool-Einstellungen",
+  "leftovers.place.programfiles": "Program Files (Admin)",
+  "leftovers.place.programdata": "ProgramData (Admin)"
 }

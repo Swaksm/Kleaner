@@ -253,5 +253,18 @@
   "verdict.short.breaks": "Breaks",
   "verdict.short.personal": "Personal",
   "verdict.short.system": "System",
-  "verdict.short.unknown": "Unknown"
+  "verdict.short.unknown": "Unknown",
+  "leftovers.title": "Leftovers of uninstalled programs",
+  "leftovers.intro": "Uninstallers usually keep their data in AppData. Kleaner lists folders that no installed program owns and that haven’t changed for 30 days.",
+  "leftovers.search": "Find leftovers",
+  "leftovers.searching": "Searching…",
+  "leftovers.none": "No leftovers found.",
+  "leftovers.warning": "Probable leftovers, not certain: a folder can belong to a tool that isn’t listed in Programs (command-line tools, portable apps). They go to the Recycle Bin, so you can restore them.",
+  "leftovers.adminOnly": "In Program Files or ProgramData: Kleaner only reports it. Delete it from Explorer with admin rights if you are sure.",
+  "leftovers.lastChange": "Last change inside",
+  "leftovers.place.appdata": "App data",
+  "leftovers.place.programs": "User program",
+  "leftovers.place.profile": "Tool settings",
+  "leftovers.place.programfiles": "Program Files (admin)",
+  "leftovers.place.programdata": "ProgramData (admin)"
 }

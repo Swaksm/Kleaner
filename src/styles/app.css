@@ -1067,3 +1067,7 @@ select {
   cursor: pointer;
   padding: 4px 0;
 }
+
+.items.grid-leftovers li {
+  grid-template-columns: minmax(0, 1fr) 110px 90px 80px 70px;
+}

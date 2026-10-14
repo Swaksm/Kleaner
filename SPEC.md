@@ -299,3 +299,7 @@ En admin, l'analyse active le privilège de sauvegarde de Windows (`SeBackupPriv
 - **Simulation** : « Voir la liste exacte » avant nettoyage, liste complète en fichier texte.
 - **Signature** : SignPath (gratuit open source), activée par secret ; voir `docs/signing.md`.
 - **Distribution** : bucket Scoop dans le dépôt, manifestes winget générés et validés ; voir `docs/distribution.md`. README généré par `scripts/gen-readme.cjs`.
+
+## Restes de programmes désinstallés
+
+Dans l'onglet Programmes. Candidats : sous-dossiers d'`AppData\Local`, `AppData\Roaming`, `AppData\LocalLow`, `AppData\Local\Programs`, dossiers cachés du profil liés à une appli précise (`.vscode`, `.cursor`, `.eclipse`…), et — signalés seulement — `Program Files` et `ProgramData`. Un dossier est proposé s'il n'est rattaché à aucun programme installé (nom, éditeur, dossier d'installation), ni à une règle précise ou au catalogue, ni à un dossier partagé (Microsoft, pilotes, Android, WSL…), pèse ≥ 10 Mo et n'a pas changé depuis 30 jours. Verdict « reste probable » : envoi à la Corbeille (restaurable), seulement des dossiers trouvés par la dernière recherche. Les racines d'AppData sont protégées par la garde.

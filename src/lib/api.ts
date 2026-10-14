@@ -135,3 +135,14 @@ export type PreviewView = {
   file: string;
 };
 export const previewCleaners = (ids: string[]) => invoke<PreviewView>("preview_cleaners", { ids });
+
+export type Leftover = {
+  path: string;
+  name: string;
+  place: "appdata" | "programs" | "profile" | "programfiles" | "programdata";
+  size: number;
+  modified: number;
+  trashable: boolean;
+};
+export const findLeftovers = () => invoke<Leftover[]>("find_leftovers");
+export const trashLeftovers = (paths: string[]) => invoke<ActionReport>("trash_leftovers", { paths });

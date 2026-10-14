@@ -124,6 +124,10 @@ impl Protected {
             for d in ["Desktop", "Documents", "Downloads", "Pictures", "Music", "Videos", "AppData"] {
                 exact.push(home.join(d));
             }
+            // Les racines d'AppData elles-mêmes (leurs sous-dossiers restent possibles : restes de programmes).
+            for d in ["AppData\\Local", "AppData\\Roaming", "AppData\\LocalLow", "AppData\\Local\\Programs"] {
+                exact.push(home.join(d));
+            }
             exact.push(home);
         }
         Self::new(&subtrees, &exact)

@@ -253,5 +253,18 @@
   "verdict.short.breaks": "Rompe",
   "verdict.short.personal": "Personal",
   "verdict.short.system": "Sistema",
-  "verdict.short.unknown": "Desconocido"
+  "verdict.short.unknown": "Desconocido",
+  "leftovers.title": "Restos de programas desinstalados",
+  "leftovers.intro": "Los desinstaladores suelen dejar sus datos en AppData. Kleaner lista las carpetas que no pertenecen a ningún programa instalado y que no han cambiado en 30 días.",
+  "leftovers.search": "Buscar restos",
+  "leftovers.searching": "Buscando…",
+  "leftovers.none": "No se encontraron restos.",
+  "leftovers.warning": "Restos probables, no seguros: una carpeta puede pertenecer a una herramienta que no aparece en Programas (herramientas de línea de comandos, apps portables). Van a la Papelera, así que se pueden restaurar.",
+  "leftovers.adminOnly": "En Program Files o ProgramData: Kleaner solo lo señala. Bórralo desde el Explorador con derechos de administrador si estás seguro.",
+  "leftovers.lastChange": "Último cambio dentro",
+  "leftovers.place.appdata": "Datos de app",
+  "leftovers.place.programs": "Programa de usuario",
+  "leftovers.place.profile": "Ajustes de herramienta",
+  "leftovers.place.programfiles": "Program Files (admin)",
+  "leftovers.place.programdata": "ProgramData (admin)"
 }

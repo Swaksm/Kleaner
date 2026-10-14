@@ -253,5 +253,18 @@
   "verdict.short.breaks": "Casse",
   "verdict.short.personal": "Perso",
   "verdict.short.system": "Système",
-  "verdict.short.unknown": "Inconnu"
+  "verdict.short.unknown": "Inconnu",
+  "leftovers.title": "Restes de programmes désinstallés",
+  "leftovers.intro": "Les désinstalleurs gardent souvent leurs données dans AppData. Kleaner liste les dossiers qui n’appartiennent à aucun programme installé et qui n’ont pas bougé depuis 30 jours.",
+  "leftovers.search": "Chercher les restes",
+  "leftovers.searching": "Recherche…",
+  "leftovers.none": "Aucun reste trouvé.",
+  "leftovers.warning": "Restes probables, pas certains : un dossier peut appartenir à un outil absent de Programmes (outils en ligne de commande, applis portables). Ils vont à la Corbeille, donc restaurables.",
+  "leftovers.adminOnly": "Dans Program Files ou ProgramData : Kleaner le signale seulement. Supprime-le depuis l’Explorateur avec les droits admin si tu es sûr.",
+  "leftovers.lastChange": "Dernière modification à l’intérieur",
+  "leftovers.place.appdata": "Données d’appli",
+  "leftovers.place.programs": "Programme perso",
+  "leftovers.place.profile": "Réglages d’outil",
+  "leftovers.place.programfiles": "Program Files (admin)",
+  "leftovers.place.programdata": "ProgramData (admin)"
 }

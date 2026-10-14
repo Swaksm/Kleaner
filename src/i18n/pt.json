@@ -253,5 +253,18 @@
   "verdict.short.breaks": "Quebra",
   "verdict.short.personal": "Pessoal",
   "verdict.short.system": "Sistema",
-  "verdict.short.unknown": "Desconhecido"
+  "verdict.short.unknown": "Desconhecido",
+  "leftovers.title": "Restos de programas desinstalados",
+  "leftovers.intro": "Os desinstaladores costumam deixar os dados em AppData. O Kleaner lista as pastas que não pertencem a nenhum programa instalado e que não mudam há 30 dias.",
+  "leftovers.search": "Procurar restos",
+  "leftovers.searching": "Procurando…",
+  "leftovers.none": "Nenhum resto encontrado.",
+  "leftovers.warning": "Restos prováveis, não certos: uma pasta pode pertencer a uma ferramenta que não aparece em Programas (ferramentas de linha de comando, apps portáteis). Vão para a Lixeira, então podem ser restaurados.",
+  "leftovers.adminOnly": "Em Program Files ou ProgramData: o Kleaner só sinaliza. Apague pelo Explorador com direitos de administrador se tiver certeza.",
+  "leftovers.lastChange": "Última alteração dentro",
+  "leftovers.place.appdata": "Dados de app",
+  "leftovers.place.programs": "Programa do usuário",
+  "leftovers.place.profile": "Config. de ferramenta",
+  "leftovers.place.programfiles": "Program Files (admin)",
+  "leftovers.place.programdata": "ProgramData (admin)"
 }
