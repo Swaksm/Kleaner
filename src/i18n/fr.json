@@ -410,5 +410,7 @@
   "ghosts.removed": "entrées retirées de la liste",
   "group.community": "Catalogue communautaire",
   "cleanup.communityIntro": "Caches, fichiers temporaires et journaux d’autres programmes, tirés du catalogue communautaire Winapp2. Jamais cochés d’office : coche seulement ce que tu reconnais. Chaque ligne indique le dossier vidé.",
-  "about.winapp2": "Règles de nettoyage communautaires de"
+  "about.winapp2": "Règles de nettoyage communautaires de",
+  "rule.propose": "Proposer une règle",
+  "rule.hint": "Kleaner ne connaît pas cet élément. « Proposer une règle » ouvre un formulaire GitHub dans ton navigateur, pré-rempli sans ton nom d’utilisateur. Tu le relis et tu décides de l’envoyer ou non."
 }

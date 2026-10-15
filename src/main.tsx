@@ -13,10 +13,16 @@ import App from "./App";
 import { applyThemeChoice, savedThemeChoice } from "./lib/theme";
 
 // Avant le rendu pour éviter un flash de mauvais thème ; on ne mémorise que les choix explicites.
+// Mode « demo » (captures d'écran du README, `npm run demo:build`) : données fictives prêtes avant le rendu.
+// Cette branche disparaît de l'exe : MODE vaut « production ».
+const ready = import.meta.env.MODE === "demo" ? import("./demo/boot").then((m) => m.boot()) : Promise.resolve();
+
 applyThemeChoice(savedThemeChoice(), false);
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+ready.then(() =>
+  ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  ),
 );

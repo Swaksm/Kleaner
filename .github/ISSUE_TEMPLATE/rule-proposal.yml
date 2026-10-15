@@ -1,0 +1,50 @@
+name: Rule proposal
+description: Tell Kleaner what a file or folder it does not know is, and whether deleting it is safe
+title: "[Rule] "
+labels: ["rule"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Kleaner never guesses: without a rule, an item stays "unknown". A good rule says **what it is**, **what happens if you delete it** and **how to free the space properly**.
+        Do not paste anything private. Replace your Windows user name with `%USERPROFILE%`.
+  - type: input
+    id: path
+    attributes:
+      label: Folder or file
+      description: As shown by Kleaner, with your user name hidden.
+      placeholder: '%USERPROFILE%\AppData\Local\Vendor\App\Cache'
+    validations:
+      required: true
+  - type: input
+    id: program
+    attributes:
+      label: Which program creates it?
+      placeholder: Name and version, if you know
+  - type: dropdown
+    id: verdict
+    attributes:
+      label: What should Kleaner say?
+      options:
+        - Safe to delete (cache, temporary files, logs)
+        - Deleting it breaks something
+        - Uninstall the program instead
+        - Personal files
+        - I am not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What is it?
+      description: One or two sentences.
+  - type: textarea
+    id: consequence
+    attributes:
+      label: What happens if you delete it?
+      description: Did you try? What changed (slower first launch, lost settings, broken program…)?
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: A link to the program's documentation or a trustworthy page that confirms it.

@@ -410,5 +410,7 @@
   "ghosts.removed": "entries removed from the list",
   "group.community": "Community catalog",
   "cleanup.communityIntro": "Caches, temporary files and logs of other programs, from the community Winapp2 catalog. Never ticked for you: tick only what you recognise. Each line shows the folder it empties.",
-  "about.winapp2": "Community cleaning rules from"
+  "about.winapp2": "Community cleaning rules from",
+  "rule.propose": "Propose a rule",
+  "rule.hint": "Kleaner does not know this item. “Propose a rule” opens a GitHub form in your browser, pre-filled without your user name. You read it and decide whether to send it."
 }

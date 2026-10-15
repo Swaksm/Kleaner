@@ -48,7 +48,10 @@ cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 npm run tauri build -- --no-bundle            # exe release
 npm run tauri build -- --debug --no-bundle    # exe debug pour l'E2E
 node e2e/run.mjs <kleaner.exe> <msedgedriver.exe>   # E2E sur le vrai exe (tauri-driver installé)
+npm run demo:build && npm run demo:shots   # captures du README (mode demo, fausses données, Chrome sans fenêtre)
 ```
+
+Mode demo (`src/demo/`, `vite --mode demo`) : remplace Tauri par des données fictives (vraies règles de `knowledge.json` pour les verdicts). Jamais dans l'exe. Paramètres d'adresse : `page`, `lang`, `theme`, `autoscan`, `scroll`. Modifier l'interface ou les règles : relancer les captures.
 
 Cargo n'est pas dans le PATH de PowerShell : préfixer `$env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"`.
 Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog::tests::estimate_real`, `knowledge::tests::real`, `duplicates::real`, `leftovers::tests::real`, `system::tests::real`) avec `--release -- --ignored --nocapture`.
@@ -61,6 +64,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **serde** : PowerShell renvoie du PascalCase, d'où `rename_all(deserialize = "PascalCase")`. Ne pas sérialiser en PascalCase vers l'interface.
 - **TypeScript** cible pré-ES2021 : pas de `replaceAll`.
 - **Vite** garde parfois un module périmé : redémarrer le serveur de prévisualisation.
+- **Règles proposées** : le verdict « inconnu » a un bouton qui ouvre le formulaire `.github/ISSUE_TEMPLATE/rule-proposal.yml` (chemin sans nom d'utilisateur) ; format des règles dans `docs/rules.md`.
 - **Doublons** : jamais les .dll, .exe ou bases de données (MySQL, Flutter et Riot en double sont normaux).
 - **Restes** : exclure Android (SDK partagé par Flutter), WSL et les pilotes (Realtek…).
 

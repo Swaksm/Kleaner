@@ -5,8 +5,21 @@ import process from "node:process";
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
-export default defineConfig(() => ({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
+
+  // Mode « demo » : les appels à Tauri sont remplacés par des données fictives (captures d'écran du README).
+  resolve:
+    mode === "demo"
+      ? {
+          alias: {
+            "@tauri-apps/api/core": "/src/demo/core.ts",
+            "@tauri-apps/api/event": "/src/demo/event.ts",
+            "@tauri-apps/api/app": "/src/demo/app.ts",
+            "@tauri-apps/plugin-opener": "/src/demo/opener.ts",
+          },
+        }
+      : undefined,
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

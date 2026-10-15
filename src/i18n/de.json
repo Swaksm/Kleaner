@@ -410,5 +410,7 @@
   "ghosts.removed": "Einträge aus der Liste entfernt",
   "group.community": "Community-Katalog",
   "cleanup.communityIntro": "Caches, temporäre Dateien und Protokolle anderer Programme aus dem Community-Katalog Winapp2. Nie von selbst angehakt: Hake nur an, was du kennst. Jede Zeile zeigt den Ordner, der geleert wird.",
-  "about.winapp2": "Community-Bereinigungsregeln von"
+  "about.winapp2": "Community-Bereinigungsregeln von",
+  "rule.propose": "Regel vorschlagen",
+  "rule.hint": "Kleaner kennt dieses Element nicht. „Regel vorschlagen“ öffnet ein GitHub-Formular im Browser, ohne deinen Benutzernamen vorausgefüllt. Du prüfst es und entscheidest, ob du es absendest."
 }

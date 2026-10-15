@@ -1,6 +1,7 @@
 graphify-out/
 node_modules/
 dist/
+dist-demo/
 src-tauri/target/
 src-tauri/gen/schemas/
 *.log

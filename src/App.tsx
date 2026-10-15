@@ -27,6 +27,11 @@ const MAIN = ["home", "analyse", "cleanup", "media", "programs", "startup", "hea
 const MORE = ["duplicates", "projects", "shortcuts", "onedrive", "journal"] as const;
 type Page = (typeof MAIN)[number] | (typeof MORE)[number] | "settings" | "about";
 
+/** Mode « demo » : la page vient de l'adresse (?page=health), pour les captures d'écran. */
+function demoPage(): Page {
+  return (new URLSearchParams(location.search).get("page") as Page | null) ?? "home";
+}
+
 function savedMoreOpen(): boolean {
   try {
     return localStorage.getItem("navMore") === "1";
@@ -38,9 +43,9 @@ function savedMoreOpen(): boolean {
 function App() {
   const { t } = useT();
   const [accepted, setAccepted] = useState(isDisclaimerAccepted());
-  const [page, setPage] = useState<Page>("home");
+  const [page, setPage] = useState<Page>(import.meta.env.MODE === "demo" ? demoPage() : "home");
   // Incrémenté par l'Accueil : l'Analyse lance alors une analyse.
-  const [scanRequest, setScanRequest] = useState(0);
+  const [scanRequest, setScanRequest] = useState(import.meta.env.MODE === "demo" && new URLSearchParams(location.search).has("autoscan") ? 1 : 0);
   const [hasOneDrive, setHasOneDrive] = useState(false);
   const [elevated, setElevated] = useState(false);
   const [moreOpen, setMoreOpen] = useState(savedMoreOpen);

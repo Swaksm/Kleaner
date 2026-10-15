@@ -410,5 +410,7 @@
   "ghosts.removed": "entradas quitadas de la lista",
   "group.community": "Catálogo comunitario",
   "cleanup.communityIntro": "Cachés, archivos temporales y registros de otros programas, del catálogo comunitario Winapp2. Nunca se marcan solos: marca solo lo que reconozcas. Cada línea indica la carpeta que vacía.",
-  "about.winapp2": "Reglas de limpieza comunitarias de"
+  "about.winapp2": "Reglas de limpieza comunitarias de",
+  "rule.propose": "Proponer una regla",
+  "rule.hint": "Kleaner no conoce este elemento. « Proponer una regla » abre un formulario de GitHub en tu navegador, rellenado sin tu nombre de usuario. Lo revisas y decides si lo envías."
 }

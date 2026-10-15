@@ -2,112 +2,96 @@
 
 [English](README.md) · **Français**
 
-Nettoyeur Windows gratuit, open source et **transparent**. Kleaner analyse tes disques, fichiers cachés compris, et supprime ce qu'on ne voit pas d'habitude : temporaires, caches, restes de mises à jour, dumps… **sans rien changer à ton utilisation du PC** : tu restes connecté partout, tu ne perds ni fichiers ni réglages.
+[![Release](https://img.shields.io/github/v/release/Swaksm/Kleaner?include_prereleases&label=release)](https://github.com/Swaksm/Kleaner/releases) [![License: MIT](https://img.shields.io/github/license/Swaksm/Kleaner)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/Swaksm/Kleaner/total)](https://github.com/Swaksm/Kleaner/releases)
+
+**Un nettoyeur Windows gratuit qui te dit ce que tu peux supprimer, et ce qui casse si tu le fais.**
+
+![Chaque gros fichier et dossier a un verdict](docs/img/verdicts.png)
+
+Kleaner analyse tes disques, explique ce qui prend la place, et nettoie ce qui est sans risque : caches, fichiers temporaires, restes de programmes désinstallés, vieux dossiers de projets. Tu restes connecté partout et tu ne perds ni fichier ni réglage. Gratuit, open source (MIT), sans compte, sans pub, sans télémétrie.
+
+## Pourquoi Kleaner
+
+- **Il explique.** Chaque gros fichier et dossier a un verdict (supprimable, à nettoyer avec son outil, à désinstaller, casse quelque chose, tes fichiers, système, inconnu) avec ce que c'est, ce qui se passe si tu le supprimes et comment libérer la place proprement. 102 règles écrites à la main dans [`knowledge.json`](src-tauri/knowledge.json) ; sans règle, le verdict est « inconnu » : Kleaner ne devine jamais.
+- **Il est prudent.** Tes fichiers vont seulement à la Corbeille, et le Journal peut les restaurer. La suppression définitive se limite à une liste publique de caches ([`cleaners.json`](src-tauri/cleaners.json) et le catalogue communautaire filtré [`winapp2.json`](src-tauri/winapp2.json)), vérifiée en Rust ([`guard.rs`](src-tauri/src/guard.rs)) et couverte par des tests. Rien n'est coché d'avance, et « Voir la liste exacte » montre chaque fichier avant toute suppression.
+- **Il est discret.** Aucun réseau (sauf une vérification de mise à jour facultative, désactivée par défaut), aucune télémétrie, aucun compte. Il ne touche jamais à tes mots de passe, cookies, sessions ou historique.
+- **Il connaît les PC de développeurs, de joueurs et d'IA.** `node_modules`, `.venv`, `target`, `.gradle` des projets pas touchés depuis des mois (avec la commande qui les recrée), disques Docker et WSL, émulateurs Android, modèles Ollama, LM Studio et Hugging Face, caches PyTorch et conda, launchers de jeux (Steam, Epic, Riot, EA, Ubisoft, GOG, Battle.net) et instances de modpacks Minecraft. Sur le PC de l'auteur : 25 Go de vieux projets et 8 Go laissés par un Arduino désinstallé.
+
+<p>
+  <img src="docs/img/home.png" alt="Accueil : tes disques et ce que tu peux libérer" width="49%"> <img src="docs/img/cleanup.png" alt="Nettoyage : rien n'est coché d'avance" width="49%">
+  <img src="docs/img/startup.png" alt="Démarrage : ce qui se lance avec Windows" width="49%"> <img src="docs/img/health.png" alt="Santé et sécurité : un bilan en lecture seule" width="49%">
+</p>
 
 ## Ce que fait Kleaner
 
-- **Analyse** les disques que tu choisis (internes, USB…) : espace libre, plus gros fichiers et dossiers, répartition par type (graphiques), tri par taille, nom ou date.
-- **Dit si supprimer quelque chose casse tout** : chaque gros fichier et dossier a un verdict (supprimable, à nettoyer avec son outil, à désinstaller, casse quelque chose, tes fichiers, système, inconnu) avec ce que c'est, ce qui se passe si tu le supprimes, et comment libérer la place proprement. Règles écrites à la main dans [`knowledge.json`](src-tauri/knowledge.json) ; Kleaner ne devine jamais. Les fichiers critiques demandent une confirmation en plus.
-- **Doublons** : retrouve les photos, vidéos, documents et archives identiques (comparés octet par octet) et n’en garde qu’une copie.
-- **Vieux projets** : retrouve les `node_modules`, `.venv`, `target`, `build`… des projets pas touchés depuis des mois, avec la commande qui les recrée.
-- **Carte du disque** : chaque dossier en rectangle à la taille de sa place ; clique pour entrer.
-- **Photos & vidéos** : toutes tes photos et vidéos personnelles, triables et cherchables, en liste ou en grille, avec une visionneuse intégrée ; envoie à la Corbeille celles dont tu n'as plus besoin.
-- **Nettoie** les éléments du [catalogue](#catalogue) : chacun dit ce qu'il supprime, pourquoi c'est inutile et ce que ça change. Rien n'est coché d'avance, et « Voir la liste exacte » montre chaque fichier avant toute suppression. Un catalogue communautaire ajoute environ mille caches, fichiers temporaires et journaux d’autres programmes (tirés de [Winapp2](https://github.com/MoscaDotTo/Winapp2), filtrés).
-- **Désinstalle** des programmes via leur désinstalleur officiel, avec taille réelle et date du dernier lancement. Retrouve les restes de programmes désinstallés et les entrées mortes de la liste des programmes.
-- **Démarrage** : liste ce qui se lance avec Windows (registre, dossiers Démarrage, tâches planifiées, services) avec la durée de démarrage mesurée. Désactiver un élément ne supprime rien et se défait.
-- **Santé et sécurité** (lecture seule) : disques, batterie, plantages, redémarrage en attente, intégrité des fichiers de Windows, antivirus, pare-feu, Secure Boot, BitLocker… Kleaner ne change rien et n’est pas un antivirus : chaque alerte ouvre l’écran de Windows qui la règle.
-- **Raccourcis cassés** : raccourcis du Bureau, du menu Démarrer et de la barre des tâches dont la cible a disparu, envoyés à la Corbeille.
-- **Cloud** : les gros fichiers OneDrive et Dropbox aussi gardés sur ce PC peuvent passer en ligne uniquement.
-- **Rapport pour une IA** (optionnel, hors ligne) : un résumé Markdown + un prompt à coller dans l'IA de ton choix ; elle te pose des questions (« utilises-tu encore… ? ») et te dit quoi supprimer. Kleaner n'envoie rien.
-- **Journalise** chaque action dans `%LOCALAPPDATA%\Kleaner\journal.log`.
-- **Mode admin** (à la demande) : analyse complète, dossiers système protégés compris, en lecture seule.
-
-## Ce que Kleaner ne fait jamais
-
-- Agir sans ta confirmation.
-- Toucher à tes mots de passe, cookies, sessions ou historique.
-- Nettoyer ou « réparer » le registre. Il n’y écrit que sur ta demande, et seulement deux choses : l’interrupteur d’un programme au démarrage, et le retrait d’une entrée de programme morte (sauvegardée d’abord dans un fichier .reg, restaurable depuis le Journal).
-- Se connecter à Internet : **aucune télémétrie, aucune mise à jour automatique**.
-- Demander les droits admin sans que tu cliques sur « Analyse complète (admin) ».
-- Supprimer définitivement un fichier hors des dossiers listés dans [`src-tauri/cleaners.json`](src-tauri/cleaners.json) et [`src-tauri/winapp2.json`](src-tauri/winapp2.json) (vérifié en Rust par [`guard.rs`](src-tauri/src/guard.rs), couvert par des tests). Les fichiers personnels vont toujours à la Corbeille.
+- **Analyse** les disques que tu choisis : espace libre, plus gros fichiers et dossiers, répartition par type, carte du disque. Tri par taille, nom ou date.
+- **Nettoyage** : 42 éléments intégrés et environ 1100 du catalogue communautaire, chacun disant ce qu'il supprime et ce que ça change. [Liste complète](docs/catalog.fr.md).
+- **Vieux projets**, **doublons**, **photos et vidéos** (avec visionneuse intégrée) : libère de la place là où toi seul peux juger, avec un filet de sécurité.
+- **Programmes** : désinstallation par le désinstalleur officiel, taille réelle, date du dernier lancement ; retrouve les restes de programmes désinstallés et les entrées mortes de la liste.
+- **Démarrage** : ce qui se lance avec Windows et la durée des derniers démarrages. Désactiver un élément ne supprime rien et se défait.
+- **Santé et sécurité** (lecture seule) : disques, batterie, plantages, redémarrage en attente, antivirus, pare-feu, Secure Boot, BitLocker… Chaque alerte ouvre l'écran de Windows qui la règle. Pas un antivirus.
+- **Raccourcis cassés**, **Cloud** (OneDrive et Dropbox : garder les gros fichiers en ligne uniquement), **Mises à jour et pilotes** (Windows Update et winget, sur clic).
+- **Journal** de chaque action, **rapport pour une IA** (facultatif, hors ligne : un résumé Markdown à coller dans l'IA de ton choix), 6 langues, thèmes clair et sombre.
 
 ## Télécharger
 
 1. Va dans [Releases](https://github.com/Swaksm/Kleaner/releases) et télécharge `kleaner.exe` et `kleaner.exe.sha256`.
-2. Vérifie l'empreinte (PowerShell) :
+2. Vérifie l'empreinte (PowerShell). Elle doit être identique au contenu de `kleaner.exe.sha256` :
 
 ```powershell
 (Get-FileHash kleaner.exe -Algorithm SHA256).Hash.ToLower()
 ```
 
-   Le résultat doit être identique au contenu de `kleaner.exe.sha256`.
-3. Lance `kleaner.exe`. Rien à installer : c'est un exe portable. La langue se change dans *Settings → Language*.
+3. Lance `kleaner.exe`. Rien à installer : c'est un exe portable. Windows 10 ou 11 en 64 bits. La langue se change dans *Settings → Language*.
 
-Ou avec un gestionnaire de paquets :
+Ou avec Scoop :
 
 ```powershell
 scoop bucket add kleaner https://github.com/Swaksm/Kleaner
 scoop install kleaner/kleaner
 ```
 
-(winget : bientôt, voir [docs/distribution.md](docs/distribution.md).)
+**Avertissement Windows (SmartScreen).** L'exe n'est pas encore signé (un certificat coûte cher pour un projet gratuit, et les programmes de signature pour l'open source demandent d'abord plus d'étoiles). Windows affiche « Windows a protégé votre ordinateur » : clique sur *Informations complémentaires* puis *Exécuter quand même*. Certains antivirus peuvent réagir parce que Kleaner supprime des fichiers et peut demander les droits admin. Tout le code est lisible ici, et l'exe est construit par GitHub Actions à partir de ce code : l'empreinte ci-dessus prouve que tu as bien cette version.
 
-**Avertissement Windows (SmartScreen).** L'exe n'est pas signé. Windows affiche « Windows a protégé votre ordinateur » : clique sur *Informations complémentaires* puis *Exécuter quand même*. Certains antivirus peuvent réagir, car Kleaner supprime des fichiers et peut demander les droits admin. Tout le code est lisible ici, et l'exe est compilé par GitHub Actions à partir de ce code.
+## Ce que Kleaner ne fait jamais
+
+- Agir sans ta confirmation.
+- Toucher à tes mots de passe, cookies, sessions ou historique.
+- Nettoyer ou « réparer » le registre. Il n'y écrit que sur ta demande, et seulement deux choses : l'interrupteur d'un programme au démarrage, et le retrait d'une entrée de programme morte (sauvegardée d'abord dans un fichier .reg, restaurable depuis le Journal).
+- Se connecter à Internet : **aucune télémétrie, aucune mise à jour automatique**.
+- Demander les droits admin sans que tu cliques sur « Analyse complète (admin) ».
+- Supprimer définitivement quoi que ce soit hors de la liste publique de caches. Les fichiers personnels vont toujours à la Corbeille.
+
+## Aide à l'améliorer
+
+- **Kleaner affiche « inconnu » pour quelque chose que tu reconnais ?** Clique sur son verdict, puis *Proposer une règle* : un formulaire GitHub s'ouvre dans ton navigateur, pré-rempli sans ton nom d'utilisateur. Tu le relis et tu décides de l'envoyer ou non. Voir [docs/rules.md](docs/rules.md) (en anglais).
+- **Un bug ?** *À propos → Signaler un problème* prépare un rapport sans chemins personnels.
+- Un cache absent du catalogue ? Ouvre un ticket avec le dossier et une source qui montre qu'il se supprime sans risque.
 
 ## Retirer Kleaner
 
-*Paramètres → Retirer Kleaner* efface `%LOCALAPPDATA%\Kleaner` et `%LOCALAPPDATA%\com.swaksm.kleaner`. Supprime ensuite `kleaner.exe`.
+*Paramètres → Retirer Kleaner* efface `%LOCALAPPDATA%\Kleaner` et `%LOCALAPPDATA%\com.swaksm.kleaner`. Supprime ensuite `kleaner.exe`. Rien d'autre n'a été installé.
 
-## Catalogue
+## Développement
 
-Tout ce que Kleaner peut supprimer définitivement. Les éléments des logiciels que tu n'as pas sont simplement masqués. « Admin » : nécessite l'analyse complète.
+```bash
+npm install
+npm run tauri dev
+npm test
+npm run lint
+cargo test --manifest-path src-tauri/Cargo.toml
+cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+npm run tauri build -- --no-bundle
+```
 
-| Élément | Supprime | Ce que ça change | Admin |
-|---|---|---|---|
-| Fichiers temporaires | Fichiers laissés dans %TEMP% par les installeurs et les applis. | Rien. |  |
-| Cache des miniatures | Aperçus d'images et d'icônes mémorisés par l'Explorateur. | Miniatures un peu plus lentes à apparaître la première fois. |  |
-| Cache Internet de Windows | Copies de pages et fichiers web gardées par Windows et les anciennes applis. | Rien. |  |
-| Rapports de plantage | Copies de la mémoire des applis qui ont planté, et rapports d'erreurs Windows. | Rien. |  |
-| Caches de la carte graphique | Shaders compilés par DirectX et les pilotes NVIDIA ou AMD. | Premier lancement des jeux un peu plus long. |  |
-| Corbeille | Tous les fichiers actuellement dans la Corbeille, sur tous les disques. | Irréversible : ces fichiers ne pourront plus être restaurés. |  |
-| Google Chrome : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
-| Microsoft Edge : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
-| Brave : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
-| Opera : cache | Copies locales des pages et scripts déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
-| Firefox : cache | Copies locales des pages et fichiers déjà chargés (dossier cache2). | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
-| Discord : cache | Images, vidéos et scripts déjà affichés dans Discord. | Tu restes connecté. Images un peu plus lentes à apparaître. |  |
-| Slack : cache | Images, fichiers et scripts déjà affichés dans Slack. | Tu restes connecté. Images un peu plus lentes à apparaître. |  |
-| Microsoft Teams : cache | Images, fichiers et scripts déjà affichés dans Teams (ancienne et nouvelle version). | Tu restes connecté. Premier lancement un peu plus long. |  |
-| VS Code : cache | Scripts précompilés et paquets d'extensions déjà installés. | Premier lancement un peu plus long. |  |
-| npm : cache | Paquets npm déjà téléchargés, gardés en copie. | Le prochain install ou build retélécharge ce qui manque. |  |
-| Yarn : cache | Paquets Yarn déjà téléchargés, gardés en copie. | Le prochain install ou build retélécharge ce qui manque. |  |
-| pip : cache | Paquets Python déjà téléchargés par pip. | Le prochain install ou build retélécharge ce qui manque. |  |
-| NuGet : paquets et cache | Paquets .NET téléchargés par NuGet. | Le prochain install ou build retélécharge ce qui manque. |  |
-| Gradle : cache | Dépendances et résultats de build gardés par Gradle. | Le prochain install ou build retélécharge ce qui manque. |  |
-| Cargo : cache | Crates Rust téléchargées et décompressées par Cargo. | Le prochain install ou build retélécharge ce qui manque. |  |
-| Temporaires de Windows | Fichiers laissés dans C:\Windows\Temp par Windows et les installeurs. | Rien. | oui |
-| Rapports de plantage système | Rapports d’erreurs Windows et petits dumps mémoire après un écran bleu. | Rien. | oui |
-| Dump mémoire complet | Le fichier C:\Windows\MEMORY.DMP créé après un écran bleu. | Rien. | oui |
-| Cache d’optimisation de livraison | Morceaux de mises à jour Windows gardés pour les partager avec d’autres PC. | Rien. | oui |
-| Téléchargements Windows Update | Fichiers de mises à jour déjà téléchargés dans SoftwareDistribution\Download. | Une mise à jour en attente sera retéléchargée. | oui |
-| Anciens journaux de Windows | Anciens journaux d’installation des composants Windows (CbsPersist) de plus de 7 jours. | Rien. | oui |
-| Ancienne version de Windows | Les dossiers Windows.old, $Windows.~BT et $Windows.~WS laissés après une mise à jour majeure. | Irréversible : tu ne pourras plus revenir à la version précédente de Windows. | oui |
-| Anciens composants Windows (WinSxS) | Anciennes versions de composants remplacées par des mises à jour. | Les mises à jour déjà installées ne pourront plus être désinstallées. | oui |
-| Hibernation | Le fichier hiberfil.sys, de la taille d’une bonne partie de la RAM. | Hibernation et démarrage rapide désactivés. Réactivable avec powercfg /hibernate on. | oui |
-| Anciens points de restauration | Tous les points de restauration système sauf le plus récent. | Tu ne pourras plus revenir à un état plus ancien que le dernier point. | oui |
-| Vivaldi : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
-| Chromium : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
-| Steam : cache web et shaders | Pages de la boutique déjà vues et shaders compilés pour tes jeux. | Les jeux peuvent saccader un peu au premier lancement. |  |
-| Epic Games Launcher : cache web | Pages et images de la boutique déjà chargées par le launcher. | Tu restes connecté. La boutique charge un peu plus lentement une fois. |  |
-| Adobe : cache média | Fichiers d’aperçu audio et vidéo créés par Premiere Pro, After Effects et Media Encoder. | Les projets mettent plus de temps à s’ouvrir la première fois. |  |
-| Maven : cache | Paquets et résultats de build déjà téléchargés par Maven. | Le prochain install ou build retélécharge ce qui manque. |  |
-| Go : cache | Paquets et résultats de build déjà téléchargés par Go. | Le prochain install ou build retélécharge ce qui manque. |  |
-| Bun : cache | Paquets et résultats de build déjà téléchargés par Bun. | Le prochain install ou build retélécharge ce qui manque. |  |
-| Composer : cache | Paquets et résultats de build déjà téléchargés par Composer. | Le prochain install ou build retélécharge ce qui manque. |  |
-| Dart/Flutter (pub) : cache | Paquets et résultats de build déjà téléchargés par Dart/Flutter (pub). | Le prochain install ou build retélécharge ce qui manque. |  |
-| Installeurs de pilotes graphiques | Paquets de pilotes extraits par les installeurs NVIDIA et AMD (C:\NVIDIA, C:\AMD, téléchargements NVIDIA). | Rien. Une réinstallation du pilote les retélécharge. | oui |
+Prérequis : Node 22+, Rust stable, Visual Studio Build Tools (C++). Spécification : [SPEC.md](SPEC.md). Avant chaque release : [docs/release-checklist.md](docs/release-checklist.md). Les captures viennent d'un mode démo avec de fausses données (`src/demo`) :
 
-## Crédits
+```bash
+npm run demo:build
+npm run demo:shots
+```
+
+## Crédits et licences
 
 Créé par [swaks](https://github.com/Swaksm). Licence [MIT](LICENSE), sans garantie.
 

@@ -410,5 +410,7 @@
   "ghosts.removed": "entradas removidas da lista",
   "group.community": "Catálogo da comunidade",
   "cleanup.communityIntro": "Caches, arquivos temporários e logs de outros programas, do catálogo comunitário Winapp2. Nunca marcados por você: marque só o que reconhecer. Cada linha mostra a pasta que esvazia.",
-  "about.winapp2": "Regras de limpeza da comunidade de"
+  "about.winapp2": "Regras de limpeza da comunidade de",
+  "rule.propose": "Propor uma regra",
+  "rule.hint": "O Kleaner não conhece este item. « Propor uma regra » abre um formulário do GitHub no navegador, preenchido sem o seu nome de usuário. Você revisa e decide se envia."
 }

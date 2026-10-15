@@ -1,6 +1,8 @@
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useRef } from "react";
 import { useT, type Key } from "../i18n/useT";
 import { revealInExplorer, type Explanation, type Verdict } from "../lib/api";
+import { ruleProposalUrl } from "../lib/rule";
 import { outside } from "./MediaViewer";
 import { StatusPill } from "./StatusPill";
 
@@ -59,11 +61,17 @@ export function ExplainDialog({ e, onClose }: { e: Explanation; onClose: () => v
           <dd>{e.howto[tl]}</dd>
         </dl>
         <p className="muted small">{t(`verdict.source.${e.source}` as Key)}</p>
+        {e.verdict === "unknown" && <p className="muted small">{t("rule.hint")}</p>}
       </div>
       <div className="dialog-actions">
         <button className="btn" onClick={() => revealInExplorer(e.path)}>
           {t("analyse.open")}
         </button>
+        {e.verdict === "unknown" && (
+          <button className="btn" onClick={() => openUrl(ruleProposalUrl(e.path))}>
+            {t("rule.propose")}
+          </button>
+        )}
         <button className="btn btn-primary" onClick={onClose}>
           {t("report.close")}
         </button>
