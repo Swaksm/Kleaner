@@ -1136,6 +1136,82 @@
     ]
   },
   {
+    "id": "dev-uv",
+    "group": "dev",
+    "label": {
+      "fr": "uv : cache",
+      "en": "uv: cache"
+    },
+    "what": {
+      "fr": "Paquets Python téléchargés et compilés par uv.",
+      "en": "Python packages downloaded and built by uv."
+    },
+    "why": {
+      "fr": "uv les retélécharge au besoin. Tes environnements virtuels ne sont pas touchés.",
+      "en": "uv downloads them again when needed. Your virtual environments are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install retélécharge ce qui manque.",
+      "en": "The next install downloads what is missing again."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\uv\\cache"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "dev-poetry",
+    "group": "dev",
+    "label": {
+      "fr": "Poetry : cache",
+      "en": "Poetry: cache"
+    },
+    "what": {
+      "fr": "Paquets Python déjà téléchargés par Poetry.",
+      "en": "Python packages already downloaded by Poetry."
+    },
+    "why": {
+      "fr": "Poetry les retélécharge au besoin. Tes projets et leurs environnements ne sont pas touchés.",
+      "en": "Poetry downloads them again when needed. Your projects and their environments are untouched."
+    },
+    "effect": {
+      "fr": "Le prochain install retélécharge ce qui manque.",
+      "en": "The next install downloads what is missing again."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\pypoetry\\Cache\\cache",
+      "%LOCALAPPDATA%\\pypoetry\\Cache\\artifacts"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
+    "id": "dev-cypress",
+    "group": "dev",
+    "label": {
+      "fr": "Cypress : binaires",
+      "en": "Cypress: binaries"
+    },
+    "what": {
+      "fr": "Le navigateur de test Cypress téléchargé pour tes projets.",
+      "en": "The Cypress test runner downloaded for your projects."
+    },
+    "why": {
+      "fr": "Il se retélécharge avec « npx cypress install ». Tes tests ne sont pas touchés.",
+      "en": "It downloads again with « npx cypress install ». Your tests are untouched."
+    },
+    "effect": {
+      "fr": "Cypress se retélécharge au prochain lancement des tests.",
+      "en": "Cypress downloads again the next time you run tests."
+    },
+    "paths": [
+      "%LOCALAPPDATA%\\Cypress\\Cache"
+    ],
+    "mode": "delete",
+    "level": "safe"
+  },
+  {
     "mode": "delete",
     "level": "safe",
     "id": "driver-leftovers",

@@ -7,6 +7,7 @@ pub mod health;
 pub mod journal;
 pub mod knowledge;
 pub mod leftovers;
+pub mod mft;
 pub mod onedrive;
 pub mod programs;
 pub mod scan;

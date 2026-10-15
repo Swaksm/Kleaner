@@ -39,6 +39,7 @@ export const scanResult = (): ScanResult => ({
   denied: 0,
   cancelled: false,
   full_access: false,
+  fast: false,
   duration_ms: 41_000,
   drives: drives().map(({ root, total, free }) => ({ root, total, free })),
   top_files: [

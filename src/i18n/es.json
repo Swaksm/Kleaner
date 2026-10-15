@@ -412,5 +412,7 @@
   "cleanup.communityIntro": "Cachés, archivos temporales y registros de otros programas, del catálogo comunitario Winapp2. Nunca se marcan solos: marca solo lo que reconozcas. Cada línea indica la carpeta que vacía.",
   "about.winapp2": "Reglas de limpieza comunitarias de",
   "rule.propose": "Proponer una regla",
-  "rule.hint": "Kleaner no conoce este elemento. « Proponer una regla » abre un formulario de GitHub en tu navegador, rellenado sin tu nombre de usuario. Lo revisas y decides si lo envías."
+  "rule.hint": "Kleaner no conoce este elemento. « Proponer una regla » abre un formulario de GitHub en tu navegador, rellenado sin tu nombre de usuario. Lo revisas y decides si lo envías.",
+  "analyse.fast": "Análisis NTFS rápido",
+  "analyse.fastHint": "En modo administrador, Kleaner leyó directamente la tabla de archivos NTFS (solo lectura) en lugar de abrir las carpetas una por una."
 }

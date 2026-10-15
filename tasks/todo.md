@@ -127,3 +127,5 @@
 - [x] **T22 : Dropbox en local, Google Drive expliqué** (le disque virtuel de Google Drive ne se libère pas de l'extérieur, voir SPEC révision 8)
 
 - [x] **T23 : Catalogue communautaire Winapp2** (conversion filtrée, `flat`, groupe « Catalogue communautaire », attribution CC BY-SA ; SPEC révision 9)
+
+- [x] **T24 : Visibilité, niche, scan rapide, règles proposées** (README refait, mode demo et captures, nettoyages et fiches développeurs/IA, bouton « Proposer une règle », scan NTFS rapide ; SPEC révision 10)

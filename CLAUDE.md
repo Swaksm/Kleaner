@@ -24,6 +24,7 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `catalog.rs` + `cleaners.json` : nettoyages (mode `delete` ou `command`, niveau `safe` ou `heavy`), estimation, simulation (`preview`), `delete_project_dirs`.
 - `knowledge.rs` + `knowledge.json` : verdicts. Ordre : règles précises → catalogue → programme propriétaire → règles générales → inconnu. Jokers `*`, `?`, `**`, captures `{1}`.
 - `winapp2.rs` + `winapp2.json` : catalogue communautaire (Winapp2, CC BY-SA 4.0), converti et filtré (`entry_ok`), fusionné dans `catalog::all()` ; `catalog::base()` = le catalogue écrit à la main. Voir `WINAPP2-NOTICE.md`.
+- `mft.rs` : scan rapide NTFS (admin) : lit la MFT en lecture seule et alimente `scan::walk` ; retombe sur le parcours classique au moindre doute ; `KLEANER_NO_MFT=1` le coupe. Test réel (terminal admin) : `mft::tests::real`.
 - `duplicates.rs` : taille → échantillon → blake3, contenu personnel seulement.
 - `leftovers.rs` : restes de programmes désinstallés (AppData, Programs, dossiers d'outils ; Program Files et ProgramData signalés seulement).
 - `programs.rs` : registre, taille réelle, dernier lancement (Prefetch, admin), désinstalleur officiel.
@@ -80,5 +81,6 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **SignPath** : refusé pour l'instant (il faut plus d'étoiles et de visibilité) ; README sans mention de signature. À redemander plus tard. Une fois acceptée : projet `kleaner`, politique `release-signing`, configuration `portable-exe`, secret et variable dans GitHub (`docs/signing.md`).
 - **E2E en CI** : en lancement manuel. Sur les machines GitHub, WebView2 n'ouvre pas son port de débogage (« DevToolsActivePort file doesn't exist ») alors que l'exe démarre. En local, tout passe.
 - **Jamais testés en vrai** : nettoyages lourds (Windows.old, DISM, hibernation, points de restauration), recherche Windows Update, mise à jour d'une appli par winget, restauration et OneDrive dans l'exe.
+- **Scan rapide NTFS** : vérifié sur le vrai C: (2 s contre 8 à 21 s, écart 3 % d'espace dû aux recouvrements MSIX). Pas vérifié : volumes avec secteurs de 4 Ko, MFT très fragmentée, exFAT/ReFS (retombent sur le classique).
 - **Feuille de route v0.3+ réalisée** (T18 à T22, `SPEC.md` révision 8) : démarrage, raccourcis cassés, santé et sécurité, entrées fantômes, Dropbox. Jamais testés dans l'exe : désactivation d'un élément de démarrage, suppression d'une entrée fantôme, durées de démarrage (admin). Pas de « nettoyage du registre » ni de « boosts ».
 - Dernière release : v0.1.0-rc10. Pas encore de v0.1.0 stable (nécessaire pour winget et le `checkver` de Scoop).

@@ -16,6 +16,7 @@ const scan: ScanResult = {
   denied: 2,
   cancelled: false,
   full_access: false,
+  fast: false,
   videos: [],
   images: [],
   drives: [],

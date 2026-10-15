@@ -1,6 +1,7 @@
 //! Analyse des disques : parcours parallèle, fichiers cachés compris, liens et jonctions ignorés.
 //! Lecture seule : rien n'est modifié.
 
+use crate::mft;
 use rayon::prelude::*;
 use serde::Serialize;
 use std::cmp::Reverse;
@@ -89,6 +90,8 @@ pub struct ScanResult {
     pub cancelled: bool,
     /// Analyse faite en admin avec le privilège de sauvegarde (dossiers protégés inclus).
     pub full_access: bool,
+    /// Disques lus par la table des fichiers NTFS (MFT), bien plus vite : admin seulement.
+    pub fast: bool,
     pub duration_ms: u64,
     pub top_files: Vec<Item>,
     pub top_dirs: Vec<Item>,
@@ -243,6 +246,8 @@ struct Entry {
     attrs: u32,
     len: u64,
     modified: u64,
+    /// Numéro d'enregistrement MFT (scan rapide) ; 0 sinon.
+    frn: u32,
 }
 
 fn list_std(dir: &Path) -> Option<Vec<Entry>> {
@@ -258,6 +263,7 @@ fn list_std(dir: &Path) -> Option<Vec<Entry>> {
                     attrs: m.file_attributes(),
                     len: m.len(),
                     modified: unix_secs(m.modified()),
+                    frn: 0,
                 })
             })
             .collect(),
@@ -315,6 +321,7 @@ fn list_backup(dir: &Path) -> Option<Vec<Entry>> {
                     attrs: info.FileAttributes,
                     len: info.EndOfFile.max(0) as u64,
                     modified: ((info.LastWriteTime - EPOCH_DIFF).max(0) / 10_000_000) as u64,
+                    frn: 0,
                 });
             }
             if info.NextEntryOffset == 0 {
@@ -327,6 +334,14 @@ fn list_backup(dir: &Path) -> Option<Vec<Entry>> {
     Some(out)
 }
 
+/// Le contenu d'un dossier, lu dans l'index de la MFT (scan rapide) au lieu du disque.
+fn list_mft(ix: &mft::Index, dir: &Path, frn: u32) -> Vec<Entry> {
+    ix.children(frn)
+        .into_iter()
+        .map(|c| Entry { path: dir.join(&c.name), is_dir: c.is_dir, attrs: c.attrs, len: c.len, modified: c.modified, frn: c.frn })
+        .collect()
+}
+
 fn unix_secs(t: std::io::Result<std::time::SystemTime>) -> u64 {
     t.ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_secs())
 }
@@ -335,11 +350,14 @@ fn unix_secs(t: std::io::Result<std::time::SystemTime>) -> u64 {
 // shortcut: les liens physiques (WinSxS ↔ System32) sont comptés deux fois ; à corriger si les tailles de C:\Windows gênent.
 /// `media` : zone de l'utilisateur (ni Windows, ni Program Files, ni AppData…).
 /// `in_artifact` : à l'intérieur d'un dossier régénérable (node_modules…) ou d'un dépôt .git.
-fn walk(dir: &Path, ctx: &Ctx, media: bool, in_artifact: bool) -> (u64, u64) {
+fn walk(dir: &Path, frn: u32, ix: Option<&mft::Index>, ctx: &Ctx, media: bool, in_artifact: bool) -> (u64, u64) {
     if ctx.cancel.load(Relaxed) {
         return (0, 0);
     }
-    let entries = list_std(dir).or_else(|| if ctx.backup { list_backup(dir) } else { None });
+    let entries = match ix {
+        Some(ix) => Some(list_mft(ix, dir, frn)),
+        None => list_std(dir).or_else(|| if ctx.backup { list_backup(dir) } else { None }),
+    };
     let Some(entries) = entries else {
         ctx.progress.denied.fetch_add(1, Relaxed);
         return (0, 0);
@@ -347,6 +365,7 @@ fn walk(dir: &Path, ctx: &Ctx, media: bool, in_artifact: bool) -> (u64, u64) {
     let mut own = 0u64;
     let mut newest = 0u64;
     let mut subdirs = Vec::new();
+    let mut sub_frns = Vec::new();
     let mut file_names = Vec::new();
     for e in entries {
         if e.attrs & FILE_ATTRIBUTE_REPARSE_POINT != 0 && e.is_dir {
@@ -354,6 +373,7 @@ fn walk(dir: &Path, ctx: &Ctx, media: bool, in_artifact: bool) -> (u64, u64) {
         }
         if e.is_dir {
             subdirs.push(e.path);
+            sub_frns.push(e.frn);
             continue;
         }
         if e.attrs & FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS != 0 {
@@ -398,10 +418,11 @@ fn walk(dir: &Path, ctx: &Ctx, media: bool, in_artifact: bool) -> (u64, u64) {
         .collect();
     let children: Vec<(u64, u64)> = subdirs
         .par_iter()
+        .zip(&sub_frns)
         .zip(&kinds)
-        .map(|(d, kind)| {
+        .map(|((d, &sub_frn), kind)| {
             let git = d.file_name().is_some_and(|n| n == ".git");
-            walk(d, ctx, media && ctx.media_dir(d), in_artifact || kind.is_some() || git)
+            walk(d, sub_frn, ix, ctx, media && ctx.media_dir(d), in_artifact || kind.is_some() || git)
         })
         .collect();
     let total = own + children.iter().map(|c| c.0).sum::<u64>();
@@ -460,7 +481,10 @@ pub fn scan_full(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) ->
         tree: Mutex::default(),
         profile: std::env::var("USERPROFILE").unwrap_or_default().to_lowercase(),
     };
-    let bytes: u64 = roots.par_iter().map(|r| walk(r, &ctx, true, false).0).sum();
+    // Scan rapide : en admin, la table des fichiers NTFS (MFT) est lue d'un bloc ; sinon, ou au moindre doute, parcours classique.
+    let indexes: Vec<Option<mft::Index>> = roots.iter().map(|r| fast_index(r, backup, cancel)).collect();
+    let fast = !indexes.is_empty() && indexes.iter().all(Option::is_some);
+    let bytes: u64 = roots.par_iter().zip(&indexes).map(|(r, ix)| walk(r, mft::ROOT, ix.as_ref(), &ctx, true, false).0).sum();
     // Une racine de disque dans le top n'apprend rien à l'utilisateur.
     let roots_str: Vec<String> = roots.iter().map(|r| r.display().to_string()).collect();
     let mut top_dirs = ctx.dirs.into_sorted();
@@ -481,6 +505,7 @@ pub fn scan_full(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) ->
         denied: progress.denied.load(Relaxed),
         cancelled: cancel.load(Relaxed),
         full_access: backup,
+        fast,
         duration_ms: start.elapsed().as_millis() as u64,
         top_files: ctx.files.into_sorted(),
         top_dirs,
@@ -492,6 +517,15 @@ pub fn scan_full(roots: &[PathBuf], cancel: &AtomicBool, progress: &Progress) ->
         tree,
     };
     (result, ctx.dups.into_inner().unwrap())
+}
+
+/// Index MFT d'une racine de disque (`C:\`), si le scan rapide est possible.
+fn fast_index(root: &Path, admin: bool, cancel: &AtomicBool) -> Option<mft::Index> {
+    if !admin || root.parent().is_some() {
+        return None;
+    }
+    let used = drive_space(root).map_or(0, |d| d.total.saturating_sub(d.free));
+    mft::build(root, cancel, used)
 }
 
 fn sorted(list: Mutex<Vec<Item>>) -> Vec<Item> {

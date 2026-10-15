@@ -862,6 +862,122 @@
     }
   },
   {
+    "id": "gpt4all-models",
+    "match": [
+      "%LOCALAPPDATA%\\nomic.ai\\GPT4All"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "GPT4All AI models (one big file each).",
+      "fr": "Modèles d’IA de GPT4All (un gros fichier chacun)."
+    },
+    "consequence": {
+      "en": "A model you delete must be downloaded again before you can use it.",
+      "fr": "Un modèle supprimé doit être retéléchargé avant de pouvoir l’utiliser."
+    },
+    "howto": {
+      "en": "GPT4All → Models → remove the ones you no longer use.",
+      "fr": "GPT4All → Models → retire ceux que tu n’utilises plus."
+    }
+  },
+  {
+    "id": "jan-models",
+    "match": [
+      "%APPDATA%\\Jan\\data\\models",
+      "%USERPROFILE%\\jan\\models"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Jan AI models.",
+      "fr": "Modèles d’IA de Jan."
+    },
+    "consequence": {
+      "en": "A model you delete must be downloaded again before you can use it.",
+      "fr": "Un modèle supprimé doit être retéléchargé avant de pouvoir l’utiliser."
+    },
+    "howto": {
+      "en": "Jan → Hub or Settings → Models → delete the ones you no longer use.",
+      "fr": "Jan → Hub ou Paramètres → Modèles → supprime ceux que tu n’utilises plus."
+    }
+  },
+  {
+    "id": "pnpm-store",
+    "match": [
+      "%LOCALAPPDATA%\\pnpm\\store",
+      "%LOCALAPPDATA%\\pnpm-store"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "pnpm’s shared package store: the node_modules of your projects link to it.",
+      "fr": "Magasin de paquets partagé de pnpm : les node_modules de tes projets y sont liés."
+    },
+    "consequence": {
+      "en": "Deleting it by hand can break projects whose node_modules point to it. pnpm re-downloads what it needs.",
+      "fr": "Le supprimer à la main peut casser les projets dont le node_modules y pointe. pnpm retélécharge ce dont il a besoin."
+    },
+    "howto": {
+      "en": "pnpm store prune",
+      "fr": "pnpm store prune"
+    }
+  },
+  {
+    "id": "docker-config",
+    "match": [
+      "%USERPROFILE%\\.docker"
+    ],
+    "verdict": "breaks",
+    "what": {
+      "en": "Docker command-line settings and the saved logins to image registries.",
+      "fr": "Réglages de Docker en ligne de commande et connexions enregistrées aux registres d’images."
+    },
+    "consequence": {
+      "en": "You are logged out of every registry (Docker Hub, GitHub…) and lose your Docker contexts.",
+      "fr": "Tu es déconnecté de tous les registres (Docker Hub, GitHub…) et tu perds tes contextes Docker."
+    },
+    "howto": {
+      "en": "Nothing to free here: it is tiny. Free Docker space with docker system prune.",
+      "fr": "Rien à libérer ici : c’est minuscule. Libère la place de Docker avec docker system prune."
+    }
+  },
+  {
+    "id": "unity-editor",
+    "match": [
+      "%ProgramFiles%\\Unity\\Hub\\Editor\\*"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Unity editor version {1}, installed by Unity Hub.",
+      "fr": "Éditeur Unity version {1}, installé par Unity Hub."
+    },
+    "consequence": {
+      "en": "Projects made with this version can no longer be opened with it until you install it again.",
+      "fr": "Les projets faits avec cette version ne s’ouvrent plus avec elle tant que tu ne la réinstalles pas."
+    },
+    "howto": {
+      "en": "Unity Hub → Installs → … on the version → Uninstall. Keep the versions your projects use.",
+      "fr": "Unity Hub → Installs → … sur la version → Uninstall. Garde les versions que tes projets utilisent."
+    }
+  },
+  {
+    "id": "vagrant-boxes",
+    "match": [
+      "%USERPROFILE%\\.vagrant.d\\boxes"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Vagrant virtual machine images (boxes) downloaded for your projects.",
+      "fr": "Images de machines virtuelles Vagrant (boxes) téléchargées pour tes projets."
+    },
+    "consequence": {
+      "en": "A box you delete is downloaded again the next time a project needs it.",
+      "fr": "Une box supprimée est retéléchargée la prochaine fois qu’un projet en a besoin."
+    },
+    "howto": {
+      "en": "vagrant box list, then vagrant box remove <name>.",
+      "fr": "vagrant box list, puis vagrant box remove <nom>."
+    }
+  },
+  {
     "id": "dropbox-cache",
     "match": [
       "**\\Dropbox\\.dropbox.cache"

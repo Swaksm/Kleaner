@@ -2,7 +2,7 @@
 
 [Français](catalog.fr.md) · [Back to the README](../README.md)
 
-Everything Kleaner's built-in catalog can permanently delete (42 items). Items for software you don't have are hidden. "Admin": requires the full scan.
+Everything Kleaner's built-in catalog can permanently delete (45 items). Items for software you don't have are hidden. "Admin": requires the full scan.
 
 | Item | Removes | What changes | Admin |
 |---|---|---|---|
@@ -47,6 +47,9 @@ Everything Kleaner's built-in catalog can permanently delete (42 items). Items f
 | Bun: cache | Packages and build outputs already downloaded by Bun. | The next install or build downloads what is missing again. |  |
 | Composer: cache | Packages and build outputs already downloaded by Composer. | The next install or build downloads what is missing again. |  |
 | Dart/Flutter (pub): cache | Packages and build outputs already downloaded by Dart/Flutter (pub). | The next install or build downloads what is missing again. |  |
+| uv: cache | Python packages downloaded and built by uv. | The next install downloads what is missing again. |  |
+| Poetry: cache | Python packages already downloaded by Poetry. | The next install downloads what is missing again. |  |
+| Cypress: binaries | The Cypress test runner downloaded for your projects. | Cypress downloads again the next time you run tests. |  |
 | Graphics driver installers | Driver packages extracted by NVIDIA and AMD installers (C:\NVIDIA, C:\AMD, NVIDIA downloader). | Nothing. A driver reinstall downloads them again. | yes |
 
 Browser and app caches only target cache folders (`Cache`, `Code Cache`, `GPUCache`, `cache2`…). A test fails the build if a catalog path touches `Cookies`, `Local Storage`, `IndexedDB`, `Login Data`, `Session Storage`, `Network`, `Service Worker`.

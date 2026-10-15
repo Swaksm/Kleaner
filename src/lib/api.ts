@@ -26,6 +26,7 @@ export type ScanResult = {
   denied: number;
   cancelled: boolean;
   full_access: boolean;
+  fast: boolean;
   duration_ms: number;
   top_files: Item[];
   top_dirs: Item[];

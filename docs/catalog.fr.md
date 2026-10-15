@@ -2,7 +2,7 @@
 
 [English](catalog.md) · [Retour au README](../README.fr.md)
 
-Tout ce que le catalogue intégré de Kleaner peut supprimer définitivement (42 éléments). Les éléments de logiciels que tu n'as pas sont masqués. « Admin » : demande l'analyse complète.
+Tout ce que le catalogue intégré de Kleaner peut supprimer définitivement (45 éléments). Les éléments de logiciels que tu n'as pas sont masqués. « Admin » : demande l'analyse complète.
 
 | Élément | Supprime | Ce que ça change | Admin |
 |---|---|---|---|
@@ -47,6 +47,9 @@ Tout ce que le catalogue intégré de Kleaner peut supprimer définitivement (42
 | Bun : cache | Paquets et résultats de build déjà téléchargés par Bun. | Le prochain install ou build retélécharge ce qui manque. |  |
 | Composer : cache | Paquets et résultats de build déjà téléchargés par Composer. | Le prochain install ou build retélécharge ce qui manque. |  |
 | Dart/Flutter (pub) : cache | Paquets et résultats de build déjà téléchargés par Dart/Flutter (pub). | Le prochain install ou build retélécharge ce qui manque. |  |
+| uv : cache | Paquets Python téléchargés et compilés par uv. | Le prochain install retélécharge ce qui manque. |  |
+| Poetry : cache | Paquets Python déjà téléchargés par Poetry. | Le prochain install retélécharge ce qui manque. |  |
+| Cypress : binaires | Le navigateur de test Cypress téléchargé pour tes projets. | Cypress se retélécharge au prochain lancement des tests. |  |
 | Installeurs de pilotes graphiques | Paquets de pilotes extraits par les installeurs NVIDIA et AMD (C:\NVIDIA, C:\AMD, téléchargements NVIDIA). | Rien. Une réinstallation du pilote les retélécharge. | oui |
 
 Les caches de navigateurs et d'applications ne visent que des dossiers de cache (`Cache`, `Code Cache`, `GPUCache`, `cache2`…). Un test fait échouer la compilation si un chemin du catalogue touche `Cookies`, `Local Storage`, `IndexedDB`, `Login Data`, `Session Storage`, `Network`, `Service Worker`.

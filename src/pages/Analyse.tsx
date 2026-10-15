@@ -226,6 +226,11 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
         ))}
         <div className="row">
           {r.full_access && <StatusPill status="ok">{t("analyse.fullAccess")}</StatusPill>}
+          {r.fast && (
+            <span title={t("analyse.fastHint")}>
+              <StatusPill status="ok">{t("analyse.fast")}</StatusPill>
+            </span>
+          )}
           {r.cancelled && <StatusPill status="warn">{t("analyse.cancelled")}</StatusPill>}
           {r.denied > 0 && (
             <StatusPill status="warn">

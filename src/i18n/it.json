@@ -412,5 +412,7 @@
   "cleanup.communityIntro": "Cache, file temporanei e log di altri programmi, dal catalogo comunitario Winapp2. Mai selezionati in automatico: seleziona solo ciò che riconosci. Ogni riga mostra la cartella che svuota.",
   "about.winapp2": "Regole di pulizia della comunità da",
   "rule.propose": "Proponi una regola",
-  "rule.hint": "Kleaner non conosce questo elemento. « Proponi una regola » apre un modulo GitHub nel browser, precompilato senza il tuo nome utente. Lo rileggi e decidi se inviarlo."
+  "rule.hint": "Kleaner non conosce questo elemento. « Proponi una regola » apre un modulo GitHub nel browser, precompilato senza il tuo nome utente. Lo rileggi e decidi se inviarlo.",
+  "analyse.fast": "Scansione NTFS rapida",
+  "analyse.fastHint": "In modalità amministratore, Kleaner ha letto direttamente la tabella dei file NTFS (sola lettura) invece di aprire le cartelle una per una."
 }
