@@ -407,5 +407,8 @@
   "ghosts.remove": "Rimuovi voce",
   "ghosts.confirmTitle": "Rimuovere queste voci dall’elenco dei programmi?",
   "ghosts.confirm": "Non viene eliminato nulla dal disco. Ogni voce viene prima salvata in un file .reg nella cartella di Kleaner e puoi ripristinarla dal Registro.",
-  "ghosts.removed": "voci rimosse dall’elenco"
+  "ghosts.removed": "voci rimosse dall’elenco",
+  "group.community": "Catalogo della comunità",
+  "cleanup.communityIntro": "Cache, file temporanei e log di altri programmi, dal catalogo comunitario Winapp2. Mai selezionati in automatico: seleziona solo ciò che riconosci. Ogni riga mostra la cartella che svuota.",
+  "about.winapp2": "Regole di pulizia della comunità da"
 }

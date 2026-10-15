@@ -13,6 +13,7 @@ pub mod scan;
 pub mod shortcuts;
 pub mod startup;
 pub mod system;
+pub mod winapp2;
 
 use serde::Serialize;
 use std::os::windows::process::CommandExt;

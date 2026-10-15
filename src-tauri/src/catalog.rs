@@ -56,6 +56,9 @@ pub struct Cleaner {
     /// Ne supprime que les fichiers plus vieux que ça (ex. temporaires d'un installeur en cours).
     #[serde(default)]
     pub older_than_hours: u64,
+    /// Ne descend pas dans les sous-dossiers : seulement les fichiers directement dans chaque dossier de `paths`.
+    #[serde(default)]
+    pub flat: bool,
     #[serde(default)]
     pub admin: bool,
     pub mode: Mode,
@@ -68,9 +71,20 @@ pub struct Cleaner {
     pub command: Option<String>,
 }
 
+/// Le catalogue écrit à la main (`cleaners.json`).
+pub fn base() -> &'static [Cleaner] {
+    static BASE: OnceLock<Vec<Cleaner>> = OnceLock::new();
+    BASE.get_or_init(|| serde_json::from_str(CATALOG_JSON).expect("cleaners.json invalide"))
+}
+
+/// Tout ce que Kleaner peut supprimer : le catalogue intégré et le catalogue communautaire Winapp2.
 pub fn all() -> &'static [Cleaner] {
     static CATALOG: OnceLock<Vec<Cleaner>> = OnceLock::new();
-    CATALOG.get_or_init(|| serde_json::from_str(CATALOG_JSON).expect("cleaners.json invalide"))
+    CATALOG.get_or_init(|| {
+        let mut all = base().to_vec();
+        all.extend(crate::winapp2::cleaners());
+        all
+    })
 }
 
 pub fn get(id: &str) -> Option<&'static Cleaner> {
@@ -210,6 +224,10 @@ impl Walk<'_> {
             if is_link(&m) {
                 empty = false; // jamais toucher un lien ni ce vers quoi il pointe
             } else if m.is_dir() {
+                if self.entry.flat {
+                    empty = false;
+                    continue;
+                }
                 let sub_empty = self.dir(&p);
                 let removable = sub_empty && self.entry.only.is_empty() && !self.dry_run;
                 if !(removable && guard::check_delete(&p, self.roots).is_ok() && fs::remove_dir(&p).is_ok()) {
@@ -302,6 +320,7 @@ pub fn delete_project_dirs(dirs: &[PathBuf], journal_dir: &Path) -> Result<Clean
         paths: Vec::new(),
         only: Vec::new(),
         older_than_hours: 0,
+        flat: false,
         admin: false,
         mode: Mode::Delete,
         level: Level::Safe,
@@ -551,6 +570,7 @@ mod tests {
             paths,
             only: vec![],
             older_than_hours: 0,
+            flat: false,
             admin: false,
             mode: Mode::Delete,
             level: Level::Safe,
@@ -688,6 +708,23 @@ mod tests {
         let r = execute(&c, &journal_dir(&s)).unwrap();
         assert_eq!(r.files, 1);
         assert!(keep.exists() && fresh.exists() && !old.exists());
+    }
+
+    /// Winapp2 sans RECURSE : seulement le dossier lui-même (un `.log` de LevelDB dans un sous-dossier reste).
+    #[test]
+    fn flat_never_descends_into_subfolders() {
+        let s = Sandbox::new("flat");
+        let top = s.file("app/debug.log", 10);
+        let deep = s.file("app/Local Storage/leveldb/000003.log", 10);
+        let mut c = cleaner(vec![s.0.join("app").display().to_string()]);
+        c.only = vec!["*.log".into()];
+        c.flat = true;
+        let r = execute(&c, &journal_dir(&s)).unwrap();
+        assert_eq!(r.files, 1);
+        assert!(!top.exists() && deep.exists());
+        c.flat = false;
+        execute(&c, &journal_dir(&s)).unwrap();
+        assert!(!deep.exists(), "sans flat, la descente reste le comportement normal");
     }
 
     #[test]

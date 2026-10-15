@@ -55,12 +55,14 @@ export const openMedia = (path: string) => invoke<void>("open_media", { path });
 export type Text = { fr: string; en: string };
 export type Cleaner = {
   id: string;
-  group: "windows" | "browsers" | "apps" | "dev" | "system" | "heavy";
+  group: "windows" | "browsers" | "apps" | "dev" | "community" | "system" | "heavy";
   label: Text;
   what: Text;
   why: Text;
   effect: Text;
   paths: string[];
+  only: string[];
+  flat: boolean;
   admin: boolean;
   mode: "delete" | "command";
   level: "safe" | "heavy";

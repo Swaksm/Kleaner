@@ -36,6 +36,8 @@ const cleaner = (id: string, admin: boolean): Cleaner => ({
   why: text,
   effect: { fr: "Rien.", en: "Nothing." },
   paths: [],
+  only: [],
+  flat: false,
   admin,
   mode: "delete",
   level: "safe",

@@ -26,6 +26,7 @@ const dev = fence("bash", [
   "npm run tauri build -- --no-bundle",
 ]);
 const cleanersLink = "[" + code("src-tauri/cleaners.json") + "](src-tauri/cleaners.json)";
+const winapp2Link = "[" + code("src-tauri/winapp2.json") + "](src-tauri/winapp2.json)";
 const knowledgeLink = "[" + code("knowledge.json") + "](src-tauri/knowledge.json)";
 const guardLink = "[" + code("guard.rs") + "](src-tauri/src/guard.rs)";
 const forbidden = ["Cookies", "Local Storage", "IndexedDB", "Login Data", "Session Storage", "Network", "Service Worker"].map(code).join(", ");
@@ -45,7 +46,7 @@ const en = [
   "- **Old projects**: finds " + code("node_modules") + ", " + code(".venv") + ", " + code("target") + ", " + code("build") + "… in projects you haven’t touched for months, with the command that rebuilds them.",
   "- **Disk map**: every folder as a rectangle sized by its space; click to go inside.",
   "- **Photos & videos**: lists every personal photo and video, sortable and searchable, with a list or grid view and a built-in viewer; send the ones you no longer need to the Recycle Bin.",
-  "- **Cleans** the items of the [catalog](#catalog): each one says what it removes, why it is useless and what changes for you. Nothing is ticked in advance, and « Preview the exact list » shows every file before anything is deleted.",
+  "- **Cleans** the items of the [catalog](#catalog): each one says what it removes, why it is useless and what changes for you. Nothing is ticked in advance, and « Preview the exact list » shows every file before anything is deleted. A community catalog adds about a thousand caches, temporary files and logs of other programs (from [Winapp2](https://github.com/MoscaDotTo/Winapp2), filtered).",
   "- **Uninstalls** programs by launching their official uninstaller, with real size on disk and last launch date. Finds leftovers of uninstalled programs and dead entries in the programs list.",
   "- **Startup**: lists what starts with Windows (registry, startup folders, scheduled tasks, services) with the measured boot time. Turning an item off deletes nothing and can be undone.",
   "- **Health & security** (read-only): disks, battery, crashes, pending restart, Windows files integrity, antivirus, firewall, Secure Boot, BitLocker… Kleaner changes nothing and is not an antivirus: each alert opens the Windows screen that fixes it.",
@@ -62,7 +63,7 @@ const en = [
   "- Clean or \"repair\" the registry. It writes there only on your request, and only two things: the on/off switch of a startup item, and the removal of a dead program entry (saved to a .reg file first, restorable from the Log).",
   "- Connect to the Internet: **no telemetry, no automatic updates**.",
   "- Ask for admin rights unless you click \"Full scan (admin)\".",
-  "- Permanently delete a file outside the folders listed in " + cleanersLink + ". This is enforced in Rust (" + guardLink + ") and covered by tests. Personal files only ever go to the Recycle Bin.",
+  "- Permanently delete a file outside the folders listed in " + cleanersLink + " and " + winapp2Link + ". This is enforced in Rust (" + guardLink + ") and covered by tests. Personal files only ever go to the Recycle Bin.",
   "",
   "## Download",
   "",
@@ -81,8 +82,6 @@ const en = [
   "(winget: coming soon, see [docs/distribution.md](docs/distribution.md).)",
   "",
   "**Windows warning (SmartScreen).** The exe is not signed (a certificate is expensive for a free project). Windows shows \"Windows protected your PC\": click *More info* then *Run anyway*. Some antivirus tools may also react, because Kleaner deletes files and can ask for admin rights. All the code is readable here, and the exe is built by GitHub Actions from this code.",
-  "",
-  "Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).",
   "",
   "Requires 64-bit Windows 10 or 11 (WebView2, included in Windows 11 and up-to-date Windows 10).",
   "",
@@ -108,6 +107,8 @@ const en = [
   "",
   "Made by [swaks](https://github.com/Swaksm). MIT [license](LICENSE), no warranty.",
   "",
+  "The community catalog (" + code("src-tauri/winapp2.json") + ") is derived from [Winapp2](https://github.com/MoscaDotTo/Winapp2) by the Winapp2 project, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). See [WINAPP2-NOTICE.md](WINAPP2-NOTICE.md). Everything else is MIT.",
+  "",
 ].join("\n");
 
 const fr = [
@@ -125,7 +126,7 @@ const fr = [
   "- **Vieux projets** : retrouve les " + code("node_modules") + ", " + code(".venv") + ", " + code("target") + ", " + code("build") + "… des projets pas touchés depuis des mois, avec la commande qui les recrée.",
   "- **Carte du disque** : chaque dossier en rectangle à la taille de sa place ; clique pour entrer.",
   "- **Photos & vidéos** : toutes tes photos et vidéos personnelles, triables et cherchables, en liste ou en grille, avec une visionneuse intégrée ; envoie à la Corbeille celles dont tu n'as plus besoin.",
-  "- **Nettoie** les éléments du [catalogue](#catalogue) : chacun dit ce qu'il supprime, pourquoi c'est inutile et ce que ça change. Rien n'est coché d'avance, et « Voir la liste exacte » montre chaque fichier avant toute suppression.",
+  "- **Nettoie** les éléments du [catalogue](#catalogue) : chacun dit ce qu'il supprime, pourquoi c'est inutile et ce que ça change. Rien n'est coché d'avance, et « Voir la liste exacte » montre chaque fichier avant toute suppression. Un catalogue communautaire ajoute environ mille caches, fichiers temporaires et journaux d’autres programmes (tirés de [Winapp2](https://github.com/MoscaDotTo/Winapp2), filtrés).",
   "- **Désinstalle** des programmes via leur désinstalleur officiel, avec taille réelle et date du dernier lancement. Retrouve les restes de programmes désinstallés et les entrées mortes de la liste des programmes.",
   "- **Démarrage** : liste ce qui se lance avec Windows (registre, dossiers Démarrage, tâches planifiées, services) avec la durée de démarrage mesurée. Désactiver un élément ne supprime rien et se défait.",
   "- **Santé et sécurité** (lecture seule) : disques, batterie, plantages, redémarrage en attente, intégrité des fichiers de Windows, antivirus, pare-feu, Secure Boot, BitLocker… Kleaner ne change rien et n’est pas un antivirus : chaque alerte ouvre l’écran de Windows qui la règle.",
@@ -142,7 +143,7 @@ const fr = [
   "- Nettoyer ou « réparer » le registre. Il n’y écrit que sur ta demande, et seulement deux choses : l’interrupteur d’un programme au démarrage, et le retrait d’une entrée de programme morte (sauvegardée d’abord dans un fichier .reg, restaurable depuis le Journal).",
   "- Se connecter à Internet : **aucune télémétrie, aucune mise à jour automatique**.",
   "- Demander les droits admin sans que tu cliques sur « Analyse complète (admin) ».",
-  "- Supprimer définitivement un fichier hors des dossiers listés dans " + cleanersLink + " (vérifié en Rust par " + guardLink + ", couvert par des tests). Les fichiers personnels vont toujours à la Corbeille.",
+  "- Supprimer définitivement un fichier hors des dossiers listés dans " + cleanersLink + " et " + winapp2Link + " (vérifié en Rust par " + guardLink + ", couvert par des tests). Les fichiers personnels vont toujours à la Corbeille.",
   "",
   "## Télécharger",
   "",
@@ -162,8 +163,6 @@ const fr = [
   "",
   "**Avertissement Windows (SmartScreen).** L'exe n'est pas signé. Windows affiche « Windows a protégé votre ordinateur » : clique sur *Informations complémentaires* puis *Exécuter quand même*. Certains antivirus peuvent réagir, car Kleaner supprime des fichiers et peut demander les droits admin. Tout le code est lisible ici, et l'exe est compilé par GitHub Actions à partir de ce code.",
   "",
-  "Signature de code gratuite fournie par [SignPath.io](https://signpath.io), certificat de la [SignPath Foundation](https://signpath.org).",
-  "",
   "## Retirer Kleaner",
   "",
   "*Paramètres → Retirer Kleaner* efface " + code("%LOCALAPPDATA%\\Kleaner") + " et " + code("%LOCALAPPDATA%\\com.swaksm.kleaner") + ". Supprime ensuite " + code("kleaner.exe") + ".",
@@ -177,6 +176,8 @@ const fr = [
   "## Crédits",
   "",
   "Créé par [swaks](https://github.com/Swaksm). Licence [MIT](LICENSE), sans garantie.",
+  "",
+  "Le catalogue communautaire (" + code("src-tauri/winapp2.json") + ") est dérivé de [Winapp2](https://github.com/MoscaDotTo/Winapp2), du projet Winapp2, sous licence [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Voir [WINAPP2-NOTICE.md](WINAPP2-NOTICE.md). Tout le reste est sous MIT.",
   "",
 ].join("\n");
 

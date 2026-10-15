@@ -407,5 +407,8 @@
   "ghosts.remove": "Quitar entrada",
   "ghosts.confirmTitle": "¿Quitar estas entradas de la lista de programas?",
   "ghosts.confirm": "No se elimina nada de tu disco. Cada entrada se guarda antes en un archivo .reg de la carpeta de Kleaner y puedes restaurarla desde el Diario.",
-  "ghosts.removed": "entradas quitadas de la lista"
+  "ghosts.removed": "entradas quitadas de la lista",
+  "group.community": "Catálogo comunitario",
+  "cleanup.communityIntro": "Cachés, archivos temporales y registros de otros programas, del catálogo comunitario Winapp2. Nunca se marcan solos: marca solo lo que reconozcas. Cada línea indica la carpeta que vacía.",
+  "about.winapp2": "Reglas de limpieza comunitarias de"
 }

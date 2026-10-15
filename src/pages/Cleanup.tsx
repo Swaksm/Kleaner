@@ -17,7 +17,7 @@ import {
 } from "../lib/api";
 import { formatBytes } from "../lib/format";
 
-const GROUPS = ["windows", "browsers", "apps", "dev", "system"] as const;
+const GROUPS = ["windows", "browsers", "apps", "dev", "community", "system"] as const;
 // Ordre fixe = ordre des couleurs du graphique.
 const CHART_GROUPS = ["windows", "browsers", "apps", "dev", "system", "heavy"] as const;
 
@@ -38,7 +38,8 @@ export function Cleanup() {
   /// Sans risque et utile : niveau safe, quelque chose à gagner, rien qui bloque.
   const selectable = (c: Cleaner, map: Map<string, CleanReport>) => {
     const r = map.get(c.id);
-    return c.level === "safe" && !!r && r.bytes > 0 && r.blocked_by.length === 0;
+    // Le catalogue communautaire n'est jamais coché en bloc.
+    return c.level === "safe" && c.group !== "community" && !!r && r.bytes > 0 && r.blocked_by.length === 0;
   };
 
   // Jamais de sélection automatique : l'utilisateur coche lui-même, ou clique « Cocher les éléments sans risque ».
@@ -103,7 +104,7 @@ export function Cleanup() {
   const chosen = [...selected].map((id) => byId.get(id)!).filter(Boolean);
   const chosenBytes = chosen.reduce((s, c) => s + (estimates?.get(c.id)?.bytes ?? 0), 0);
   const freed = results?.reduce((s, r) => s + r.bytes, 0) ?? 0;
-  const recoverable = [...(estimates?.values() ?? [])].reduce((s, r) => s + r.bytes, 0);
+  const recoverable = view.cleaners.filter((c) => c.group !== "community").reduce((s, c) => s + (estimates?.get(c.id)?.bytes ?? 0), 0);
 
   return (
     <>
@@ -198,6 +199,7 @@ export function Cleanup() {
         if (all.length === 0) return null;
         return (
           <Card key={g} title={t(`group.${g}` as Key)}>
+            {g === "community" && <p className="muted">{t("cleanup.communityIntro")}</p>}
             {items.length === 0 && <p className="muted">{t("cleanup.nothing")}</p>}
             {items.map((c) => (
               <CleanerCard
@@ -207,6 +209,7 @@ export function Cleanup() {
                 locked={lockReason(c)}
                 checked={selected.has(c.id)}
                 onToggle={() => toggle(c.id)}
+                compact={g === "community"}
               />
             ))}
           </Card>

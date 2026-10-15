@@ -11,6 +11,7 @@ export function CleanerCard({
   locked,
   checked,
   onToggle,
+  compact,
   children,
 }: {
   cleaner: Cleaner;
@@ -19,6 +20,8 @@ export function CleanerCard({
   locked?: string;
   checked?: boolean;
   onToggle?: () => void;
+  /** Catalogue communautaire : le texte est le même partout, on montre seulement les dossiers vidés. */
+  compact?: boolean;
   children?: ReactNode;
 }) {
   const { t, lang, tl } = useT();
@@ -42,7 +45,12 @@ export function CleanerCard({
         )}
         <span className="num">{size}</span>
       </div>
-      <dl className="cleaner-info">
+      {compact && (
+        <span className="muted path small" title={cleaner.only.length ? cleaner.only.join(", ") : undefined}>
+          {cleaner.paths.join(" · ")}
+        </span>
+      )}
+      <dl className="cleaner-info" hidden={compact}>
         <dt>{t("cleanup.what")}</dt>
         <dd>{cleaner.what[tl]}</dd>
         <dt>{t("cleanup.why")}</dt>

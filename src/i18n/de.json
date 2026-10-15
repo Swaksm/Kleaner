@@ -407,5 +407,8 @@
   "ghosts.remove": "Eintrag entfernen",
   "ghosts.confirmTitle": "Diese Einträge aus der Programmliste entfernen?",
   "ghosts.confirm": "Auf deinem Datenträger wird nichts gelöscht. Jeder Eintrag wird zuerst in einer .reg-Datei im Kleaner-Ordner gesichert und lässt sich über das Journal wiederherstellen.",
-  "ghosts.removed": "Einträge aus der Liste entfernt"
+  "ghosts.removed": "Einträge aus der Liste entfernt",
+  "group.community": "Community-Katalog",
+  "cleanup.communityIntro": "Caches, temporäre Dateien und Protokolle anderer Programme aus dem Community-Katalog Winapp2. Nie von selbst angehakt: Hake nur an, was du kennst. Jede Zeile zeigt den Ordner, der geleert wird.",
+  "about.winapp2": "Community-Bereinigungsregeln von"
 }

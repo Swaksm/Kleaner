@@ -12,7 +12,7 @@ Free, open-source and **transparent** Windows cleaner. Kleaner scans your drives
 - **Old projects**: finds `node_modules`, `.venv`, `target`, `build`… in projects you haven’t touched for months, with the command that rebuilds them.
 - **Disk map**: every folder as a rectangle sized by its space; click to go inside.
 - **Photos & videos**: lists every personal photo and video, sortable and searchable, with a list or grid view and a built-in viewer; send the ones you no longer need to the Recycle Bin.
-- **Cleans** the items of the [catalog](#catalog): each one says what it removes, why it is useless and what changes for you. Nothing is ticked in advance, and « Preview the exact list » shows every file before anything is deleted.
+- **Cleans** the items of the [catalog](#catalog): each one says what it removes, why it is useless and what changes for you. Nothing is ticked in advance, and « Preview the exact list » shows every file before anything is deleted. A community catalog adds about a thousand caches, temporary files and logs of other programs (from [Winapp2](https://github.com/MoscaDotTo/Winapp2), filtered).
 - **Uninstalls** programs by launching their official uninstaller, with real size on disk and last launch date. Finds leftovers of uninstalled programs and dead entries in the programs list.
 - **Startup**: lists what starts with Windows (registry, startup folders, scheduled tasks, services) with the measured boot time. Turning an item off deletes nothing and can be undone.
 - **Health & security** (read-only): disks, battery, crashes, pending restart, Windows files integrity, antivirus, firewall, Secure Boot, BitLocker… Kleaner changes nothing and is not an antivirus: each alert opens the Windows screen that fixes it.
@@ -29,7 +29,7 @@ Free, open-source and **transparent** Windows cleaner. Kleaner scans your drives
 - Clean or "repair" the registry. It writes there only on your request, and only two things: the on/off switch of a startup item, and the removal of a dead program entry (saved to a .reg file first, restorable from the Log).
 - Connect to the Internet: **no telemetry, no automatic updates**.
 - Ask for admin rights unless you click "Full scan (admin)".
-- Permanently delete a file outside the folders listed in [`src-tauri/cleaners.json`](src-tauri/cleaners.json). This is enforced in Rust ([`guard.rs`](src-tauri/src/guard.rs)) and covered by tests. Personal files only ever go to the Recycle Bin.
+- Permanently delete a file outside the folders listed in [`src-tauri/cleaners.json`](src-tauri/cleaners.json) and [`src-tauri/winapp2.json`](src-tauri/winapp2.json). This is enforced in Rust ([`guard.rs`](src-tauri/src/guard.rs)) and covered by tests. Personal files only ever go to the Recycle Bin.
 
 ## Download
 
@@ -53,8 +53,6 @@ scoop install kleaner/kleaner
 (winget: coming soon, see [docs/distribution.md](docs/distribution.md).)
 
 **Windows warning (SmartScreen).** The exe is not signed (a certificate is expensive for a free project). Windows shows "Windows protected your PC": click *More info* then *Run anyway*. Some antivirus tools may also react, because Kleaner deletes files and can ask for admin rights. All the code is readable here, and the exe is built by GitHub Actions from this code.
-
-Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
 
 Requires 64-bit Windows 10 or 11 (WebView2, included in Windows 11 and up-to-date Windows 10).
 
@@ -130,3 +128,5 @@ Requirements: Node 22+, stable Rust, Visual Studio Build Tools (C++). Specificat
 ## Credits
 
 Made by [swaks](https://github.com/Swaksm). MIT [license](LICENSE), no warranty.
+
+The community catalog (`src-tauri/winapp2.json`) is derived from [Winapp2](https://github.com/MoscaDotTo/Winapp2) by the Winapp2 project, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). See [WINAPP2-NOTICE.md](WINAPP2-NOTICE.md). Everything else is MIT.

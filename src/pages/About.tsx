@@ -8,6 +8,7 @@ import { useT, type Key } from "../i18n/useT";
 
 const REPO = "https://github.com/Swaksm/Kleaner";
 const AUTHOR = "https://github.com/Swaksm";
+const WINAPP2 = "https://github.com/MoscaDotTo/Winapp2";
 
 const DOES: Key[] = ["about.does.scan", "about.does.clean", "about.does.explain", "about.does.trash", "about.does.log"];
 const NEVER: Key[] = ["about.never.confirm", "about.never.sessions", "about.never.registry", "about.never.network", "about.never.admin"];
@@ -45,6 +46,13 @@ export function About() {
           <button className="link" onClick={() => openUrl(AUTHOR)}>
             swaks
           </button>
+        </p>
+        <p className="muted small">
+          {t("about.winapp2")}{" "}
+          <button className="link" onClick={() => openUrl(WINAPP2)}>
+            Winapp2
+          </button>{" "}
+          (CC BY-SA 4.0)
         </p>
         <div className="row">
           <button className="btn btn-primary" onClick={() => openUrl(REPO)}>

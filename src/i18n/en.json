@@ -407,5 +407,8 @@
   "ghosts.remove": "Remove entry",
   "ghosts.confirmTitle": "Remove these entries from the programs list?",
   "ghosts.confirm": "Nothing on your disk is deleted. Each entry is first saved to a .reg file in the Kleaner folder, and you can restore it from the Log.",
-  "ghosts.removed": "entries removed from the list"
+  "ghosts.removed": "entries removed from the list",
+  "group.community": "Community catalog",
+  "cleanup.communityIntro": "Caches, temporary files and logs of other programs, from the community Winapp2 catalog. Never ticked for you: tick only what you recognise. Each line shows the folder it empties.",
+  "about.winapp2": "Community cleaning rules from"
 }

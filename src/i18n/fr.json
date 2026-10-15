@@ -407,5 +407,8 @@
   "ghosts.remove": "Retirer l’entrée",
   "ghosts.confirmTitle": "Retirer ces entrées de la liste des programmes ?",
   "ghosts.confirm": "Rien n’est supprimé sur ton disque. Chaque entrée est d’abord enregistrée dans un fichier .reg du dossier de Kleaner, et tu peux la restaurer depuis le Journal.",
-  "ghosts.removed": "entrées retirées de la liste"
+  "ghosts.removed": "entrées retirées de la liste",
+  "group.community": "Catalogue communautaire",
+  "cleanup.communityIntro": "Caches, fichiers temporaires et journaux d’autres programmes, tirés du catalogue communautaire Winapp2. Jamais cochés d’office : coche seulement ce que tu reconnais. Chaque ligne indique le dossier vidé.",
+  "about.winapp2": "Règles de nettoyage communautaires de"
 }

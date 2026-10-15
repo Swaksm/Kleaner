@@ -7,7 +7,7 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 
 - **Aucune attribution Claude** dans les commits, PR, fichiers (pas de `Co-Authored-By`).
 - **Aucun réseau**, sauf la vérification de mise à jour optionnelle (désactivée par défaut, `api.github.com`, autorisée dans la CSP). Windows Update et winget ne contactent Internet que sur clic.
-- **Suppression définitive** seulement dans les dossiers de `src-tauri/cleaners.json` (vérifié par `guard::check_delete`), ou les dossiers régénérables de projets trouvés par la dernière analyse (`delete_artifacts`).
+- **Suppression définitive** seulement dans les dossiers de `src-tauri/cleaners.json` et `src-tauri/winapp2.json` (vérifié par `guard::check_delete`), ou les dossiers régénérables de projets trouvés par la dernière analyse (`delete_artifacts`).
 - **Fichiers personnels et restes de programmes** : Corbeille uniquement (`guard::check_trash`, restaurable depuis le Journal).
 - **Registre** : aucun nettoyage ni « réparation ». Seulement, sur demande et réversible : `StartupApproved` (démarrage) et la suppression d'une entrée fantôme de la liste des programmes, après sauvegarde `.reg` (SPEC, révision 8).
 - **Liens et jonctions jamais suivis.** Fichiers verrouillés ignorés et comptés.
@@ -23,6 +23,7 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `scan.rs` : parcours parallèle (rayon). Produit top fichiers et dossiers, catégories, médias, doublons candidats, artifacts, arbre ≥ 64 Mo et espace des disques. Lecture en mode sauvegarde (`SeBackupPrivilege`) quand Kleaner est admin.
 - `catalog.rs` + `cleaners.json` : nettoyages (mode `delete` ou `command`, niveau `safe` ou `heavy`), estimation, simulation (`preview`), `delete_project_dirs`.
 - `knowledge.rs` + `knowledge.json` : verdicts. Ordre : règles précises → catalogue → programme propriétaire → règles générales → inconnu. Jokers `*`, `?`, `**`, captures `{1}`.
+- `winapp2.rs` + `winapp2.json` : catalogue communautaire (Winapp2, CC BY-SA 4.0), converti et filtré (`entry_ok`), fusionné dans `catalog::all()` ; `catalog::base()` = le catalogue écrit à la main. Voir `WINAPP2-NOTICE.md`.
 - `duplicates.rs` : taille → échantillon → blake3, contenu personnel seulement.
 - `leftovers.rs` : restes de programmes désinstallés (AppData, Programs, dossiers d'outils ; Program Files et ProgramData signalés seulement).
 - `programs.rs` : registre, taille réelle, dernier lancement (Prefetch, admin), désinstalleur officiel.
@@ -72,7 +73,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 
 ## En cours
 
-- **SignPath** : candidature envoyée (projet récent, refus possible). Une fois acceptée : projet `kleaner`, politique `release-signing`, configuration `portable-exe`, secret et variable dans GitHub (`docs/signing.md`).
+- **SignPath** : refusé pour l'instant (il faut plus d'étoiles et de visibilité) ; README sans mention de signature. À redemander plus tard. Une fois acceptée : projet `kleaner`, politique `release-signing`, configuration `portable-exe`, secret et variable dans GitHub (`docs/signing.md`).
 - **E2E en CI** : en lancement manuel. Sur les machines GitHub, WebView2 n'ouvre pas son port de débogage (« DevToolsActivePort file doesn't exist ») alors que l'exe démarre. En local, tout passe.
 - **Jamais testés en vrai** : nettoyages lourds (Windows.old, DISM, hibernation, points de restauration), recherche Windows Update, mise à jour d'une appli par winget, restauration et OneDrive dans l'exe.
 - **Feuille de route v0.3+ réalisée** (T18 à T22, `SPEC.md` révision 8) : démarrage, raccourcis cassés, santé et sécurité, entrées fantômes, Dropbox. Jamais testés dans l'exe : désactivation d'un élément de démarrage, suppression d'une entrée fantôme, durées de démarrage (admin). Pas de « nettoyage du registre » ni de « boosts ».

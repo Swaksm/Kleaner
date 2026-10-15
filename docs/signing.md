@@ -1,5 +1,7 @@
 # Signer kleaner.exe (supprimer l'avertissement SmartScreen)
 
+> **État (octobre 2026) :** SignPath a répondu qu'il faut plus d'étoiles et de visibilité avant d'accepter le projet. L'exe reste non signé ; à redemander plus tard. Le README ne mentionne donc pas de signature.
+
 Un exe signé affiche « Éditeur : … » au lieu de « Éditeur inconnu ». La réputation SmartScreen se construit ensuite avec les téléchargements.
 
 **SignPath Foundation** signe gratuitement les projets open source. Le workflow de release est déjà prêt : il signe automatiquement dès que les secrets existent, et publie sans signature sinon.
