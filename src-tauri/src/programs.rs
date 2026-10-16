@@ -271,17 +271,23 @@ pub struct Ghost {
     pub command: String,
 }
 
-/// Vrai seulement si on est sûr : désinstalleur sur un chemin absolu complet, dans un disque présent,
-/// introuvable, et dossier d'installation absent ou inexistant.
-fn is_ghost(command: &str, install_location: &str) -> bool {
+fn gone(p: &str) -> bool {
+    matches!(std::fs::symlink_metadata(p), Err(e) if e.kind() == std::io::ErrorKind::NotFound)
+}
+
+/// Le programme lancé par cette commande n'existe plus ? Vrai seulement si on est sûr : chemin absolu complet,
+/// sans variable d'environnement, sur un disque présent, et introuvable.
+pub fn exe_missing(command: &str) -> bool {
     let Some((exe, _)) = split_command(command) else { return false };
     let b = exe.as_bytes();
-    if exe.contains('%') || b.len() < 4 || b[1] != b':' || b[2] != b'\\' || !Path::new(&exe[..3]).exists() {
-        return false;
-    }
-    let gone = |p: &str| matches!(std::fs::symlink_metadata(p), Err(e) if e.kind() == std::io::ErrorKind::NotFound);
+    let absolute = b.len() >= 4 && b[1] == b':' && b[2] == b'\\' && !exe.contains('%') && Path::new(&exe[..3]).exists();
+    absolute && gone(&exe)
+}
+
+/// Désinstalleur introuvable (voir `exe_missing`) et dossier d'installation déclaré absent ou inexistant.
+fn is_ghost(command: &str, install_location: &str) -> bool {
     let loc = install_location.trim().trim_matches('"');
-    gone(&exe) && (loc.is_empty() || (!loc.contains('%') && gone(loc)))
+    exe_missing(command) && (loc.is_empty() || (!loc.contains('%') && gone(loc)))
 }
 
 pub fn ghosts() -> Vec<Ghost> {
@@ -458,6 +464,8 @@ mod tests {
         assert!(is_ghost(&q(&gone), ""), "désinstalleur et dossier absents");
         assert!(!is_ghost(&q(&gone), &dir.display().to_string()), "le dossier d'installation existe encore");
         assert!(is_ghost(&q(&gone), &dir.join("nope").display().to_string()));
+        assert!(exe_missing(&q(&gone)) && !exe_missing(&q(&real)), "programme absent / présent");
+        assert!(!exe_missing("notepad.exe") && !exe_missing(""), "chemin relatif ou vide : on ne conclut pas");
         assert!(!is_ghost("MsiExec.exe /X{ABC}", ""), "chemin relatif : on ne conclut pas");
         assert!(!is_ghost("\"%ProgramFiles%\\x\\u.exe\"", ""), "variable : on ne conclut pas");
         std::fs::remove_dir_all(&dir).unwrap();

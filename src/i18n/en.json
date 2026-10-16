@@ -415,5 +415,7 @@
   "rule.hint": "Kleaner does not know this item. “Propose a rule” opens a GitHub form in your browser, pre-filled without your user name. You read it and decide whether to send it.",
   "analyse.fast": "Fast NTFS scan",
   "analyse.fastHint": "In administrator mode, Kleaner read the NTFS file table directly (read-only) instead of opening folders one by one.",
-  "leftovers.warn.android": "Other tools may use it (Flutter, React Native, Unity…). Remove it only if you no longer develop for Android."
+  "leftovers.warn.android": "Other tools may use it (Flutter, React Native, Unity…). Remove it only if you no longer develop for Android.",
+  "startup.missing": "Program missing",
+  "startup.missingHint": "The program this entry starts no longer exists, so it does nothing. Turn it off here (startup items and tasks) or remove it in Windows (Services)."
 }

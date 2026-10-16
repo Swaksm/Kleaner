@@ -270,6 +270,7 @@ const startup = (name: string, command: string, o: Partial<StartupItem> = {}): S
   can_toggle: true,
   keep: false,
   slow_ms: 0,
+  missing: false,
   ...o,
 });
 

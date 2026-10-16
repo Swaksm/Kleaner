@@ -95,6 +95,11 @@ export function Startup() {
                       <StatusPill status="neutral">{t("startup.keep")}</StatusPill>
                     </span>
                   )}
+                  {i.missing && (
+                    <span title={t("startup.missingHint")}>
+                      <StatusPill status="warn">{t("startup.missing")}</StatusPill>
+                    </span>
+                  )}
                 </span>
                 {i.enabled ? (
                   <button className="btn btn-small" disabled={busy === i.id} onClick={() => (i.keep ? setAsking(i) : change(i, false))}>
@@ -126,6 +131,11 @@ export function Startup() {
                 <span className="muted small">{t("startup.source.service")}</span>
                 <span className="tags">
                   {i.keep && <StatusPill status="neutral">{t("startup.keep")}</StatusPill>}
+                  {i.missing && (
+                    <span title={t("startup.missingHint")}>
+                      <StatusPill status="warn">{t("startup.missing")}</StatusPill>
+                    </span>
+                  )}
                 </span>
                 <span className="muted small">{i.enabled ? t("startup.running") : t("startup.stopped")}</span>
               </li>

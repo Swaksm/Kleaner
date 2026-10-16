@@ -200,6 +200,7 @@ export type StartupItem = {
   can_toggle: boolean;
   keep: boolean;
   slow_ms: number;
+  missing: boolean;
 };
 export type Boot = { time: number; boot_ms: number };
 export const listStartup = () => invoke<{ items: StartupItem[]; boots: Boot[] }>("list_startup");

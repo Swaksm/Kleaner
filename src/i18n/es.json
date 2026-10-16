@@ -415,5 +415,7 @@
   "rule.hint": "Kleaner no conoce este elemento. « Proponer una regla » abre un formulario de GitHub en tu navegador, rellenado sin tu nombre de usuario. Lo revisas y decides si lo envías.",
   "analyse.fast": "Análisis NTFS rápido",
   "analyse.fastHint": "En modo administrador, Kleaner leyó directamente la tabla de archivos NTFS (solo lectura) en lugar de abrir las carpetas una por una.",
-  "leftovers.warn.android": "Otras herramientas pueden usarlo (Flutter, React Native, Unity…). Quítalo solo si ya no desarrollas para Android."
+  "leftovers.warn.android": "Otras herramientas pueden usarlo (Flutter, React Native, Unity…). Quítalo solo si ya no desarrollas para Android.",
+  "startup.missing": "Programa ausente",
+  "startup.missingHint": "El programa que inicia esta entrada ya no existe, así que no hace nada. Desactívala aquí (inicio y tareas) o quítala en Windows (Servicios)."
 }

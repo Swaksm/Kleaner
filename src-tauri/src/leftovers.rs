@@ -28,15 +28,73 @@ const SHARED: &[&str] = &[
 
 /// Dossiers cachés du profil qui appartiennent à une appli précise : (nom, mots du nom de l'appli).
 // .android n'y est pas : il a son propre cas (avertissement), car Flutter et d'autres outils s'en servent aussi.
-const DOT_OWNERS: [(&str, &[&str]); 7] = [
+const DOT_OWNERS: &[(&str, &[&str])] = &[
     (".vscode", &["visual studio code"]),
     (".cursor", &["cursor"]),
     (".windsurf", &["windsurf"]),
+    (".trae", &["trae"]),
     (".eclipse", &["eclipse"]),
     (".p2", &["eclipse"]),
     (".matplotlib", &["python"]),
+    (".spyder-py3", &["spyder"]),
     (".dbus-keyrings", &["git"]),
+    (".docker", &["docker"]),
+    (".ollama", &["ollama"]),
+    (".lmstudio", &["lm studio"]),
+    (".virtualbox", &["virtualbox"]),
+    (".vagrant.d", &["vagrant"]),
+    (".arduinoide", &["arduino"]),
+    (".gimp-2.10", &["gimp"]),
 ];
+
+/// Dossiers « produit » rangés dans le dossier d'un éditeur (partagé : jamais proposé en entier) :
+/// (éditeur normalisé, [(début du nom du dossier normalisé, mot qui doit figurer dans le nom d'un programme installé)]).
+/// Un dossier de produit n'est proposé que si aucun programme installé ne porte ce mot.
+const PRODUCTS: &[(&str, &[(&str, &str)])] = &[
+    ("google", &[("androidstudio", "androidstudio")]),
+    (
+        "jetbrains",
+        &[
+            ("intellijidea", "intellij"),
+            ("ideaic", "intellij"),
+            ("ideaiu", "intellij"),
+            ("pycharm", "pycharm"),
+            ("webstorm", "webstorm"),
+            ("phpstorm", "phpstorm"),
+            ("clion", "clion"),
+            ("goland", "goland"),
+            ("rider", "rider"),
+            ("rubymine", "rubymine"),
+            ("datagrip", "datagrip"),
+            ("dataspell", "dataspell"),
+            ("appcode", "appcode"),
+            ("rustrover", "rustrover"),
+            ("fleet", "fleet"),
+        ],
+    ),
+    (
+        "adobe",
+        &[
+            ("premierepro", "premiere"),
+            ("aftereffects", "aftereffects"),
+            ("photoshop", "photoshop"),
+            ("illustrator", "illustrator"),
+            ("lightroom", "lightroom"),
+            ("indesign", "indesign"),
+            ("audition", "audition"),
+            ("mediaencoder", "mediaencoder"),
+            ("animate", "animate"),
+            ("dreamweaver", "dreamweaver"),
+            ("incopy", "incopy"),
+            ("prelude", "prelude"),
+            ("characteranimator", "characteranimator"),
+        ],
+    ),
+];
+
+/// Réglages rangés dans Documents par des outils de développement : (début du nom normalisé, mot du nom du programme).
+const DOC_OWNERS: &[(&str, &str)] =
+    &[("visualstudio20", "visual studio"), ("sqlservermanagementstudio", "sql server management"), ("iisexpress", "iis express")];
 
 /// Composants de Windows sans entrée « Programmes » : jamais proposés (préfixes normalisés).
 const SYSTEM_PREFIXES: [&str; 12] = [
@@ -73,9 +131,18 @@ fn android_sdk_dir(name: &str) -> bool {
     norm(name) == "android"
 }
 
-/// Réglages et caches d'une version d'Android Studio (« AndroidStudio2024.1 », « .AndroidStudio4.1 »).
-fn android_studio_dir(name: &str) -> bool {
-    norm(name).starts_with("androidstudio")
+/// Le dossier `child` d'un éditeur est-il un produit connu ? Renvoie le mot à chercher dans les programmes installés.
+/// « Adobe Premiere Pro 2023 » et « Premiere Pro » donnent le même résultat.
+fn product_token(vendor: &str, child: &str) -> Option<&'static str> {
+    let n = norm(child);
+    let n = n.strip_prefix("adobe").unwrap_or(&n);
+    let (_, products) = PRODUCTS.iter().find(|(v, _)| *v == norm(vendor))?;
+    products.iter().find(|(prefix, _)| n.starts_with(prefix)).map(|(_, token)| *token)
+}
+
+/// Idem pour un dossier caché du profil (« .PyCharm2019.3 », « .AndroidStudio4.1 »), quel que soit l'éditeur.
+fn dot_product_token(name: &str) -> Option<&'static str> {
+    PRODUCTS.iter().find_map(|(vendor, _)| product_token(vendor, name.trim_start_matches('.')))
 }
 
 /// Minuscules, lettres et chiffres seulement.
@@ -193,10 +260,12 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
                 if !studio {
                     candidates.push((p, Place::AppData, Some("android")));
                 }
-            } else if norm(&name) == "google" {
-                // Les réglages et caches d'Android Studio sont rangés dans « Google » (dossier partagé, jamais proposé en entier).
-                for c in subdirs(&p).into_iter().filter(|c| android_studio_dir(&name_of(c))) {
-                    if only_generic(&c) && !owned(&name_of(&c)) {
+            } else if PRODUCTS.iter().any(|(v, _)| *v == norm(&name)) && (system(&name) || owned(&name)) {
+                // Dossier d'éditeur (Google, Adobe, JetBrains) : jamais proposé en entier, mais ses dossiers de produits,
+                // un par un, quand le produit n'est plus installé (par exemple Google/AndroidStudio2025.2).
+                for c in subdirs(&p) {
+                    let installed = |token: &str| programs.iter().any(|prog| norm(&prog.name).contains(token));
+                    if product_token(&name, &name_of(&c)).is_some_and(|token| !installed(token)) && only_generic(&c) {
                         candidates.push((c, Place::AppData, None));
                     }
                 }
@@ -234,7 +303,19 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
             if android.is_dir() {
                 candidates.push((android, Place::Profile, Some("android")));
             }
-            for p in subdirs(&home).into_iter().filter(|p| name_of(p).starts_with('.') && android_studio_dir(&name_of(p))) {
+        }
+        // Anciens dossiers de réglages d'un produit désinstallé (.PyCharm2019.3, .AndroidStudio4.1…).
+        for p in subdirs(&home).into_iter().filter(|p| name_of(p).starts_with('.')) {
+            let installed = |token: &str| programs.iter().any(|prog| norm(&prog.name).contains(token));
+            if dot_product_token(&name_of(&p)).is_some_and(|token| !installed(token)) {
+                candidates.push((p, Place::Profile, None));
+            }
+        }
+        // Réglages d'outils de développement rangés dans Documents (Visual Studio 2019, SQL Server Management Studio…).
+        for p in subdirs(&home.join("Documents")) {
+            let n = norm(&name_of(&p));
+            let owner = DOC_OWNERS.iter().find(|(prefix, _)| n.starts_with(prefix)).map(|(_, o)| *o);
+            if owner.is_some_and(|o| !programs.iter().any(|prog| prog.name.to_lowercase().contains(o))) {
                 candidates.push((p, Place::Profile, None));
             }
         }
@@ -273,11 +354,28 @@ mod tests {
     use super::*;
 
     #[test]
+    fn vendor_product_folders_are_recognised() {
+        assert_eq!(product_token("Google", "AndroidStudio2025.2.2"), Some("androidstudio"));
+        assert_eq!(product_token("JetBrains", "PyCharmCE2023.1"), Some("pycharm"));
+        assert_eq!(product_token("JetBrains", "IdeaIC2023.2"), Some("intellij"));
+        assert_eq!(product_token("Adobe", "Premiere Pro"), Some("premiere"));
+        assert_eq!(product_token("Adobe", "Adobe After Effects 2023"), Some("aftereffects"));
+        // Infrastructure et données partagées : jamais prises pour un produit.
+        assert_eq!(product_token("Adobe", "Common"), None);
+        assert_eq!(product_token("Google", "Chrome"), None);
+        assert_eq!(product_token("Google", "DriveFS"), None);
+        assert_eq!(product_token("JetBrains", "consent"), None);
+        assert_eq!(product_token("Mozilla", "Firefox"), None, "éditeur sans liste : rien");
+        assert_eq!(dot_product_token(".PyCharm2019.3"), Some("pycharm"));
+        assert_eq!(dot_product_token(".AndroidStudio4.1"), Some("androidstudio"));
+        assert_eq!(dot_product_token(".ssh"), None);
+        assert_eq!(dot_product_token(".gradle"), None);
+    }
+
+    #[test]
     fn android_folders_are_recognised() {
         assert!(android_sdk_dir("Android") && android_sdk_dir("android"));
         assert!(!android_sdk_dir("Android Studio") && !android_sdk_dir("androidx"));
-        assert!(android_studio_dir("AndroidStudio2024.1") && android_studio_dir(".AndroidStudio4.1") && android_studio_dir("Android Studio"));
-        assert!(!android_studio_dir("Android"));
     }
 
     #[test]

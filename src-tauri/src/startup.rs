@@ -38,6 +38,8 @@ pub struct StartupItem {
     pub keep: bool,
     /// Durée de ralentissement au dernier démarrage (Windows l'a signalé), en ms ; 0 si inconnu.
     pub slow_ms: u64,
+    /// Le programme que cette entrée lance n'existe plus : elle ne fait plus rien.
+    pub missing: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -123,6 +125,7 @@ fn registry_items() -> Vec<StartupItem> {
                 machine,
                 can_toggle: true,
                 slow_ms: 0,
+                missing: false,
             });
         }
     }
@@ -151,6 +154,7 @@ fn folder_items() -> Vec<StartupItem> {
                 machine,
                 can_toggle: true,
                 slow_ms: 0,
+                missing: false,
             });
         }
     }
@@ -208,6 +212,7 @@ fn task_items() -> Vec<StartupItem> {
         enabled: t.enabled,
         can_toggle: true,
         slow_ms: 0,
+        missing: false,
     })
     .collect()
 }
@@ -230,6 +235,7 @@ fn service_items() -> Vec<StartupItem> {
         enabled: s.running,
         can_toggle: false,
         slow_ms: 0,
+        missing: false,
     })
     .collect()
 }
@@ -260,6 +266,7 @@ pub fn list() -> StartupView {
     items.extend(tasks);
     items.extend(services);
     for it in &mut items {
+        it.missing = crate::programs::exe_missing(&it.command);
         let exe = exe_name(&it.command);
         if !exe.is_empty() {
             it.slow_ms = diag.slow.iter().filter(|s| s.name.to_lowercase() == exe).map(|s| s.ms).max().unwrap_or(0);
