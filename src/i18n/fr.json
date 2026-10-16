@@ -40,7 +40,7 @@
   "analyse.denied": "dossiers inaccessibles sans droits admin",
   "analyse.categories": "Répartition par type",
   "analyse.topFiles": "Plus gros fichiers",
-  "analyse.topFilesHint": "Coche les fichiers dont tu n’as plus besoin pour les envoyer à la Corbeille.",
+  "analyse.topFilesHint": "Clique sur un verdict pour voir ce que c’est et quoi faire. « Ouvrir » le montre dans l’Explorateur : tu le supprimes toi-même, en sachant ce que c’est.",
   "analyse.topDirs": "Plus gros dossiers",
   "analyse.open": "Ouvrir",
   "cat.videos": "Vidéos",
@@ -414,5 +414,6 @@
   "rule.propose": "Proposer une règle",
   "rule.hint": "Kleaner ne connaît pas cet élément. « Proposer une règle » ouvre un formulaire GitHub dans ton navigateur, pré-rempli sans ton nom d’utilisateur. Tu le relis et tu décides de l’envoyer ou non.",
   "analyse.fast": "Scan NTFS rapide",
-  "analyse.fastHint": "En mode administrateur, Kleaner a lu directement la table des fichiers NTFS (en lecture seule) au lieu d’ouvrir les dossiers un par un."
+  "analyse.fastHint": "En mode administrateur, Kleaner a lu directement la table des fichiers NTFS (en lecture seule) au lieu d’ouvrir les dossiers un par un.",
+  "leftovers.warn.android": "D’autres outils s’en servent peut-être (Flutter, React Native, Unity…). Retire-le seulement si tu ne développes plus pour Android."
 }

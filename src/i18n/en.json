@@ -40,7 +40,7 @@
   "analyse.denied": "folders unreadable without admin rights",
   "analyse.categories": "Breakdown by type",
   "analyse.topFiles": "Largest files",
-  "analyse.topFilesHint": "Tick the files you no longer need to send them to the Recycle Bin.",
+  "analyse.topFilesHint": "Click a verdict to see what the item is and what to do. « Open » shows it in Explorer: you delete it yourself, knowing what it is.",
   "analyse.topDirs": "Largest folders",
   "analyse.open": "Open",
   "cat.videos": "Videos",
@@ -414,5 +414,6 @@
   "rule.propose": "Propose a rule",
   "rule.hint": "Kleaner does not know this item. “Propose a rule” opens a GitHub form in your browser, pre-filled without your user name. You read it and decide whether to send it.",
   "analyse.fast": "Fast NTFS scan",
-  "analyse.fastHint": "In administrator mode, Kleaner read the NTFS file table directly (read-only) instead of opening folders one by one."
+  "analyse.fastHint": "In administrator mode, Kleaner read the NTFS file table directly (read-only) instead of opening folders one by one.",
+  "leftovers.warn.android": "Other tools may use it (Flutter, React Native, Unity…). Remove it only if you no longer develop for Android."
 }

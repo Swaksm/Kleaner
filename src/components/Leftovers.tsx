@@ -87,7 +87,14 @@ export function Leftovers() {
               <li key={l.path}>
                 <label className="check path" title={l.trashable ? l.path : t("leftovers.adminOnly")}>
                   <input type="checkbox" checked={selected.has(l.path)} disabled={!l.trashable} onChange={() => toggle(l.path)} />
-                  <span>{l.path}</span>
+                  <span>
+                    {l.path}
+                    {l.warning && (
+                      <span className="block small">
+                        <StatusPill status="warn">{t(`leftovers.warn.${l.warning}` as Key)}</StatusPill>
+                      </span>
+                    )}
+                  </span>
                 </label>
                 <span className="muted small">{t(`leftovers.place.${l.place}` as Key)}</span>
                 <span className="muted small" title={t("leftovers.lastChange")}>

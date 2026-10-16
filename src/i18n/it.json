@@ -40,7 +40,7 @@
   "analyse.denied": "cartelle illeggibili senza diritti di amministratore",
   "analyse.categories": "Suddivisione per tipo",
   "analyse.topFiles": "File più grandi",
-  "analyse.topFilesHint": "Seleziona i file che non ti servono più per spostarli nel Cestino.",
+  "analyse.topFilesHint": "Fai clic su un verdetto per vedere cos’è e cosa fare. « Apri » lo mostra in Esplora file: lo elimini tu, sapendo cos’è.",
   "analyse.topDirs": "Cartelle più grandi",
   "analyse.open": "Apri",
   "cat.videos": "Video",
@@ -414,5 +414,6 @@
   "rule.propose": "Proponi una regola",
   "rule.hint": "Kleaner non conosce questo elemento. « Proponi una regola » apre un modulo GitHub nel browser, precompilato senza il tuo nome utente. Lo rileggi e decidi se inviarlo.",
   "analyse.fast": "Scansione NTFS rapida",
-  "analyse.fastHint": "In modalità amministratore, Kleaner ha letto direttamente la tabella dei file NTFS (sola lettura) invece di aprire le cartelle una per una."
+  "analyse.fastHint": "In modalità amministratore, Kleaner ha letto direttamente la tabella dei file NTFS (sola lettura) invece di aprire le cartelle una per una.",
+  "leftovers.warn.android": "Altri strumenti potrebbero usarlo (Flutter, React Native, Unity…). Rimuovilo solo se non sviluppi più per Android."
 }

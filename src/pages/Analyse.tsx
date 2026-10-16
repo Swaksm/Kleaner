@@ -1,4 +1,3 @@
-import { EmptyBin } from "../components/EmptyBin";
 import { useEffect, useState } from "react";
 import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
@@ -9,7 +8,6 @@ import { SizeBar } from "../components/SizeBar";
 import { StatusPill } from "../components/StatusPill";
 import { ReportDialog } from "../components/ReportDialog";
 import { SortHeader, type HeaderCell } from "../components/SortHeader";
-import { TrashConfirm } from "../components/TrashConfirm";
 import { ExplainDialog, VerdictPill } from "../components/Verdict";
 import { useT, type Key } from "../i18n/useT";
 import {
@@ -17,7 +15,6 @@ import {
   explainPaths,
   listDrives,
   listCleaners,
-  moveToTrash,
   onScanDone,
   onScanProgress,
   revealInExplorer,
@@ -30,7 +27,7 @@ import {
   type ScanProgress,
 } from "../lib/api";
 import { formatBytes, formatDay } from "../lib/format";
-import { forgetPaths, setScanResult, useScanResult } from "../lib/scanStore";
+import { setScanResult, useScanResult } from "../lib/scanStore";
 import { useRecoverable } from "../lib/useRecoverable";
 import { baseName, sortBy, type SortState } from "../lib/sort";
 
@@ -46,13 +43,11 @@ type ItemKey = "size" | "name" | "date" | "verdict";
 // Tri par verdict : du plus dangereux au plus sûr.
 const VERDICT_ORDER: Verdict[] = ["system", "breaks", "uninstall", "personal", "unknown", "cleanup", "safe"];
 
-type Message = { status: "ok" | "danger"; text: string; bin?: boolean };
+type Message = { status: "danger"; text: string };
 
 export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void; scanRequest: number }) {
   const { t, lang } = useT();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [confirming, setConfirming] = useState<Item[]>([]);
   const [message, setMessage] = useState<Message | null>(null);
   const [elevated, setElevated] = useState(true);
   const [report, setReport] = useState(false);
@@ -89,7 +84,6 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
       onScanDone((result) => {
         setScanResult(result);
         setPhase({ kind: "done" });
-        setSelected(new Set());
       }),
     ];
     unlisten.forEach((u) => u.catch(() => {}));
@@ -105,36 +99,7 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
     });
   }
 
-  function toggle(path: string) {
-    const next = new Set(selected);
-    if (next.has(path)) next.delete(path);
-    else next.add(path);
-    setSelected(next);
-  }
-
-  async function trash() {
-    const items = confirming;
-    setConfirming([]);
-    try {
-      const r = await moveToTrash(items.map((i) => i.path));
-      forgetPaths(items.map((i) => i.path));
-      setSelected(new Set());
-      setMessage({
-        status: "ok",
-        bin: true,
-        text: `${r.files} ${t("trash.files")} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}`,
-      });
-    } catch (e) {
-      setMessage({ status: "danger", text: String(e) });
-    }
-  }
-
-  const feedback = message && (
-    <>
-      <StatusPill status={message.status}>{message.text}</StatusPill>
-      {message.bin && <EmptyBin />}
-    </>
-  );
+  const feedback = message && <StatusPill status={message.status}>{message.text}</StatusPill>;
 
   if (phase.kind === "idle") {
     return (
@@ -179,14 +144,8 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
     verdict: (i) => VERDICT_ORDER.indexOf(explanations.get(i.path)?.verdict ?? "unknown"),
   };
   const files = sortBy(r.top_files, fileSort, itemGetters);
-  // Système : la garde refuserait de toute façon, on ne propose pas la case.
-  // Fichier dans un .venv, node_modules… : seul le dossier entier part, la fiche dit comment.
-  const isSystem = (path: string) => explanations.get(path)?.verdict === "system";
-  const locked = (path: string) => isSystem(path) || !!explanations.get(path)?.locked;
   const dirs = sortBy(r.top_dirs, dirSort, itemGetters);
-  const chosen = r.top_files.filter((i) => selected.has(i.path) && !locked(i.path));
   const free = r.drives.reduce((sum, d) => sum + d.free, 0);
-  const chosenBytes = chosen.reduce((s, i) => s + i.size, 0);
   const headerCells = (first: string): HeaderCell<ItemKey>[] => [
     { sorts: [["name", first, false]] },
     { sorts: [["verdict", t("verdict.col"), false]] },
@@ -304,20 +263,9 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
           <SortHeader cells={headerCells(t("sort.name"))} value={fileSort} onChange={setFileSort} />
           {files.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
-              <label
-                className="check path"
-                title={isSystem(i.path) ? t("verdict.system") : locked(i.path) ? t("verdict.breaks") : i.path}
-                // Case grisée : on ouvre la fiche, qui dit quoi faire à la place.
-                onClick={() => locked(i.path) && setExplaining(explanations.get(i.path) ?? null)}
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.has(i.path)}
-                  disabled={locked(i.path)}
-                  onChange={() => toggle(i.path)}
-                />
-                <span>{i.path}</span>
-              </label>
+              <span className="path" title={i.path}>
+                {i.path}
+              </span>
               <VerdictPill e={explanations.get(i.path)} onOpen={setExplaining} />
               <span className="muted small">{formatDay(i.modified, lang)}</span>
               <span className="num end">{formatBytes(i.size, lang)}</span>
@@ -327,17 +275,7 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
             </li>
           ))}
         </ul>
-        <div className="row">
-          <button className="btn btn-primary" disabled={chosen.length === 0} onClick={() => setConfirming(chosen)}>
-            {t("trash.button")}
-          </button>
-          {chosen.length > 0 && (
-            <span className="muted">
-              {chosen.length} {t("trash.files")} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
-            </span>
-          )}
-          {showAllButton}
-        </div>
+        {showAllButton}
       </Card>
 
       <Card title={t("analyse.topDirs")}>
@@ -362,7 +300,6 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
 
       {report && <ReportDialog scan={r} onClose={() => setReport(false)} />}
       {explaining && <ExplainDialog e={explaining} onClose={() => setExplaining(null)} />}
-      <TrashConfirm items={confirming} explanations={explanations} onConfirm={trash} onCancel={() => setConfirming([])} />
     </>
   );
 }

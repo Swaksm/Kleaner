@@ -148,6 +148,8 @@ export type Leftover = {
   size: number;
   modified: number;
   trashable: boolean;
+  /** « android » : le SDK ou les émulateurs servent peut-être à d'autres outils (Flutter, Unity…). */
+  warning: "android" | null;
 };
 export const findLeftovers = () => invoke<Leftover[]>("find_leftovers");
 export const trashLeftovers = (paths: string[]) => invoke<ActionReport>("trash_leftovers", { paths });

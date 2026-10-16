@@ -40,7 +40,7 @@
   "analyse.denied": "Ordner ohne Administratorrechte nicht lesbar",
   "analyse.categories": "Aufteilung nach Typ",
   "analyse.topFiles": "Größte Dateien",
-  "analyse.topFilesHint": "Hake die Dateien an, die du nicht mehr brauchst, um sie in den Papierkorb zu verschieben.",
+  "analyse.topFilesHint": "Klicke auf ein Urteil, um zu sehen, was es ist und was zu tun ist. „Öffnen“ zeigt es im Explorer: Du löschst es selbst, im Wissen, was es ist.",
   "analyse.topDirs": "Größte Ordner",
   "analyse.open": "Öffnen",
   "cat.videos": "Videos",
@@ -414,5 +414,6 @@
   "rule.propose": "Regel vorschlagen",
   "rule.hint": "Kleaner kennt dieses Element nicht. „Regel vorschlagen“ öffnet ein GitHub-Formular im Browser, ohne deinen Benutzernamen vorausgefüllt. Du prüfst es und entscheidest, ob du es absendest.",
   "analyse.fast": "Schneller NTFS-Scan",
-  "analyse.fastHint": "Im Administratormodus hat Kleaner die NTFS-Dateitabelle direkt gelesen (nur lesend), statt Ordner einzeln zu öffnen."
+  "analyse.fastHint": "Im Administratormodus hat Kleaner die NTFS-Dateitabelle direkt gelesen (nur lesend), statt Ordner einzeln zu öffnen.",
+  "leftovers.warn.android": "Andere Werkzeuge nutzen es vielleicht (Flutter, React Native, Unity …). Entferne es nur, wenn du nicht mehr für Android entwickelst."
 }

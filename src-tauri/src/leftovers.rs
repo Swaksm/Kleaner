@@ -15,9 +15,10 @@ const MIN_SIZE: u64 = 10 * 1024 * 1024;
 const QUIET_DAYS: u64 = 30;
 
 /// Dossiers partagés ou de Windows, jamais proposés (noms normalisés).
-// « android » : le SDK sert aussi à Flutter et à d'autres outils non inscrits dans Programmes.
-const SHARED: [&str; 48] = [
-    "android", "wsl", "realtek", "synaptics", "elantech", "dell", "hp", "lenovo", "asus", "msi", "chocolatey", "scoop",
+const SHARED: &[&str] = &[
+    // Outils en ligne de commande et gestionnaires de paquets : installés sans entrée « Programmes ».
+    "pnpm", "pnpmcache", "ghcli", "uv", "pypoetry", "volta", "fnm", "deno", "bun", "nvm", "pipx",
+    "wsl", "realtek", "synaptics", "elantech", "dell", "hp", "lenovo", "asus", "msi", "chocolatey", "scoop",
     "conexant", "dolby",
     "microsoft", "windows", "packages", "temp", "tmp", "programs", "virtualstore", "crashdumps", "d3dscache",
     "connecteddevicesplatform", "comms", "publishers", "placeholdertilelogofolder", "peerdistrepub", "history",
@@ -26,7 +27,7 @@ const SHARED: [&str; 48] = [
 ];
 
 /// Dossiers cachés du profil qui appartiennent à une appli précise : (nom, mots du nom de l'appli).
-// .android n'y est pas : Flutter et d'autres outils utilisent aussi les émulateurs Android.
+// .android n'y est pas : il a son propre cas (avertissement), car Flutter et d'autres outils s'en servent aussi.
 const DOT_OWNERS: [(&str, &[&str]); 7] = [
     (".vscode", &["visual studio code"]),
     (".cursor", &["cursor"]),
@@ -63,6 +64,18 @@ pub struct Leftover {
     pub modified: u64,
     /// Envoi à la Corbeille possible. Program Files et ProgramData : signalés seulement (droits admin, garde).
     pub trashable: bool,
+    /// Raison de prudence affichée à côté : « android » = le SDK et les émulateurs servent aussi à Flutter, Unity…
+    pub warning: Option<&'static str>,
+}
+
+/// Le dossier du SDK Android (`%LOCALAPPDATA%\Android`).
+fn android_sdk_dir(name: &str) -> bool {
+    norm(name) == "android"
+}
+
+/// Réglages et caches d'une version d'Android Studio (« AndroidStudio2024.1 », « .AndroidStudio4.1 »).
+fn android_studio_dir(name: &str) -> bool {
+    norm(name).starts_with("androidstudio")
 }
 
 /// Minuscules, lettres et chiffres seulement.
@@ -167,14 +180,28 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
         SHARED.contains(&n.as_str()) || SYSTEM_PREFIXES.iter().any(|p| n.starts_with(p))
     };
 
-    let mut candidates: Vec<(PathBuf, Place)> = Vec::new();
+    // Android Studio désinstallé : son SDK et .android restent, mais Flutter, Unity et d'autres outils s'en servent aussi.
+    // On les propose quand même, avec un avertissement (l'utilisateur décide), seulement sans Android Studio.
+    let studio = programs.iter().any(|p| norm(&p.name).contains("androidstudio"));
+    let mut candidates: Vec<(PathBuf, Place, Option<&'static str>)> = Vec::new();
     let local = env("LOCALAPPDATA");
     let app_roots = [local.clone(), env("APPDATA"), local.as_ref().map(|l| PathBuf::from(format!("{}Low", l.display())))];
     for root in app_roots.into_iter().flatten() {
         for p in subdirs(&root) {
             let name = name_of(&p);
-            if !name.starts_with('.') && !system(&name) && only_generic(&p) && !owned(&name) {
-                candidates.push((p, Place::AppData));
+            if android_sdk_dir(&name) {
+                if !studio {
+                    candidates.push((p, Place::AppData, Some("android")));
+                }
+            } else if norm(&name) == "google" {
+                // Les réglages et caches d'Android Studio sont rangés dans « Google » (dossier partagé, jamais proposé en entier).
+                for c in subdirs(&p).into_iter().filter(|c| android_studio_dir(&name_of(c))) {
+                    if only_generic(&c) && !owned(&name_of(&c)) {
+                        candidates.push((c, Place::AppData, None));
+                    }
+                }
+            } else if !name.starts_with('.') && !system(&name) && only_generic(&p) && !owned(&name) {
+                candidates.push((p, Place::AppData, None));
             }
         }
     }
@@ -182,7 +209,7 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
         for p in subdirs(&l.join("Programs")) {
             let name = name_of(&p);
             if !system(&name) && !owned(&name) && !programs.iter().any(|prog| under(&prog.location, &p)) {
-                candidates.push((p, Place::Programs));
+                candidates.push((p, Place::Programs, None));
             }
         }
     }
@@ -190,7 +217,7 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
     if let Some(l) = &local {
         for prog in programs.iter().filter(|p| under(&p.location, l)) {
             for p in old_versions(Path::new(&prog.location), &prog.version) {
-                candidates.push((p, Place::Programs));
+                candidates.push((p, Place::Programs, None));
             }
         }
     }
@@ -199,7 +226,16 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
             let p = home.join(dot);
             let installed = programs.iter().any(|prog| owners.iter().any(|o| prog.name.to_lowercase().contains(o)));
             if p.is_dir() && !installed {
-                candidates.push((p, Place::Profile));
+                candidates.push((p, Place::Profile, None));
+            }
+        }
+        if !studio {
+            let android = home.join(".android");
+            if android.is_dir() {
+                candidates.push((android, Place::Profile, Some("android")));
+            }
+            for p in subdirs(&home).into_iter().filter(|p| name_of(p).starts_with('.') && android_studio_dir(&name_of(p))) {
+                candidates.push((p, Place::Profile, None));
             }
         }
     }
@@ -208,14 +244,14 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
         for p in subdirs(&root) {
             let name = name_of(&p);
             if !system(&name) && only_generic(&p) && !owned(&name) {
-                candidates.push((p, place));
+                candidates.push((p, place, None));
             }
         }
     }
 
     let mut out: Vec<Leftover> = candidates
         .par_iter()
-        .filter_map(|(p, place)| {
+        .filter_map(|(p, place, warning)| {
             let (size, modified) = size_and_newest(p);
             (size >= MIN_SIZE && modified < quiet).then(|| Leftover {
                 path: p.display().to_string(),
@@ -224,6 +260,7 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
                 size,
                 modified,
                 trashable: matches!(place, Place::AppData | Place::Programs | Place::Profile),
+                warning: *warning,
             })
         })
         .collect();
@@ -234,6 +271,14 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn android_folders_are_recognised() {
+        assert!(android_sdk_dir("Android") && android_sdk_dir("android"));
+        assert!(!android_sdk_dir("Android Studio") && !android_sdk_dir("androidx"));
+        assert!(android_studio_dir("AndroidStudio2024.1") && android_studio_dir(".AndroidStudio4.1") && android_studio_dir("Android Studio"));
+        assert!(!android_studio_dir("Android"));
+    }
 
     #[test]
     fn old_version_folders_except_installed_and_latest() {

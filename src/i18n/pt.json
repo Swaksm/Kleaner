@@ -40,7 +40,7 @@
   "analyse.denied": "pastas ilegíveis sem direitos de administrador",
   "analyse.categories": "Distribuição por tipo",
   "analyse.topFiles": "Maiores arquivos",
-  "analyse.topFilesHint": "Marque os arquivos de que não precisa mais para enviá-los à Lixeira.",
+  "analyse.topFilesHint": "Clique em um veredito para ver o que é e o que fazer. « Abrir » mostra no Explorador: você mesmo apaga, sabendo o que é.",
   "analyse.topDirs": "Maiores pastas",
   "analyse.open": "Abrir",
   "cat.videos": "Vídeos",
@@ -414,5 +414,6 @@
   "rule.propose": "Propor uma regra",
   "rule.hint": "O Kleaner não conhece este item. « Propor uma regra » abre um formulário do GitHub no navegador, preenchido sem o seu nome de usuário. Você revisa e decide se envia.",
   "analyse.fast": "Análise NTFS rápida",
-  "analyse.fastHint": "No modo administrador, o Kleaner leu diretamente a tabela de arquivos NTFS (somente leitura) em vez de abrir as pastas uma a uma."
+  "analyse.fastHint": "No modo administrador, o Kleaner leu diretamente a tabela de arquivos NTFS (somente leitura) em vez de abrir as pastas uma a uma.",
+  "leftovers.warn.android": "Outras ferramentas podem usá-lo (Flutter, React Native, Unity…). Remova só se você não desenvolve mais para Android."
 }

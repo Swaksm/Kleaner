@@ -254,8 +254,8 @@ export const estimates = (): CleanReport[] =>
     }));
 
 export const leftovers = (): Leftover[] => [
-  { path: `${LOCAL}\\Arduino15`, name: "Arduino15", place: "appdata", size: 8.1 * GB, modified: now() - 200 * DAY, trashable: true },
-  { path: `${HOME}\\AppData\\Roaming\\OldPlayer`, name: "OldPlayer", place: "appdata", size: 640 * MB, modified: now() - 380 * DAY, trashable: true },
+  { path: `${LOCAL}\\Arduino15`, name: "Arduino15", place: "appdata", size: 8.1 * GB, modified: now() - 200 * DAY, trashable: true, warning: null },
+  { path: `${HOME}\\AppData\\Roaming\\OldPlayer`, name: "OldPlayer", place: "appdata", size: 640 * MB, modified: now() - 380 * DAY, trashable: true, warning: null },
 ];
 
 // ---------- Démarrage ----------

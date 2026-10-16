@@ -40,7 +40,7 @@
   "analyse.denied": "carpetas ilegibles sin derechos de administrador",
   "analyse.categories": "Reparto por tipo",
   "analyse.topFiles": "Archivos más grandes",
-  "analyse.topFilesHint": "Marca los archivos que ya no necesitas para enviarlos a la Papelera.",
+  "analyse.topFilesHint": "Haz clic en un veredicto para ver qué es y qué hacer. « Abrir » lo muestra en el Explorador: lo eliminas tú, sabiendo lo que es.",
   "analyse.topDirs": "Carpetas más grandes",
   "analyse.open": "Abrir",
   "cat.videos": "Vídeos",
@@ -414,5 +414,6 @@
   "rule.propose": "Proponer una regla",
   "rule.hint": "Kleaner no conoce este elemento. « Proponer una regla » abre un formulario de GitHub en tu navegador, rellenado sin tu nombre de usuario. Lo revisas y decides si lo envías.",
   "analyse.fast": "Análisis NTFS rápido",
-  "analyse.fastHint": "En modo administrador, Kleaner leyó directamente la tabla de archivos NTFS (solo lectura) en lugar de abrir las carpetas una por una."
+  "analyse.fastHint": "En modo administrador, Kleaner leyó directamente la tabla de archivos NTFS (solo lectura) en lugar de abrir las carpetas una por una.",
+  "leftovers.warn.android": "Otras herramientas pueden usarlo (Flutter, React Native, Unity…). Quítalo solo si ya no desarrollas para Android."
 }

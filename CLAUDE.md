@@ -67,7 +67,8 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **Vite** garde parfois un module périmé : redémarrer le serveur de prévisualisation.
 - **Règles proposées** : le verdict « inconnu » a un bouton qui ouvre le formulaire `.github/ISSUE_TEMPLATE/rule-proposal.yml` (chemin sans nom d'utilisateur) ; format des règles dans `docs/rules.md`.
 - **Doublons** : jamais les .dll, .exe ou bases de données (MySQL, Flutter et Riot en double sont normaux).
-- **Restes** : exclure Android (SDK partagé par Flutter), WSL et les pilotes (Realtek…).
+- **Restes** : WSL, les pilotes (Realtek…) et les outils en ligne de commande (pnpm, gh, uv…) sont exclus. Android (SDK, `.android`) est proposé sans Android Studio mais avec un avertissement (Flutter s'en sert) : on avertit, on n'empêche pas.
+- **Analyse** : pas de suppression depuis les listes de gros fichiers (verdict + « Ouvrir » seulement).
 
 ## Release
 
