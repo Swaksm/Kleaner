@@ -49,6 +49,11 @@ function subscribe(fn: () => void) {
   };
 }
 
+/** Texte dans la langue courante, hors composant React (messages d'erreur). */
+export function translate(key: Key): string {
+  return dicts[lang][key];
+}
+
 export function useT() {
   const current = useSyncExternalStore(subscribe, () => lang);
   // Textes du catalogue et des fiches : anglais et français seulement, anglais par défaut.

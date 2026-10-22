@@ -80,7 +80,9 @@ function App() {
   };
 
   // Raccourcis : Ctrl+1…8 pour les pages principales, F5 relance l'analyse (au lieu de recharger la fenêtre).
+  const ready = accepted && setupDone;
   useEffect(() => {
+    if (!ready) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey && !e.altKey && !e.shiftKey && /^[1-8]$/.test(e.key)) {
         e.preventDefault();
@@ -93,7 +95,7 @@ function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [ready]);
 
   useEffect(() => {
     isElevated().then((e) => {

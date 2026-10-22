@@ -8,7 +8,8 @@ use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::process::Command;
 
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+/// Lance un programme sans ouvrir de fenêtre de console.
+pub const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
 /// Lance un script PowerShell : (sortie standard, erreurs, réussite).
 pub(crate) fn ps_run(script: &str) -> Result<(String, String, bool), String> {
@@ -230,7 +231,8 @@ pub fn parse_winget_table(text: &str) -> Vec<AppUpdate> {
             c[a..b].iter().collect::<String>().trim().to_string()
         };
         let (name, id, version, available) = (col(0), col(1), col(2), col(3));
-        if id.is_empty() || available.is_empty() || id.contains(' ') {
+        // shortcut: identifiant coupé par winget (« … ») ignoré ; lire `winget export` si des applis manquent.
+        if id.is_empty() || available.is_empty() || id.contains(' ') || id.ends_with('…') {
             continue;
         }
         out.push(AppUpdate { name, id, version, available });
@@ -307,6 +309,14 @@ mod tests {
         let t = "Nom          ID             Version Disponible Source\n----------------------------------------------\nGit          Git.Git        2.45.0  2.47.1     winget\n";
         assert_eq!(parse_winget_table(t)[0].available, "2.47.1");
         assert!(parse_winget_table("Aucune mise à niveau disponible.\n").is_empty());
+    }
+
+    #[test]
+    fn winget_truncated_id_is_skipped() {
+        let t = "Name        Id                 Version Available Source\n-------------------------------------------------------\nVS Code     Microsoft.VisualS… 1.0     1.1       winget\nGit         Git.Git            2.45.0  2.47.1    winget\n";
+        let apps = parse_winget_table(t);
+        assert_eq!(apps.len(), 1, "{apps:?}");
+        assert_eq!(apps[0].id, "Git.Git");
     }
 
     #[test]

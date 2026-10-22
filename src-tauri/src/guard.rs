@@ -151,6 +151,9 @@ impl Protected {
 
 /// Autorise l'envoi de `p` à la Corbeille sauf emplacement protégé ou fichier système.
 pub fn check_trash(p: &Path, protected: &Protected) -> Result<PathBuf, GuardError> {
+    check_lexical(p)?;
+    // canonicalize suit les jonctions : sans ce refus, c'est leur cible qui partirait à la Corbeille.
+    no_links(p)?;
     let c = canon(p)?;
     // Racine de disque : "\\?\c:\".
     if c.key.trim_end_matches('\\').ends_with(':') {
@@ -329,6 +332,18 @@ mod tests {
         let p = Protected::new(&[], std::slice::from_ref(&docs));
         assert_eq!(check_trash(&docs, &p), Err(GuardError::Protected));
         assert!(check_trash(&f, &p).is_ok());
+    }
+
+    #[test]
+    fn trash_through_junction_refused() {
+        let s = Sandbox::new("trashjunction");
+        let docs = s.dir("docs");
+        s.file("docs/precious.txt");
+        let link = s.0.join("leftover");
+        junction(&link, &docs);
+        let p = Protected::new(&[], &[]);
+        assert_eq!(check_trash(&link, &p), Err(GuardError::Link), "la jonction elle-même");
+        assert_eq!(check_trash(&link.join("precious.txt"), &p), Err(GuardError::Link), "à travers la jonction");
     }
 
     #[test]

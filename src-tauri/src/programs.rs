@@ -310,7 +310,7 @@ pub fn ghosts() -> Vec<Ghost> {
 
 fn reg_exe(args: &[&str]) -> Result<(), String> {
     use std::os::windows::process::CommandExt;
-    let out = std::process::Command::new("reg").args(args).creation_flags(0x0800_0000).output().map_err(|e| e.to_string())?;
+    let out = std::process::Command::new("reg").args(args).creation_flags(crate::system::CREATE_NO_WINDOW).output().map_err(|e| e.to_string())?;
     if out.status.success() {
         Ok(())
     } else {

@@ -426,5 +426,12 @@
   "autostart.note": "O Kleaner só aparece como ícone perto do relógio e avisa se um disco estiver quase cheio: ele não analisa nem limpa nada sozinho. Alterar isto pede direitos de administrador uma vez.",
   "home.quickClean": "Limpar sem risco",
   "home.quickCleanNote": "Marca os itens sem risco e mostra a lista: nada é apagado antes da sua confirmação.",
-  "cleanup.freeSpace": "livres"
+  "cleanup.freeSpace": "livres",
+  "error.staleList": "Esta lista mudou desde que foi exibida. Pesquise ou analise de novo e tente outra vez.",
+  "error.lastCopy": "Recusado: sempre fica uma cópia de cada arquivo.",
+  "error.protected": "Recusado: é um local do Windows ou de um programa.",
+  "error.link": "Recusado: este caminho passa por um link ou junção, o Kleaner nunca os segue.",
+  "error.notFound": "Este arquivo não existe mais. Atualize a lista.",
+  "error.autostartFirst": "Desative primeiro «Iniciar o Kleaner com o Windows» (são necessários direitos de administrador). Nada foi apagado.",
+  "error.admin": "São necessários direitos de administrador: use «Análise completa (admin)»."
 }

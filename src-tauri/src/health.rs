@@ -323,7 +323,7 @@ fn uptime_and_memory() -> Vec<HealthItem> {
 
 fn power_plan() -> Option<HealthItem> {
     use std::os::windows::process::CommandExt;
-    let out = std::process::Command::new("powercfg").arg("/getactivescheme").creation_flags(0x0800_0000).output().ok()?;
+    let out = std::process::Command::new("powercfg").arg("/getactivescheme").creation_flags(crate::system::CREATE_NO_WINDOW).output().ok()?;
     let text = String::from_utf8_lossy(&out.stdout).to_lowercase();
     let (name_en, name_fr, saver) = if text.contains("a1841308-3541-4fab-bc81-f71556f20b4a") {
         ("Power saver", "Économie d’énergie", true)

@@ -426,5 +426,12 @@
   "autostart.note": "Kleaner appare solo come icona vicino all'orologio e ti avvisa se un disco è quasi pieno: non analizza né pulisce nulla da solo. Modificare questa opzione chiede una volta i diritti di amministratore.",
   "home.quickClean": "Pulisci senza rischi",
   "home.quickCleanNote": "Seleziona gli elementi senza rischi e ti mostra l'elenco: nulla viene eliminato prima della tua conferma.",
-  "cleanup.freeSpace": "liberi"
+  "cleanup.freeSpace": "liberi",
+  "error.staleList": "Questo elenco è cambiato da quando è stato mostrato. Ripeti la ricerca o l'analisi e riprova.",
+  "error.lastCopy": "Rifiutato: resta sempre una copia di ogni file.",
+  "error.protected": "Rifiutato: è una posizione di Windows o di un programma.",
+  "error.link": "Rifiutato: questo percorso passa da un collegamento o una giunzione, Kleaner non li segue mai.",
+  "error.notFound": "Questo file non esiste più. Aggiorna l'elenco.",
+  "error.autostartFirst": "Disattiva prima «Avvia Kleaner con Windows» (servono i diritti di amministratore). Non è stato eliminato nulla.",
+  "error.admin": "Servono i diritti di amministratore: usa «Analisi completa (admin)»."
 }

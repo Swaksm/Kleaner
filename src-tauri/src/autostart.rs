@@ -29,9 +29,20 @@ fn create_script(exe: &Path) -> String {
     )
 }
 
+/// `None` : pas de tâche ; `Some(false)` : tâche désactivée (page Démarrage), elle ne lance plus rien.
+fn state() -> Option<bool> {
+    let script = format!("$t = Get-ScheduledTask -TaskName {} -ErrorAction SilentlyContinue; if ($t) {{ $t.State }}", quote(TASK));
+    let (out, ..) = ps_run(&script).ok()?;
+    (!out.is_empty()).then(|| out != "Disabled")
+}
+
 pub fn enabled() -> bool {
-    ps_run(&format!("if (Get-ScheduledTask -TaskName {} -ErrorAction SilentlyContinue) {{ 'yes' }}", quote(TASK)))
-        .is_ok_and(|(out, ..)| out == "yes")
+    state() == Some(true)
+}
+
+/// La tâche existe, active ou non.
+pub fn exists() -> bool {
+    state().is_some()
 }
 
 /// Active ou retire le démarrage automatique. Écrit une ligne dans le journal.

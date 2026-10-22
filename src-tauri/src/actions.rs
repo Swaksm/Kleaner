@@ -111,7 +111,7 @@ pub fn restore_from_trash(paths: &[String], journal_dir: &Path) -> Result<Action
 /// Rapport de bug : version, Windows, droits, dernières actions et erreurs du journal.
 /// Enregistré dans les rapports de Kleaner ; rien n'est envoyé.
 pub fn bug_report(version: &str, data_dir: &Path) -> Result<PathBuf, String> {
-    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    use crate::system::CREATE_NO_WINDOW;
     use std::os::windows::process::CommandExt;
     let windows = std::process::Command::new("cmd")
         .args(["/C", "ver"])

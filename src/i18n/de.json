@@ -426,5 +426,12 @@
   "autostart.note": "Kleaner erscheint nur als Symbol neben der Uhr und warnt dich, wenn ein Laufwerk fast voll ist: Es analysiert und bereinigt nichts von selbst. Diese Änderung fragt einmal nach Administratorrechten.",
   "home.quickClean": "Risikofrei bereinigen",
   "home.quickCleanNote": "Hakt die risikofreien Einträge an und zeigt dir die Liste: Nichts wird gelöscht, bevor du bestätigst.",
-  "cleanup.freeSpace": "frei"
+  "cleanup.freeSpace": "frei",
+  "error.staleList": "Diese Liste hat sich seit der Anzeige geändert. Suche oder analysiere erneut und versuche es dann noch einmal.",
+  "error.lastCopy": "Abgelehnt: Von jeder Datei bleibt immer eine Kopie.",
+  "error.protected": "Abgelehnt: Das ist ein Speicherort von Windows oder eines Programms.",
+  "error.link": "Abgelehnt: Dieser Pfad führt über eine Verknüpfung oder Junction, Kleaner folgt ihnen nie.",
+  "error.notFound": "Diese Datei existiert nicht mehr. Aktualisiere die Liste.",
+  "error.autostartFirst": "Schalte zuerst „Kleaner mit Windows starten“ aus (Administratorrechte nötig). Nichts wurde gelöscht.",
+  "error.admin": "Administratorrechte sind nötig: Nutze „Vollständige Analyse (Admin)“."
 }

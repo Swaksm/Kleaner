@@ -12,7 +12,7 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - **Registre** : aucun nettoyage ni « réparation ». Seulement, sur demande et réversible : `StartupApproved` (démarrage) et la suppression d'une entrée fantôme de la liste des programmes, après sauvegarde `.reg` (SPEC, révision 8).
 - **Liens et jonctions jamais suivis.** Fichiers verrouillés ignorés et comptés.
 - **Chaque action qui modifie le disque** écrit une ligne dans `%LOCALAPPDATA%\Kleaner\journal.log`.
-- **Les commandes qui suppriment** n'acceptent que des éléments trouvés par la dernière liste côté Rust (`ScanState` : artifacts, leftovers, cloud, apps, startup, shortcuts, ghosts), jamais un chemin libre envoyé par l'interface.
+- **Les commandes qui suppriment** n'acceptent que des éléments trouvés par la dernière liste côté Rust (`ScanState` : trashable = photos, vidéos et candidats doublons, artifacts, leftovers, cloud, apps, startup, shortcuts, ghosts), jamais un chemin libre envoyé par l'interface : passer par `check_known`. Doublons : `keeps_a_copy` refuse d'enlever la dernière copie.
 - **Kleaner ne devine jamais** : sans règle, le verdict est « inconnu ».
 
 ## Architecture
@@ -71,6 +71,9 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **Doublons** : jamais les .dll, .exe ou bases de données (MySQL, Flutter et Riot en double sont normaux).
 - **Restes** : WSL, les pilotes (Realtek…) et les outils en ligne de commande (pnpm, gh, uv…) sont exclus. Android (SDK, `.android`) est proposé sans Android Studio mais avec un avertissement (Flutter s'en sert) : on avertit, on n'empêche pas.
 - **Analyse** : pas de suppression depuis les listes de gros fichiers (verdict + « Ouvrir » seulement).
+- **Version** : `tauri.conf.json` reste à `0.1.0` ; la vraie version (tag) arrive par `VITE_APP_VERSION` au build de la release (`appVersion()` côté interface, `app_version()` côté Rust). Sans elle, les rc se croiraient à jour.
+- **winget** coupe les identifiants longs par « … » dans son tableau : ils sont ignorés (inutilisables avec `--id --exact`).
+- **Erreurs** : Rust renvoie de l'anglais (aussi écrit au journal) ; `lib/errors.ts` traduit les plus courantes.
 
 ## Release
 

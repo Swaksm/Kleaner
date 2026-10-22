@@ -1,6 +1,6 @@
-import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
+import { appVersion } from "../lib/version";
 import { useT } from "../i18n/useT";
 import { findUpdate, updateCheckEnabled, type Update } from "../lib/update";
 
@@ -11,7 +11,7 @@ export function UpdateBanner() {
 
   useEffect(() => {
     if (!updateCheckEnabled()) return;
-    getVersion()
+    appVersion()
       .then(findUpdate)
       .then(setUpdate, () => {});
   }, []);

@@ -29,6 +29,9 @@ jobs:
       # Exe portable + installateur NSIS (Program Files, désinstallable depuis Windows).
       # L'installateur embarque l'exe avant signature : à revoir quand SignPath sera actif.
       - run: npm run tauri build -- --bundles nsis
+        env:
+          # Version affichée et comparée aux releases (sinon « 0.1.0 » de tauri.conf.json pour toutes les rc).
+          VITE_APP_VERSION: ${{ github.ref_name }}
       - shell: pwsh
         run: |
           Copy-Item src-tauri/target/release/kleaner.exe kleaner.exe

@@ -12,31 +12,33 @@ use std::time::{Duration, SystemTime};
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
 const CATALOG_JSON: &str = include_str!("../cleaners.json");
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub struct Text {
     pub fr: String,
     pub en: String,
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Mode {
     /// Suppression du contenu des dossiers `paths`.
+    #[default]
     Delete,
     /// Outil Windows officiel, géré par `id` (ex. vider la Corbeille).
     Command,
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Level {
     /// Coché par défaut, sans effet visible pour l'utilisateur.
+    #[default]
     Safe,
     /// Carte dédiée, confirmation en deux étapes.
     Heavy,
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Cleaner {
     pub id: String,
@@ -251,20 +253,28 @@ impl Walk<'_> {
     }
 }
 
-/// Processus de la liste actuellement lancés (noms insensibles à la casse).
+/// Liste des processus lancés (sortie de tasklist en minuscules). Un appel suffit pour tout le catalogue.
+pub fn process_list() -> String {
+    use std::os::windows::process::CommandExt;
+    std::process::Command::new("tasklist")
+        .args(["/FO", "CSV", "/NH"])
+        .creation_flags(crate::system::CREATE_NO_WINDOW)
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).to_lowercase())
+        .unwrap_or_default()
+}
+
+/// Processus de `names` présents dans `list` (voir `process_list`), noms insensibles à la casse.
+pub fn running_in(list: &str, names: &[String]) -> Vec<String> {
+    names.iter().filter(|n| list.contains(&format!("\"{}\"", n.to_lowercase()))).cloned().collect()
+}
+
+/// Processus de la liste actuellement lancés.
 pub fn running(names: &[String]) -> Vec<String> {
     if names.is_empty() {
         return Vec::new();
     }
-    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-    use std::os::windows::process::CommandExt;
-    let out = std::process::Command::new("tasklist")
-        .args(["/FO", "CSV", "/NH"])
-        .creation_flags(CREATE_NO_WINDOW)
-        .output();
-    let Ok(out) = out else { return Vec::new() };
-    let list = String::from_utf8_lossy(&out.stdout).to_lowercase();
-    names.iter().filter(|n| list.contains(&format!("\"{}\"", n.to_lowercase()))).cloned().collect()
+    running_in(&process_list(), names)
 }
 
 fn walk(entry: &Cleaner, dry_run: bool) -> CleanReport {
@@ -310,23 +320,7 @@ pub fn preview(entry: &Cleaner) -> (CleanReport, Vec<(String, u64)>) {
 /// Supprime définitivement des dossiers régénérables de projets (node_modules, target…),
 /// trouvés par l'analyse. Même garde que le catalogue : liens jamais suivis, fichiers verrouillés ignorés.
 pub fn delete_project_dirs(dirs: &[PathBuf], journal_dir: &Path) -> Result<CleanReport, String> {
-    let entry = Cleaner {
-        id: "project-artifacts".into(),
-        group: "dev".into(),
-        label: Text { en: String::new(), fr: String::new() },
-        what: Text { en: String::new(), fr: String::new() },
-        why: Text { en: String::new(), fr: String::new() },
-        effect: Text { en: String::new(), fr: String::new() },
-        paths: Vec::new(),
-        only: Vec::new(),
-        older_than_hours: 0,
-        flat: false,
-        admin: false,
-        mode: Mode::Delete,
-        level: Level::Safe,
-        close: Vec::new(),
-        command: None,
-    };
+    let entry = Cleaner { id: "project-artifacts".into(), group: "dev".into(), ..Default::default() };
     let (mut report, _) = walk_roots(&entry, dirs, false, false);
     // Le dossier lui-même, une fois vide (la garde exige d'être strictement sous une racine : son parent).
     for d in dirs {
@@ -397,8 +391,7 @@ mod commands {
 
     /// Lance un programme sans fenêtre et renvoie sa sortie (stdout + stderr).
     fn exec(program: &str, args: &[&str]) -> (bool, String) {
-        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-        match std::process::Command::new(program).args(args).creation_flags(CREATE_NO_WINDOW).output() {
+        match std::process::Command::new(program).args(args).creation_flags(crate::system::CREATE_NO_WINDOW).output() {
             Ok(o) => {
                 let text = format!("{}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr));
                 (o.status.success(), format!("> {program} {}\n{}", args.join(" "), text.trim()))
@@ -560,23 +553,7 @@ mod tests {
     }
 
     fn cleaner(paths: Vec<String>) -> Cleaner {
-        Cleaner {
-            id: "test".into(),
-            group: "test".into(),
-            label: text(),
-            what: text(),
-            why: text(),
-            effect: text(),
-            paths,
-            only: vec![],
-            older_than_hours: 0,
-            flat: false,
-            admin: false,
-            mode: Mode::Delete,
-            level: Level::Safe,
-            close: vec![],
-            command: None,
-        }
+        Cleaner { id: "test".into(), group: "test".into(), label: text(), what: text(), why: text(), effect: text(), paths, ..Default::default() }
     }
 
     fn journal_dir(s: &Sandbox) -> PathBuf {

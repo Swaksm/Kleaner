@@ -1,9 +1,9 @@
-import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
 import { BugReportButton } from "../components/BugReportButton";
 import { Card } from "../components/Card";
 import { findUpdate } from "../lib/update";
+import { appVersion } from "../lib/version";
 import { useT, type Key } from "../i18n/useT";
 
 const REPO = "https://github.com/Swaksm/Kleaner";
@@ -30,7 +30,7 @@ export function About() {
     }
   }
   useEffect(() => {
-    getVersion().then(setVersion, () => {});
+    appVersion().then(setVersion, () => {});
   }, []);
 
   return (

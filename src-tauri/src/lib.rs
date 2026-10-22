@@ -26,6 +26,31 @@ use std::sync::atomic::{AtomicBool, Ordering::Relaxed};
 use std::time::Duration;
 use tauri::{Emitter, Manager, State};
 
+/// Version affichée : le tag de la release (« v0.1.0-rc14 », injecté au build), sinon celle de Cargo.
+pub fn app_version() -> &'static str {
+    option_env!("VITE_APP_VERSION").map_or(env!("CARGO_PKG_VERSION"), |v| v.trim_start_matches('v'))
+}
+
+/// Règle de Kleaner : une commande qui modifie le disque n'accepte que des éléments de la dernière liste affichée.
+fn check_known(asked: &[String], known: &[String]) -> Result<(), String> {
+    match asked.iter().find(|a| !known.contains(a)) {
+        Some(a) => Err(format!("Refused: {a} was not in the last list")),
+        None => Ok(()),
+    }
+}
+
+/// Une copie reste toujours : refuse si un groupe de doublons perdrait toutes ses copies encore présentes.
+fn keeps_a_copy(asked: &[String], groups: &[Vec<String>]) -> Result<(), String> {
+    for g in groups {
+        let touched = g.iter().find(|p| asked.contains(p));
+        let kept = g.iter().any(|p| !asked.contains(p) && Path::new(p).exists());
+        if let (Some(p), false) = (touched, kept) {
+            return Err(format!("Refused: {p} is the last copy left"));
+        }
+    }
+    Ok(())
+}
+
 #[derive(Serialize)]
 struct JournalView {
     path: String,
@@ -54,18 +79,17 @@ fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
         return Err("Kleaner itself is in its data folder, nothing was deleted.".into());
     }
     // Sinon la tâche de démarrage resterait, pointant vers un Kleaner effacé.
-    if autostart::enabled() {
+    if autostart::exists() {
         autostart::set(false, &ours).map_err(|e| format!("Turn off \"Start with Windows\" first ({e}). Nothing was deleted."))?;
     }
     // WebView2 verrouille ses fichiers tant que l'appli tourne : on supprime 2 s après la fermeture.
-    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
     std::process::Command::new("cmd")
         .raw_arg(format!(
             "/C ping -n 3 127.0.0.1 >nul & rmdir /S /Q \"{}\" & rmdir /S /Q \"{}\"",
             ours.display(),
             webview.display()
         ))
-        .creation_flags(CREATE_NO_WINDOW)
+        .creation_flags(system::CREATE_NO_WINDOW)
         .spawn()
         .map_err(|e| e.to_string())?;
     app.exit(0);
@@ -86,6 +110,9 @@ struct ScanState {
     running: Arc<AtomicBool>,
     /// Résultats de la dernière analyse gardés côté Rust (trop gros, ou vérifiés avant suppression).
     dups: Arc<Mutex<Vec<scan::DupCandidate>>>,
+    /// Fichiers que l'interface peut envoyer à la Corbeille : photos, vidéos et candidats doublons de la dernière analyse.
+    trashable: Arc<Mutex<Vec<String>>>,
+    dup_groups: Arc<Mutex<Vec<Vec<String>>>>,
     artifacts: Arc<Mutex<Vec<String>>>,
     dup_cancel: Arc<AtomicBool>,
     leftovers: Arc<Mutex<Vec<leftovers::Leftover>>>,
@@ -130,7 +157,7 @@ fn start_scan(app: tauri::AppHandle, state: State<ScanState>, roots: Option<Vec<
     }
     state.cancel.store(false, Relaxed);
     let (cancel, running) = (state.cancel.clone(), state.running.clone());
-    let (dups, artifacts) = (state.dups.clone(), state.artifacts.clone());
+    let (dups, artifacts, trashable) = (state.dups.clone(), state.artifacts.clone(), state.trashable.clone());
     std::thread::spawn(move || {
         let progress = Arc::new(scan::Progress::default());
         let done = Arc::new(AtomicBool::new(false));
@@ -149,6 +176,13 @@ fn start_scan(app: tauri::AppHandle, state: State<ScanState>, roots: Option<Vec<
             })
         };
         let (result, candidates) = scan::scan_full(&roots, &cancel, &progress);
+        *trashable.lock().unwrap() = result
+            .videos
+            .iter()
+            .chain(&result.images)
+            .map(|i| i.path.clone())
+            .chain(candidates.iter().map(|c| c.path.display().to_string()))
+            .collect();
         *dups.lock().unwrap() = candidates;
         *artifacts.lock().unwrap() = result.artifacts.iter().map(|a| a.path.clone()).collect();
         done.store(true, Relaxed);
@@ -165,7 +199,9 @@ fn cancel_scan(state: State<ScanState>) {
 }
 
 #[tauri::command]
-fn move_to_trash(paths: Vec<String>) -> Result<actions::ActionReport, String> {
+fn move_to_trash(paths: Vec<String>, state: State<ScanState>) -> Result<actions::ActionReport, String> {
+    check_known(&paths, &state.trashable.lock().unwrap())?;
+    keeps_a_copy(&paths, &state.dup_groups.lock().unwrap())?;
     let paths: Vec<_> = paths.into_iter().map(std::path::PathBuf::from).collect();
     actions::trash_files(&paths, &guard::Protected::from_env(), &journal::data_dir())
 }
@@ -186,12 +222,13 @@ fn list_cleaners() -> CleanersView {
 async fn estimate_cleaners() -> Result<Vec<catalog::CleanReport>, String> {
     tauri::async_runtime::spawn_blocking(|| {
         let elevated = elevation::is_elevated();
+        let processes = catalog::process_list();
         catalog::all()
             .iter()
             .filter(|c| elevated || !c.admin)
             .map(|c| {
                 let mut r = catalog::estimate(c);
-                r.blocked_by = catalog::running(&c.close);
+                r.blocked_by = catalog::running_in(&processes, &c.close);
                 r
             })
             .collect()
@@ -305,13 +342,15 @@ async fn find_duplicates(app: tauri::AppHandle, state: State<'_, ScanState>) -> 
     }
     state.dup_cancel.store(false, Relaxed);
     let cancel = state.dup_cancel.clone();
-    tauri::async_runtime::spawn_blocking(move || {
+    let groups = tauri::async_runtime::spawn_blocking(move || {
         duplicates::find(candidates, &cancel, &|done, total| {
             let _ = app.emit("dup-progress", DupProgress { done, total });
         })
     })
     .await
-    .map_err(|e| e.to_string())
+    .map_err(|e| e.to_string())?;
+    *state.dup_groups.lock().unwrap() = groups.iter().map(|g| g.files.iter().map(|f| f.path.clone()).collect()).collect();
+    Ok(groups)
 }
 
 #[tauri::command]
@@ -322,10 +361,7 @@ fn cancel_duplicates(state: State<ScanState>) {
 /// Supprime des dossiers régénérables de projets. Seuls ceux trouvés par la dernière analyse sont acceptés.
 #[tauri::command]
 async fn delete_artifacts(paths: Vec<String>, state: State<'_, ScanState>) -> Result<catalog::CleanReport, String> {
-    let known = state.artifacts.lock().unwrap().clone();
-    if let Some(p) = paths.iter().find(|p| !known.contains(p)) {
-        return Err(format!("Refused: {p} was not found by the last scan"));
-    }
+    check_known(&paths, &state.artifacts.lock().unwrap())?;
     let dirs: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
     tauri::async_runtime::spawn_blocking(move || catalog::delete_project_dirs(&dirs, &journal::data_dir()))
         .await
@@ -369,7 +405,8 @@ async fn preview_cleaners(ids: Vec<String>) -> Result<PreviewView, String> {
         }
         let dir = journal::data_dir().join("rapports");
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-        let file = dir.join(format!("cleanup-preview-{}.txt", journal::Entry::new("x").ts));
+        // Toujours le même fichier : les aperçus (parfois des millions de lignes) ne s'accumulent pas.
+        let file = dir.join("cleanup-preview.txt");
         std::fs::write(&file, text).map_err(|e| e.to_string())?;
         Ok(PreviewView { entries, file: file.display().to_string() })
     })
@@ -413,8 +450,8 @@ async fn restore_trashed(paths: Vec<String>) -> Result<actions::ActionReport, St
 
 /// Prépare un rapport de bug (fichier local) ; l'interface ouvre ensuite GitHub dans le navigateur.
 #[tauri::command]
-fn bug_report(app: tauri::AppHandle) -> Result<String, String> {
-    actions::bug_report(&app.package_info().version.to_string(), &journal::data_dir()).map(|p| p.display().to_string())
+fn bug_report() -> Result<String, String> {
+    actions::bug_report(app_version(), &journal::data_dir()).map(|p| p.display().to_string())
 }
 
 #[tauri::command]
@@ -432,10 +469,7 @@ async fn onedrive_files(state: State<'_, ScanState>) -> Result<Vec<onedrive::Clo
 /// « Libérer de l'espace » OneDrive, seulement pour des fichiers de la dernière liste.
 #[tauri::command]
 async fn onedrive_free(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
-    let known = state.cloud.lock().unwrap().clone();
-    if let Some(p) = paths.iter().find(|p| !known.contains(p)) {
-        return Err(format!("Refused: {p} was not in the last OneDrive list"));
-    }
+    check_known(&paths, &state.cloud.lock().unwrap())?;
     let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
     let (n, bytes) = tauri::async_runtime::spawn_blocking(move || onedrive::free_up(&files, &journal::data_dir()))
         .await
@@ -468,10 +502,7 @@ async fn app_updates(state: State<'_, ScanState>) -> Result<Vec<system::AppUpdat
 /// Met à jour des applications avec winget ; seulement des identifiants de la dernière liste.
 #[tauri::command]
 async fn upgrade_apps(ids: Vec<String>, state: State<'_, ScanState>) -> Result<(u64, String), String> {
-    let known = state.apps.lock().unwrap().clone();
-    if let Some(id) = ids.iter().find(|i| !known.contains(i)) {
-        return Err(format!("Refused: {id} was not in the last list"));
-    }
+    check_known(&ids, &state.apps.lock().unwrap())?;
     tauri::async_runtime::spawn_blocking(move || system::upgrade_apps(&ids, &journal::data_dir()))
         .await
         .map_err(|e| e.to_string())?
@@ -488,9 +519,7 @@ async fn list_startup(state: State<'_, ScanState>) -> Result<startup::StartupVie
 /// Active ou désactive un élément de la dernière liste (réversible, écrit au journal).
 #[tauri::command]
 async fn set_startup(id: String, enabled: bool, state: State<'_, ScanState>) -> Result<(), String> {
-    if !state.startup.lock().unwrap().contains(&id) {
-        return Err(format!("Refused: {id} was not in the last startup list"));
-    }
+    check_known(std::slice::from_ref(&id), &state.startup.lock().unwrap())?;
     tauri::async_runtime::spawn_blocking(move || startup::set_enabled(&id, enabled, &journal::data_dir()))
         .await
         .map_err(|e| e.to_string())?
@@ -507,9 +536,9 @@ async fn find_shortcuts(state: State<'_, ScanState>) -> Result<Vec<shortcuts::Br
 /// Envoie à la Corbeille des raccourcis trouvés par la dernière recherche (et seulement ceux-là).
 #[tauri::command]
 async fn trash_shortcuts(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
-    let known = state.shortcuts.lock().unwrap().clone();
-    if let Some(p) = paths.iter().find(|p| !known.contains(p) || !p.to_lowercase().ends_with(".lnk")) {
-        return Err(format!("Refused: {p} was not found by the last search"));
+    check_known(&paths, &state.shortcuts.lock().unwrap())?;
+    if let Some(p) = paths.iter().find(|p| !p.to_lowercase().ends_with(".lnk")) {
+        return Err(format!("Refused: {p} is not a shortcut"));
     }
     // Déjà disparu depuis la recherche (désinstallé entre-temps) : rien à faire pour lui.
     let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).filter(|p| p.symlink_metadata().is_ok()).collect();
@@ -556,10 +585,7 @@ async fn find_ghosts(state: State<'_, ScanState>) -> Result<Vec<programs::Ghost>
 /// Supprime des entrées fantômes de la dernière recherche, après sauvegarde `.reg`. Renvoie le nombre supprimé.
 #[tauri::command]
 async fn remove_ghosts(ids: Vec<String>, state: State<'_, ScanState>) -> Result<u64, String> {
-    let known = state.ghosts.lock().unwrap().clone();
-    if let Some(id) = ids.iter().find(|i| !known.contains(i)) {
-        return Err(format!("Refused: {id} was not found by the last search"));
-    }
+    check_known(&ids, &state.ghosts.lock().unwrap())?;
     tauri::async_runtime::spawn_blocking(move || {
         let (dir, backups) = (journal::data_dir(), journal::data_dir().join("backups"));
         let mut done = 0;
@@ -658,4 +684,37 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn v(items: &[&str]) -> Vec<String> {
+        items.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn only_items_of_the_last_list_are_accepted() {
+        let known = v(&[r"C:\a", r"C:\b"]);
+        assert!(check_known(&v(&[r"C:\a"]), &known).is_ok());
+        assert!(check_known(&v(&[r"C:\a", r"C:\Windows\x"]), &known).is_err(), "un chemin libre fait tout refuser");
+        assert!(check_known(&v(&[r"C:\a"]), &[]).is_err(), "liste vide : rien n'est accepté");
+    }
+
+    #[test]
+    fn a_duplicate_group_never_loses_its_last_copy() {
+        let dir = std::env::temp_dir().join(format!("kleaner-copies-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let (a, b) = (dir.join("a.jpg"), dir.join("b.jpg"));
+        std::fs::write(&a, b"x").unwrap();
+        std::fs::write(&b, b"x").unwrap();
+        let (a, b) = (a.display().to_string(), b.display().to_string());
+        let groups = vec![vec![a.clone(), b.clone()]];
+        assert!(keeps_a_copy(std::slice::from_ref(&b), &groups).is_ok());
+        assert!(keeps_a_copy(&[a.clone(), b.clone()], &groups).is_err());
+        std::fs::remove_file(&a).unwrap();
+        assert!(keeps_a_copy(std::slice::from_ref(&b), &groups).is_err(), "la copie gardée a disparu entre-temps");
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
 }

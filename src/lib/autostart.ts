@@ -11,7 +11,13 @@ export async function chooseAutostart(on: boolean, elevated: boolean): Promise<v
   try {
     localStorage.setItem(PENDING, on ? "1" : "0");
   } catch {}
-  return relaunchAdmin();
+  // UAC refusé : on oublie le choix, sinon il s'appliquerait seul à la prochaine relance en admin.
+  return relaunchAdmin().catch((e) => {
+    try {
+      localStorage.removeItem(PENDING);
+    } catch {}
+    throw e;
+  });
 }
 
 /** À appeler une fois en admin : applique le choix fait avant la relance. */

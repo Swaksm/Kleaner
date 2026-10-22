@@ -426,5 +426,12 @@
   "autostart.note": "Kleaner only appears as an icon near the clock and warns you if a drive is almost full: it scans and cleans nothing by itself. Changing this asks for admin rights once.",
   "home.quickClean": "Clean risk-free",
   "home.quickCleanNote": "Ticks the risk-free items and shows you the list: nothing is deleted before you confirm.",
-  "cleanup.freeSpace": "free"
+  "cleanup.freeSpace": "free",
+  "error.staleList": "This list changed since it was shown. Search or scan again, then retry.",
+  "error.lastCopy": "Refused: one copy of each file always stays.",
+  "error.protected": "Refused: this is a Windows or program location.",
+  "error.link": "Refused: this path goes through a link or junction, Kleaner never follows them.",
+  "error.notFound": "This file no longer exists. Refresh the list.",
+  "error.autostartFirst": "Turn off “Start with Windows” first (admin rights needed). Nothing was deleted.",
+  "error.admin": "Administrator rights are needed: use “Full scan (admin)”."
 }
