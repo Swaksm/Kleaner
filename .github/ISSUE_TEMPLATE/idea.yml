@@ -1,0 +1,12 @@
+name: Idea / Idée
+description: Something to add or improve. / Quelque chose à ajouter ou à améliorer.
+title: "[Idea] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea / Ton idée
+      description: What you would like Kleaner to do, and why it would help you. / Ce que tu aimerais que Kleaner fasse, et en quoi ça t'aiderait.
+    validations:
+      required: true

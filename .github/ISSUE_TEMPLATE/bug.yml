@@ -1,0 +1,26 @@
+name: Bug / Problème
+description: Something does not work as expected. / Quelque chose ne marche pas comme prévu.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / Que s'est-il passé ?
+      description: What you did, what you expected, what you got. A screenshot helps. / Ce que tu as fait, ce que tu attendais, ce qui s'est passé. Une capture d'écran aide.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Kleaner version / Version de Kleaner
+      description: Shown in Kleaner → About. / Visible dans Kleaner → À propos.
+      placeholder: 0.1.0-rc16
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows
+      options:
+        - Windows 11
+        - Windows 10
+        - "?"
