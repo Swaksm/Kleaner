@@ -57,6 +57,12 @@ try {
       await box.click();
       await (await b.$("button=Continue")).click();
     }
+    await (await b.$(".sidebar")).waitForExist({ timeout: 10_000 }).catch(() => {});
+  });
+
+  await step("assistant du premier lancement (choix par défaut)", async () => {
+    const finish = await b.$(".setup button=Finish");
+    if (await finish.isExisting()) await finish.click();
     await (await b.$(".sidebar")).waitForExist({ timeout: 10_000 });
   });
 
