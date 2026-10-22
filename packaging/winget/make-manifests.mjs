@@ -18,7 +18,7 @@ const setupSha = await sha256("kleaner-setup.exe");
 const sha = await sha256("kleaner.exe");
 
 const id = "Swaks.Kleaner";
-const schema = (k) => `# yaml-language-server: $schema=https://aka.ms/winget-manifest.${k}.1.6.0.schema.json`;
+const schema = (k) => `# yaml-language-server: $schema=https://aka.ms/winget-manifest.${k}.1.12.0.schema.json`;
 const dir = `packaging/winget/manifests/s/Swaks/Kleaner/${version}`;
 mkdirSync(dir, { recursive: true });
 
@@ -28,7 +28,7 @@ writeFileSync(`${dir}/${id}.yaml`, [
   `PackageVersion: ${version}`,
   "DefaultLocale: en-US",
   "ManifestType: version",
-  "ManifestVersion: 1.6.0",
+  "ManifestVersion: 1.12.0",
   "",
 ].join("\n"));
 
@@ -50,7 +50,7 @@ writeFileSync(`${dir}/${id}.installer.yaml`, [
   `    InstallerUrl: ${base}/kleaner.exe`,
   `    InstallerSha256: ${sha}`,
   "ManifestType: installer",
-  "ManifestVersion: 1.6.0",
+  "ManifestVersion: 1.12.0",
   "",
 ].join("\n"));
 
@@ -62,7 +62,8 @@ writeFileSync(`${dir}/${id}.locale.en-US.yaml`, [
   "Publisher: swaks",
   "PublisherUrl: https://github.com/Swaksm",
   "PackageName: Kleaner",
-  "PackageUrl: https://github.com/Swaksm/Kleaner",
+  "PackageUrl: https://swaks.org/kleaner/",
+  "Moniker: kleaner",
   "License: MIT",
   "LicenseUrl: https://github.com/Swaksm/Kleaner/blob/main/LICENSE",
   "ShortDescription: Free, open-source and transparent Windows disk cleaner.",
@@ -73,9 +74,12 @@ writeFileSync(`${dir}/${id}.locale.en-US.yaml`, [
   "  - disk-cleanup",
   "  - storage",
   "  - open-source",
+  "  - pc-cleaner",
+  "  - free-up-space",
+  "  - windows-11",
   "ReleaseNotesUrl: https://github.com/Swaksm/Kleaner/releases/tag/v" + version,
   "ManifestType: defaultLocale",
-  "ManifestVersion: 1.6.0",
+  "ManifestVersion: 1.12.0",
   "",
 ].join("\n"));
 console.log(`manifestes écrits dans ${dir} (setup ${setupSha}, portable ${sha})`);
