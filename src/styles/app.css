@@ -245,6 +245,14 @@ html.mica .sidebar {
 .pill-danger { color: var(--danger); }
 .pill-neutral { color: var(--muted); }
 
+/* Contrôles natifs (cases, radios, curseurs) à la couleur de l'accent, pas le bleu de Windows */
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"],
+progress {
+  accent-color: var(--accent);
+}
+
 /* Buttons */
 .btn {
   font: inherit;
@@ -1182,8 +1190,7 @@ select {
   gap: 6px;
 }
 
-/* Espace libre dans l'anneau : gris neutre */
-:root { --series-7: #a3a29c; }
+/* Espace libre dans l'anneau : neutre (--series-7 dans tokens.css) */
 .donut-arc.series-7 { stroke: var(--series-7); }
 .swatch.series-7 { background: var(--series-7); }
 
@@ -1246,7 +1253,7 @@ select {
 }
 
 .tile-dir rect {
-  fill: var(--series-1);
+  fill: var(--accent);
   fill-opacity: 0.75;
   stroke: var(--card);
   stroke-width: 2;
@@ -1268,13 +1275,13 @@ select {
 }
 
 .tile-label {
-  fill: #fff;
+  fill: var(--on-accent);
   font: 600 13px var(--font-ui);
   pointer-events: none;
 }
 
 .tile-size {
-  fill: #fff;
+  fill: var(--on-accent);
   font: 500 12px var(--font-mono);
   opacity: 0.9;
   pointer-events: none;

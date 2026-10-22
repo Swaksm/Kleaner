@@ -27,19 +27,20 @@
   /* Mauve foncé : lisible en texte sur la crème et avec du blanc dessus (contraste >= 4.5:1). */
   --accent: #935683;
   --on-accent: #FFFFFF;
-  /* Couleurs de verdict : jamais le mauve de la marque, pour ne pas confondre accent et alerte. */
-  --danger: #B6324A;
-  --warn: #A6670F;
-  --ok: #2F7D53;
+  /* Couleurs de verdict : tons terreux (sauge, ocre, brique), jamais le mauve de la marque ; texte >= 4.5:1. */
+  --danger: #A23F3A;
+  --warn: #8F6420;
+  --ok: #45725A;
   --shadow: 0 1px 2px rgba(58, 53, 48, 0.05);
 
-  /* Graphiques : couleurs catégorielles, ordre fixe (validées : daltonisme, contraste). */
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  --series-4: #eda100;
-  --series-5: #e87ba4;
-  --series-6: #008300;
+  /* Graphiques : couleurs catégorielles accordées à l'identité, ordre fixe ; la légende porte aussi le nom et le %. */
+  --series-1: #935683; /* prune */
+  --series-2: #C17F59; /* terracotta */
+  --series-3: #6E8B6A; /* sauge */
+  --series-4: #C9A24D; /* ocre */
+  --series-5: #5F7FA0; /* bleu gris */
+  --series-6: #8A7B6B; /* taupe */
+  --series-7: #D3CBB8; /* espace libre, neutre */
 
   --radius-card: 10px;
   --radius-ctl: 7px;
@@ -62,16 +63,17 @@
   --border-strong: #4A423B;
   --accent: #D49DC8;
   --on-accent: #1C1917;
-  --danger: #E06C80;
-  --warn: #D9A04A;
-  --ok: #5DBB8A;
+  --danger: #E3897D;
+  --warn: #D9AE6C;
+  --ok: #8DBA9C;
   --shadow: none;
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #c98500;
-  --series-5: #d55181;
-  --series-6: #008300;
+  --series-1: #D49DC8;
+  --series-2: #E0A27C;
+  --series-3: #9DBB97;
+  --series-4: #E2C278;
+  --series-5: #93B0CF;
+  --series-6: #B8A898;
+  --series-7: #4A423B;
 
   color-scheme: dark;
 }
