@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useT } from "../i18n/useT";
 import type { CleanReport, Cleaner } from "../lib/api";
 import { formatBytes } from "../lib/format";
+import { SkeletonInline } from "./Skeleton";
 import { StatusPill } from "./StatusPill";
 
 /** Une entrée du catalogue : ce que ça supprime, pourquoi c'est inutile, ce que ça change. */
@@ -27,7 +28,7 @@ export function CleanerCard({
   const { t, lang, tl } = useT();
   const size =
     report === undefined
-      ? "…"
+      ? <SkeletonInline />
       : cleaner.id === "component-store"
         ? t("cleanup.sizeUnknown")
         : formatBytes(report.bytes, lang);

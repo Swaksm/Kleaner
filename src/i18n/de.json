@@ -422,8 +422,9 @@
   "setup.intro": "Ein paar Einstellungen. Du kannst sie später in den Einstellungen ändern.",
   "setup.finish": "Fertig",
   "autostart.title": "Autostart",
-  "autostart.label": "Kleaner mit Windows starten (minimiert, mit Administratorrechten)",
-  "autostart.note": "Kleaner öffnet sich nur minimiert in der Taskleiste: Es analysiert und bereinigt nichts von selbst. Diese Änderung fragt einmal nach Administratorrechten.",
+  "autostart.label": "Kleaner mit Windows starten (neben der Uhr, mit Administratorrechten)",
+  "autostart.note": "Kleaner erscheint nur als Symbol neben der Uhr und warnt dich, wenn ein Laufwerk fast voll ist: Es analysiert und bereinigt nichts von selbst. Diese Änderung fragt einmal nach Administratorrechten.",
   "home.quickClean": "Risikofrei bereinigen",
-  "home.quickCleanNote": "Hakt die risikofreien Einträge an und zeigt dir die Liste: Nichts wird gelöscht, bevor du bestätigst."
+  "home.quickCleanNote": "Hakt die risikofreien Einträge an und zeigt dir die Liste: Nichts wird gelöscht, bevor du bestätigst.",
+  "cleanup.freeSpace": "frei"
 }

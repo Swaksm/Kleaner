@@ -422,8 +422,9 @@
   "setup.intro": "Poche scelte. Potrai cambiarle più tardi nelle Impostazioni.",
   "setup.finish": "Fine",
   "autostart.title": "Avvio",
-  "autostart.label": "Avvia Kleaner con Windows (ridotto a icona, con diritti di amministratore)",
-  "autostart.note": "Kleaner si apre solo ridotto a icona nella barra delle applicazioni: non analizza né pulisce nulla da solo. Modificare questa opzione chiede una volta i diritti di amministratore.",
+  "autostart.label": "Avvia Kleaner con Windows (vicino all'orologio, con diritti di amministratore)",
+  "autostart.note": "Kleaner appare solo come icona vicino all'orologio e ti avvisa se un disco è quasi pieno: non analizza né pulisce nulla da solo. Modificare questa opzione chiede una volta i diritti di amministratore.",
   "home.quickClean": "Pulisci senza rischi",
-  "home.quickCleanNote": "Seleziona gli elementi senza rischi e ti mostra l'elenco: nulla viene eliminato prima della tua conferma."
+  "home.quickCleanNote": "Seleziona gli elementi senza rischi e ti mostra l'elenco: nulla viene eliminato prima della tua conferma.",
+  "cleanup.freeSpace": "liberi"
 }

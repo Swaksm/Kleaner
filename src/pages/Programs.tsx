@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Skeleton, SkeletonInline } from "../components/Skeleton";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Ghosts } from "../components/Ghosts";
@@ -177,7 +178,7 @@ export function Programs() {
           </span>
         )}
         {!shown ? (
-          <p className="muted">…</p>
+          <Skeleton lines={8} />
         ) : (
           <ul className="items programs" style={{ ["--cols" as string]: cols }}>
             <SortHeader
@@ -212,7 +213,7 @@ export function Programs() {
                   {lastUsed.has(p.id) ? formatDay(lastUsed.get(p.id)!, lang) : "—"}
                 </span>
                 {showMeasured && (
-                  <span className="num end">{real === null ? "…" : real.has(p.id) ? formatBytes(real.get(p.id)!, lang) : "—"}</span>
+                  <span className="num end">{real === null ? <SkeletonInline /> : real.has(p.id) ? formatBytes(real.get(p.id)!, lang) : "—"}</span>
                 )}
                 {showDeclared && <span className="num end">{p.bytes > 0 ? formatBytes(p.bytes, lang) : "—"}</span>}
                 {watching.has(p.id) ? (

@@ -72,6 +72,14 @@ fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// Effet Mica appliqué à la fenêtre (Windows 11) : l'interface rend alors la barre latérale translucide.
+static MICA: AtomicBool = AtomicBool::new(false);
+
+#[tauri::command]
+fn mica() -> bool {
+    MICA.load(Relaxed)
+}
+
 #[derive(Default)]
 struct ScanState {
     cancel: Arc<AtomicBool>,
@@ -586,6 +594,13 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .manage(ScanState::default())
         .setup(|app| {
+            // Windows 11 : Mica derrière la fenêtre (transparente) ; le CSS peint le fond partout ailleurs, donc Windows 10 ne change pas.
+            if system::windows_build() >= 22000
+                && let Some(w) = app.get_webview_window("main")
+            {
+                use tauri::window::{Effect, EffectsBuilder};
+                MICA.store(w.set_effects(EffectsBuilder::new().effect(Effect::Mica).build()).is_ok(), Relaxed);
+            }
             // Lancé par la tâche de démarrage : icône près de l'horloge, fenêtre cachée.
             if std::env::args().any(|a| a == autostart::MINIMIZED_ARG) {
                 tray::start(app.handle())?;
@@ -602,6 +617,7 @@ pub fn run() {
             estimate_cleaners,
             run_cleaners,
             relaunch_admin,
+            mica,
             autostart_enabled,
             set_autostart,
             list_programs,

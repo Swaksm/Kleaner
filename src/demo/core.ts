@@ -27,6 +27,7 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
       return ok({ items: health(), elevated: false });
     case "is_elevated":
     case "autostart_enabled":
+    case "mica":
       return ok(false);
     case "onedrive_roots":
     case "list_programs":

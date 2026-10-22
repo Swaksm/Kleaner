@@ -45,6 +45,18 @@ h2 {
 }
 
 /* Layout */
+/* Windows 11 : l'effet Mica se voit sous la barre latérale ; le reste garde un fond plein. */
+html.mica body {
+  background: transparent;
+}
+html.mica .content,
+html.mica .disclaimer {
+  background: var(--bg);
+}
+html.mica .sidebar {
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+}
+
 .shell {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -82,6 +94,12 @@ h2 {
 .brand-logo-big {
   width: 56px;
   height: 56px;
+}
+
+.nav-glyph {
+  margin-right: 10px;
+  vertical-align: -3px;
+  flex-shrink: 0;
 }
 
 /* Nettoyage : l'action principale, en bouton plein. */
@@ -327,6 +345,16 @@ p { margin: 0; }
   height: 100%;
   border-radius: 3px;
   background: var(--accent);
+  transition: width 0.6s ease;
+}
+.sizebar-fill.fill-ok {
+  background: var(--ok);
+}
+.sizebar-fill.fill-warn {
+  background: var(--warn);
+}
+.sizebar-fill.fill-danger {
+  background: var(--danger);
 }
 
 /* Item lists */
@@ -507,6 +535,69 @@ code {
 .disclaimer-card {
   max-width: 620px;
   gap: 16px;
+}
+
+/* Chargement : blocs gris animés */
+.skeleton-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0;
+}
+.skeleton {
+  display: block;
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--sunken) 25%, var(--border) 50%, var(--sunken) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shine 1.4s ease-in-out infinite;
+}
+.skeleton-inline {
+  display: inline-block;
+  width: 56px;
+  height: 0.9em;
+  vertical-align: middle;
+}
+@keyframes skeleton-shine {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .done-check {
+    animation: none;
+  }
+}
+
+/* Nettoyage : carte de fin */
+.done-card {
+  gap: 14px;
+  border-color: var(--ok);
+}
+.done-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.done-check {
+  color: var(--ok);
+  flex-shrink: 0;
+  animation: done-pop 0.4s ease-out;
+}
+.done-big {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+@keyframes done-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
 }
 
 /* Accueil : nettoyage en un clic */

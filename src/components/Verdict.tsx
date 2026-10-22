@@ -4,6 +4,7 @@ import { useT, type Key } from "../i18n/useT";
 import { revealInExplorer, type Explanation, type Verdict } from "../lib/api";
 import { ruleProposalUrl } from "../lib/rule";
 import { outside } from "./MediaViewer";
+import { SkeletonInline } from "./Skeleton";
 import { StatusPill } from "./StatusPill";
 
 const STATUS: Record<Verdict, "ok" | "warn" | "danger" | "neutral"> = {
@@ -20,7 +21,7 @@ const STATUS: Record<Verdict, "ok" | "warn" | "danger" | "neutral"> = {
 /** Point de couleur + mot court (jamais la couleur seule) ; clic = fiche détaillée. */
 export function VerdictPill({ e, onOpen }: { e?: Explanation; onOpen: (e: Explanation) => void }) {
   const { t } = useT();
-  if (!e) return <span className="verdict-tag muted">…</span>;
+  if (!e) return <SkeletonInline />;
   return (
     <button
       type="button"

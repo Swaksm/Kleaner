@@ -50,6 +50,7 @@ export function Home({ onScan, go, onQuickClean }: { onScan: () => void; go: (pa
             label={`${d.root} · ${formatBytes(d.free, lang)} ${t("analyse.freeOf")} ${formatBytes(d.total, lang)}`}
             value={`${Math.round(((d.total - d.free) / Math.max(1, d.total)) * 100)} % ${t("analyse.used")}`}
             ratio={(d.total - d.free) / Math.max(1, d.total)}
+            usage
           />
         ))}
       </Card>

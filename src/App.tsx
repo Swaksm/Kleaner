@@ -3,6 +3,7 @@ import { StatusPill } from "./components/StatusPill";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LangMenu } from "./components/LangMenu";
+import { NavIcon } from "./components/NavIcon";
 import { isSetupDone, Setup } from "./components/Setup";
 import { applyPendingAutostart } from "./lib/autostart";
 import { UpdateBanner } from "./components/UpdateBanner";
@@ -68,11 +69,31 @@ function App() {
     } catch {}
   }
 
-  const item = (p: Page, className = "nav-item") => (
-    <button key={p} className={className} aria-current={page === p ? "page" : undefined} onClick={() => setPage(p)}>
-      {t(`nav.${p}` as Key)}
-    </button>
-  );
+  const item = (p: Page, className = "nav-item") => {
+    const n = (MAIN as readonly string[]).indexOf(p);
+    return (
+      <button key={p} className={className} aria-current={page === p ? "page" : undefined} title={n >= 0 ? `Ctrl+${n + 1}` : undefined} onClick={() => setPage(p)}>
+        <NavIcon page={p} />
+        {t(`nav.${p}` as Key)}
+      </button>
+    );
+  };
+
+  // Raccourcis : Ctrl+1…8 pour les pages principales, F5 relance l'analyse (au lieu de recharger la fenêtre).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && !e.altKey && !e.shiftKey && /^[1-8]$/.test(e.key)) {
+        e.preventDefault();
+        setPage(MAIN[Number(e.key) - 1]);
+      } else if (e.key === "F5" || (e.ctrlKey && e.key.toLowerCase() === "r")) {
+        e.preventDefault();
+        setScanRequest((n) => n + 1);
+        setPage("analyse");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => {
     isElevated().then((e) => {

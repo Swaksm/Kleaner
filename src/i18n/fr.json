@@ -422,8 +422,9 @@
   "setup.intro": "Quelques choix. Tu pourras les changer plus tard dans les Paramètres.",
   "setup.finish": "Terminer",
   "autostart.title": "Démarrage",
-  "autostart.label": "Lancer Kleaner avec Windows (réduit, avec les droits admin)",
-  "autostart.note": "Kleaner s'ouvre seulement réduit dans la barre des tâches : il n'analyse et ne nettoie rien tout seul. Changer ce réglage demande les droits admin une fois.",
+  "autostart.label": "Lancer Kleaner avec Windows (près de l'horloge, avec les droits admin)",
+  "autostart.note": "Kleaner apparaît seulement en icône près de l'horloge et te prévient si un disque est presque plein : il n'analyse et ne nettoie rien tout seul. Changer ce réglage demande les droits admin une fois.",
   "home.quickClean": "Nettoyer sans risque",
-  "home.quickCleanNote": "Coche les éléments sans risque et te montre la liste : rien n'est supprimé avant ta confirmation."
+  "home.quickCleanNote": "Coche les éléments sans risque et te montre la liste : rien n'est supprimé avant ta confirmation.",
+  "cleanup.freeSpace": "libres"
 }

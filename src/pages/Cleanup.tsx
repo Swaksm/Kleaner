@@ -1,15 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdminBanner } from "../components/AdminBanner";
 import { Card } from "../components/Card";
 import { CleanerCard } from "../components/CleanerCard";
 import { CleanupPreview } from "../components/CleanupPreview";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Donut } from "../components/Donut";
+import { SizeBar } from "../components/SizeBar";
+import { Skeleton } from "../components/Skeleton";
 import { StatusPill } from "../components/StatusPill";
 import { useT, type Key } from "../i18n/useT";
 import {
   estimateCleaners,
   listCleaners,
+  listDrives,
+  type DriveInfo,
   runCleaners,
   type CleanReport,
   type Cleaner,
@@ -35,6 +39,9 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
   const [results, setResults] = useState<CleanReport[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showEmpty, setShowEmpty] = useState(false);
+  // Espace libre des disques avant / après le dernier nettoyage (carte de fin).
+  const [drives, setDrives] = useState<{ before: DriveInfo[]; after: DriveInfo[] } | null>(null);
+  const doneRef = useRef<HTMLDivElement>(null);
 
   /// Sans risque et utile : niveau safe, quelque chose à gagner, rien qui bloque.
   const selectable = (c: Cleaner, map: Map<string, CleanReport>) => {
@@ -98,8 +105,12 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
     setRunning(true);
     setError(null);
     try {
+      const fixed = () => listDrives().then((d) => d.filter((x) => x.kind === "fixed"), () => [] as DriveInfo[]);
+      const before = await fixed();
       setResults(await runCleaners(ids));
+      setDrives({ before, after: await fixed() });
       setSelected(new Set());
+      requestAnimationFrame(() => doneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
       await load();
     } catch (e) {
       setError(String(e));
@@ -108,7 +119,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
     }
   }
 
-  if (!view) return error ? <StatusPill status="danger">{error}</StatusPill> : <p className="muted">…</p>;
+  if (!view) return error ? <StatusPill status="danger">{error}</StatusPill> : <Skeleton lines={6} />;
 
   const byId = new Map(view.cleaners.map((c) => [c.id, c]));
   const chosen = [...selected].map((id) => byId.get(id)!).filter(Boolean);
@@ -118,6 +129,33 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
 
   return (
     <>
+      {results && (
+        <div className="card done-card" role="status" ref={doneRef}>
+          <div className="done-head">
+            <svg className="done-check" viewBox="0 0 24 24" width="40" height="40" aria-hidden fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z" />
+              <path d="m8 12 3 3 5-6" />
+            </svg>
+            <div>
+              <div className="done-big num">{formatBytes(freed, lang)}</div>
+              <div className="muted">{t("cleanup.freed")}</div>
+            </div>
+          </div>
+          {drives?.after
+            .map((d) => ({ d, b: drives.before.find((x) => x.root === d.root) }))
+            .filter(({ d, b }) => b && d.free !== b.free)
+            .map(({ d, b }) => (
+              <SizeBar
+                key={d.root}
+                label={`${d.root} · ${formatBytes(b!.free, lang)} → ${formatBytes(d.free, lang)} ${t("cleanup.freeSpace")}`}
+                value={`${Math.round(((d.total - d.free) / Math.max(1, d.total)) * 100)} % ${t("analyse.used")}`}
+                ratio={(d.total - d.free) / Math.max(1, d.total)}
+                usage
+              />
+            ))}
+        </div>
+      )}
+
       <Card>
         <p>{t("cleanup.intro")}</p>
         <AdminBanner elevated={view.elevated} />

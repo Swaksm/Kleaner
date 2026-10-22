@@ -91,6 +91,16 @@ pub struct SystemInfo {
 
 /// Fin du support des éditions Famille et Pro, par numéro de build (dates publiées par Microsoft).
 // shortcut: table à compléter à chaque nouvelle version de Windows.
+/// Numéro de build de Windows (22000 et plus : Windows 11), 0 si illisible.
+pub fn windows_build() -> u32 {
+    winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE)
+        .open_subkey(r"SOFTWARE\Microsoft\Windows NT\CurrentVersion")
+        .and_then(|k| k.get_value::<String, _>("CurrentBuildNumber"))
+        .ok()
+        .and_then(|b| b.parse().ok())
+        .unwrap_or(0)
+}
+
 pub fn support_end(build: u32) -> Option<&'static str> {
     Some(match build {
         19045 => "2025-10-14", // Windows 10 22H2 (dernière version de Windows 10)

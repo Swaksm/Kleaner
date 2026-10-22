@@ -86,6 +86,7 @@ export const estimateCleaners = () => invoke<CleanReport[]>("estimate_cleaners")
 export const runCleaners = (ids: string[]) => invoke<CleanReport[]>("run_cleaners", { ids });
 export const relaunchAdmin = () => invoke<void>("relaunch_admin");
 export const isElevated = () => invoke<boolean>("is_elevated");
+export const micaEnabled = () => invoke<boolean>("mica");
 export const autostartEnabled = () => invoke<boolean>("autostart_enabled");
 export const setAutostart = (on: boolean) => invoke<void>("set_autostart", { on });
 

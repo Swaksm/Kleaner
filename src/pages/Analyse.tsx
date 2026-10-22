@@ -60,7 +60,8 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
   const [roots, setRoots] = useState<Set<string>>(new Set());
   // Demande d'analyse venue de l'Accueil (une fois les disques connus).
   useEffect(() => {
-    if (scanRequest > 0 && drives.length > 0) start();
+    // Déjà en cours (F5 répété) : on ne relance pas.
+    if (scanRequest > 0 && drives.length > 0 && phase.kind !== "scanning") start();
   }, [scanRequest, drives.length > 0]);
   const [explanations, setExplanations] = useState<Map<string, Explanation>>(new Map());
   const [explaining, setExplaining] = useState<Explanation | null>(null);
@@ -181,6 +182,7 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
             label={`${d.root} · ${formatBytes(d.free, lang)} ${t("analyse.freeOf")} ${formatBytes(d.total, lang)}`}
             value={`${Math.round(((d.total - d.free) / Math.max(1, d.total)) * 100)} % ${t("analyse.used")}`}
             ratio={(d.total - d.free) / Math.max(1, d.total)}
+            usage
           />
         ))}
         <div className="row">
