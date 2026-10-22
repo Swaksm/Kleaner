@@ -64,6 +64,80 @@ h2 {
   font-weight: 800;
   font-size: 20px;
   padding: 0 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Logo en masque : prend la couleur d'accent du thème (le bleu d'origine disparaît sur fond sombre). */
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: var(--accent);
+  -webkit-mask: url("../../docs/logo.svg") center / contain no-repeat;
+  mask: url("../../docs/logo.svg") center / contain no-repeat;
+}
+
+/* Nettoyage : l'action principale, en bouton plein. */
+.nav-item.nav-cta {
+  background: var(--accent);
+  color: var(--bg); /* contraste correct dans les deux thèmes */
+  font-weight: 600;
+  margin: 2px 0;
+}
+.nav-item.nav-cta:hover {
+  background: var(--accent);
+  color: var(--bg);
+  filter: brightness(1.1);
+}
+.nav-item.nav-cta[aria-current="page"] {
+  background: var(--accent);
+  color: var(--bg);
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--accent);
+}
+
+/* Langue : drapeau à côté de l'engrenage, liste qui s'ouvre vers le haut. */
+.lang-menu {
+  position: relative;
+  margin-left: auto;
+}
+.flag {
+  display: block;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--border);
+}
+.lang-list {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-ctl);
+  box-shadow: var(--shadow);
+}
+.lang-option {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-ctl);
+  color: var(--text);
+}
+.lang-option:hover,
+.lang-option:focus-visible {
+  background: var(--sunken);
+}
+.lang-option[aria-checked="true"] {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .nav-item {

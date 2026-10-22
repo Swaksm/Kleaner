@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { StatusPill } from "./components/StatusPill";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { LangMenu } from "./components/LangMenu";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useT, type Key } from "./i18n/useT";
 import { isElevated, onedriveRoots } from "./lib/api";
@@ -78,13 +79,17 @@ function App() {
   return (
     <div className="shell">
       <nav className="sidebar">
-        <div className="brand">Kleaner</div>
+        <div className="brand">
+          <span className="brand-logo" aria-hidden />
+          Kleaner
+        </div>
         {elevated && (
           <div className="brand-badge">
             <StatusPill status="ok">{t("admin.badge")}</StatusPill>
           </div>
         )}
-        {MAIN.map((p) => item(p))}
+        {/* Nettoyage : l'action principale, mise en avant comme un bouton. */}
+        {MAIN.map((p) => item(p, p === "cleanup" ? "nav-item nav-cta" : "nav-item"))}
         <button className="nav-item nav-group" aria-expanded={moreOpen} onClick={toggleMore}>
           <span>{t("nav.more")}</span>
           <span className="chevron" aria-hidden>
@@ -95,6 +100,7 @@ function App() {
         {more.filter((p) => moreOpen || page === p).map((p) => item(p, "nav-item nav-sub"))}
         <div className="nav-footer">
           {item("about", "nav-item nav-small")}
+          <LangMenu />
           <button
             className="nav-item nav-icon"
             aria-current={page === "settings" ? "page" : undefined}

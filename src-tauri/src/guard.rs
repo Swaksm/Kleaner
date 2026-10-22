@@ -107,6 +107,8 @@ pub struct Protected {
     subtrees: Vec<String>,
     /// Interdits en tant que dossier entier, leur contenu reste autorisé.
     exact: Vec<String>,
+    /// Exceptions dans un sous-arbre interdit : leur contenu est autorisé (raccourcis du menu Démarrer commun).
+    allowed: Vec<String>,
 }
 
 impl Protected {
@@ -135,7 +137,15 @@ impl Protected {
 
     fn new(subtrees: &[PathBuf], exact: &[PathBuf]) -> Self {
         let keys = |v: &[PathBuf]| v.iter().filter_map(|p| canon(p).ok()).map(|c| c.key).collect();
-        Self { subtrees: keys(subtrees), exact: keys(exact) }
+        Self { subtrees: keys(subtrees), exact: keys(exact), allowed: Vec::new() }
+    }
+
+    /// Autorise le contenu de `dir` (pas `dir` lui-même) même s'il est dans un sous-arbre interdit.
+    pub fn allow(mut self, dir: &Path) -> Self {
+        if let Ok(c) = canon(dir) {
+            self.allowed.push(c.key);
+        }
+        self
     }
 }
 
@@ -146,7 +156,8 @@ pub fn check_trash(p: &Path, protected: &Protected) -> Result<PathBuf, GuardErro
     if c.key.trim_end_matches('\\').ends_with(':') {
         return Err(GuardError::Protected);
     }
-    if protected.subtrees.iter().any(|s| c.key == *s || inside(&c.key, s)) || protected.exact.contains(&c.key) {
+    let allowed = protected.allowed.iter().any(|a| inside(&c.key, a));
+    if (!allowed && protected.subtrees.iter().any(|s| c.key == *s || inside(&c.key, s))) || protected.exact.contains(&c.key) {
         return Err(GuardError::Protected);
     }
     let m = std::fs::symlink_metadata(&c.path).map_err(|_| GuardError::NotFound)?;
@@ -318,6 +329,19 @@ mod tests {
         let p = Protected::new(&[], std::slice::from_ref(&docs));
         assert_eq!(check_trash(&docs, &p), Err(GuardError::Protected));
         assert!(check_trash(&f, &p).is_ok());
+    }
+
+    #[test]
+    fn allowed_dir_opens_only_its_content() {
+        let s = Sandbox::new("allowed");
+        let pd = s.dir("ProgramData");
+        let menu = s.dir("ProgramData/Start Menu");
+        let lnk = s.file("ProgramData/Start Menu/app.lnk");
+        let other = s.file("ProgramData/other.dat");
+        let p = Protected::new(std::slice::from_ref(&pd), &[]).allow(&menu);
+        assert!(check_trash(&lnk, &p).is_ok());
+        assert_eq!(check_trash(&menu, &p), Err(GuardError::Protected), "le dossier lui-même reste protégé");
+        assert_eq!(check_trash(&other, &p), Err(GuardError::Protected));
     }
 
     #[test]

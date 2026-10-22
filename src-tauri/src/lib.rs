@@ -482,8 +482,17 @@ async fn trash_shortcuts(paths: Vec<String>, state: State<'_, ScanState>) -> Res
     if let Some(p) = paths.iter().find(|p| !known.contains(p) || !p.to_lowercase().ends_with(".lnk")) {
         return Err(format!("Refused: {p} was not found by the last search"));
     }
-    let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).collect();
-    tauri::async_runtime::spawn_blocking(move || actions::trash_files(&files, &guard::Protected::from_env(), &journal::data_dir()))
+    // Déjà disparu depuis la recherche (désinstallé entre-temps) : rien à faire pour lui.
+    let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).filter(|p| p.symlink_metadata().is_ok()).collect();
+    if files.is_empty() {
+        return Ok(actions::ActionReport { files: 0, bytes: 0 });
+    }
+    // Le menu Démarrer commun est dans ProgramData (protégé) : ses raccourcis restent autorisés (admin).
+    let mut protected = guard::Protected::from_env();
+    if let Some(pd) = std::env::var_os("ProgramData") {
+        protected = protected.allow(&PathBuf::from(pd).join(r"Microsoft\Windows\Start Menu"));
+    }
+    tauri::async_runtime::spawn_blocking(move || actions::trash_files(&files, &protected, &journal::data_dir()))
         .await
         .map_err(|e| e.to_string())?
 }
