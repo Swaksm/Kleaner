@@ -15,6 +15,7 @@ pub mod scan;
 pub mod shortcuts;
 pub mod startup;
 pub mod system;
+pub mod tray;
 pub mod winapp2;
 
 use serde::Serialize;
@@ -51,6 +52,10 @@ fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
     // Un exe Kleaner rangé dans le dossier de données serait effacé avec lui.
     if std::env::current_exe().is_ok_and(|exe| exe.starts_with(&ours)) {
         return Err("Kleaner itself is in its data folder, nothing was deleted.".into());
+    }
+    // Sinon la tâche de démarrage resterait, pointant vers un Kleaner effacé.
+    if autostart::enabled() {
+        autostart::set(false, &ours).map_err(|e| format!("Turn off \"Start with Windows\" first ({e}). Nothing was deleted."))?;
     }
     // WebView2 verrouille ses fichiers tant que l'appli tourne : on supprime 2 s après la fermeture.
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
@@ -578,13 +583,12 @@ pub fn run() {
     }
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .manage(ScanState::default())
         .setup(|app| {
-            // Lancé par la tâche de démarrage : fenêtre réduite dans la barre des tâches.
-            if std::env::args().any(|a| a == autostart::MINIMIZED_ARG)
-                && let Some(w) = app.get_webview_window("main")
-            {
-                let _ = w.minimize();
+            // Lancé par la tâche de démarrage : icône près de l'horloge, fenêtre cachée.
+            if std::env::args().any(|a| a == autostart::MINIMIZED_ARG) {
+                tray::start(app.handle())?;
             }
             Ok(())
         })

@@ -423,5 +423,7 @@
   "setup.finish": "Finish",
   "autostart.title": "Startup",
   "autostart.label": "Start Kleaner with Windows (minimized, with admin rights)",
-  "autostart.note": "Kleaner only opens minimized in the taskbar: it scans and cleans nothing by itself. Changing this asks for admin rights once."
+  "autostart.note": "Kleaner only opens minimized in the taskbar: it scans and cleans nothing by itself. Changing this asks for admin rights once.",
+  "home.quickClean": "Clean risk-free",
+  "home.quickCleanNote": "Ticks the risk-free items and shows you the list: nothing is deleted before you confirm."
 }

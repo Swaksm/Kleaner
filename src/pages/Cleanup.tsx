@@ -21,7 +21,8 @@ const GROUPS = ["windows", "browsers", "apps", "dev", "community", "system"] as 
 // Ordre fixe = ordre des couleurs du graphique.
 const CHART_GROUPS = ["windows", "browsers", "apps", "dev", "system", "heavy"] as const;
 
-export function Cleanup() {
+/** `quick` : venu du bouton « Nettoyer sans risque » de l'Accueil, coche les éléments sans risque et ouvre la confirmation. */
+export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQuickDone?: () => void }) {
   const { t, lang, tl } = useT();
   const [view, setView] = useState<CleanersView | null>(null);
   const [estimates, setEstimates] = useState<Map<string, CleanReport> | null>(null);
@@ -42,7 +43,8 @@ export function Cleanup() {
     return c.level === "safe" && c.group !== "community" && !!r && r.bytes > 0 && r.blocked_by.length === 0;
   };
 
-  // Jamais de sélection automatique : l'utilisateur coche lui-même, ou clique « Cocher les éléments sans risque ».
+  // Jamais de sélection automatique : l'utilisateur coche lui-même, ou clique « Cocher les éléments sans risque »
+  // (ici ou sur l'Accueil). La confirmation montre toujours la liste avant toute suppression.
   async function load() {
     setEstimates(null);
     try {
@@ -66,6 +68,14 @@ export function Cleanup() {
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    if (!quick || !view || !estimates) return;
+    const ids = view.cleaners.filter((c) => selectable(c, estimates)).map((c) => c.id);
+    setSelected(new Set(ids));
+    if (ids.length > 0) setConfirm(true);
+    onQuickDone?.();
+  }, [quick, view, estimates]);
 
   function lockReason(c: Cleaner): string | undefined {
     if (c.admin && !view?.elevated) return t("cleanup.needsAdmin");

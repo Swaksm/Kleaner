@@ -1,14 +1,21 @@
 // Génère les manifestes winget d'une version publiée : node packaging/winget/make-manifests.mjs 0.1.0
-// Le hash est lu dans kleaner.exe.sha256 de la release GitHub. Sortie : packaging/winget/manifests/…
+// Les hash sont lus dans kleaner-setup.exe.sha256 et kleaner.exe.sha256 de la release GitHub.
+// Deux installeurs : l'installateur NSIS (choisi par défaut par winget) et l'exe portable (--installer-type portable).
+// Sortie : packaging/winget/manifests/…
 import { mkdirSync, writeFileSync } from "node:fs";
 
 const version = process.argv[2];
 if (!version) throw new Error("usage: node make-manifests.mjs <version>");
 const base = `https://github.com/Swaksm/Kleaner/releases/download/v${version}`;
-const res = await fetch(`${base}/kleaner.exe.sha256`);
-if (!res.ok) throw new Error(`release v${version} introuvable (${res.status})`);
-const sha = (await res.text()).trim().split(/\s+/)[0].toUpperCase();
-if (!/^[0-9A-F]{64}$/.test(sha)) throw new Error(`hash invalide : ${sha}`);
+async function sha256(file) {
+  const res = await fetch(`${base}/${file}.sha256`);
+  if (!res.ok) throw new Error(`${file} introuvable dans la release v${version} (${res.status})`);
+  const sha = (await res.text()).trim().split(/\s+/)[0].toUpperCase();
+  if (!/^[0-9A-F]{64}$/.test(sha)) throw new Error(`hash invalide pour ${file} : ${sha}`);
+  return sha;
+}
+const setupSha = await sha256("kleaner-setup.exe");
+const sha = await sha256("kleaner.exe");
 
 const id = "Swaks.Kleaner";
 const schema = (k) => `# yaml-language-server: $schema=https://aka.ms/winget-manifest.${k}.1.6.0.schema.json`;
@@ -29,11 +36,17 @@ writeFileSync(`${dir}/${id}.installer.yaml`, [
   schema("installer"),
   `PackageIdentifier: ${id}`,
   `PackageVersion: ${version}`,
-  "InstallerType: portable",
-  "Commands:",
-  "  - kleaner",
   "Installers:",
   "  - Architecture: x64",
+  "    InstallerType: nullsoft",
+  "    Scope: machine",
+  "    ElevationRequirement: elevatesSelf",
+  `    InstallerUrl: ${base}/kleaner-setup.exe`,
+  `    InstallerSha256: ${setupSha}`,
+  "  - Architecture: x64",
+  "    InstallerType: portable",
+  "    Commands:",
+  "      - kleaner",
   `    InstallerUrl: ${base}/kleaner.exe`,
   `    InstallerSha256: ${sha}`,
   "ManifestType: installer",
@@ -65,4 +78,4 @@ writeFileSync(`${dir}/${id}.locale.en-US.yaml`, [
   "ManifestVersion: 1.6.0",
   "",
 ].join("\n"));
-console.log(`manifestes écrits dans ${dir} (sha256 ${sha})`);
+console.log(`manifestes écrits dans ${dir} (setup ${setupSha}, portable ${sha})`);

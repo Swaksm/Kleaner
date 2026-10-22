@@ -423,5 +423,7 @@
   "setup.finish": "Fine",
   "autostart.title": "Avvio",
   "autostart.label": "Avvia Kleaner con Windows (ridotto a icona, con diritti di amministratore)",
-  "autostart.note": "Kleaner si apre solo ridotto a icona nella barra delle applicazioni: non analizza né pulisce nulla da solo. Modificare questa opzione chiede una volta i diritti di amministratore."
+  "autostart.note": "Kleaner si apre solo ridotto a icona nella barra delle applicazioni: non analizza né pulisce nulla da solo. Modificare questa opzione chiede una volta i diritti di amministratore.",
+  "home.quickClean": "Pulisci senza rischi",
+  "home.quickCleanNote": "Seleziona gli elementi senza rischi e ti mostra l'elenco: nulla viene eliminato prima della tua conferma."
 }

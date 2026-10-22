@@ -34,6 +34,7 @@ export function Disclaimer({ onAccept }: { onAccept: () => void }) {
   return (
     <div className="disclaimer">
       <div className="card disclaimer-card">
+        <span className="brand-logo brand-logo-big" aria-hidden />
         <h1>{t("disclaimer.title")}</h1>
         <ul>
           {points.map((k) => (

@@ -79,6 +79,11 @@ h2 {
   mask: url("../../docs/logo.svg") center / contain no-repeat;
 }
 
+.brand-logo-big {
+  width: 56px;
+  height: 56px;
+}
+
 /* Nettoyage : l'action principale, en bouton plein. */
 .nav-item.nav-cta {
   background: var(--accent);
@@ -502,6 +507,16 @@ code {
 .disclaimer-card {
   max-width: 620px;
   gap: 16px;
+}
+
+/* Accueil : nettoyage en un clic */
+.quick-clean {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 
 /* Assistant du premier lancement */

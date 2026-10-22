@@ -54,6 +54,7 @@ function App() {
   const [hasOneDrive, setHasOneDrive] = useState(false);
   const [elevated, setElevated] = useState(false);
   const [moreOpen, setMoreOpen] = useState(savedMoreOpen);
+  const [quickClean, setQuickClean] = useState(false);
   const scan = useScanResult();
   // « Vieux projets » n'apparaît que si l'analyse a trouvé des projets de code.
   const more = MORE.filter(
@@ -135,6 +136,10 @@ function App() {
                 setPage("analyse");
               }}
               go={setPage}
+              onQuickClean={() => {
+                setQuickClean(true);
+                setPage("cleanup");
+              }}
             />
           )}
           {page === "onedrive" && <OneDrive />}
@@ -152,7 +157,7 @@ function App() {
           {page === "journal" && <Journal />}
           {page === "settings" && <Settings />}
           {page === "about" && <About />}
-          {page === "cleanup" && <Cleanup />}
+          {page === "cleanup" && <Cleanup quick={quickClean} onQuickDone={() => setQuickClean(false)} />}
           {page === "programs" && <Programs />}
         </ErrorBoundary>
       </main>

@@ -11,7 +11,7 @@ type Target = "analyse" | "cleanup" | "programs" | "projects" | "duplicates" | "
 const MONTH = 30 * 86_400;
 
 /** Accueil : le PC en un coup d'œil et les quelques actions qui libèrent le plus de place. */
-export function Home({ onScan, go }: { onScan: () => void; go: (page: Target) => void }) {
+export function Home({ onScan, go, onQuickClean }: { onScan: () => void; go: (page: Target) => void; onQuickClean: () => void }) {
   const { t, lang } = useT();
   const scan = useScanResult();
   const recoverable = useRecoverable(scan);
@@ -63,6 +63,14 @@ export function Home({ onScan, go }: { onScan: () => void; go: (page: Target) =>
         </div>
       ) : (
         <Card title={t("home.recs")}>
+          {!!recoverable && (
+            <div className="quick-clean">
+              <button className="btn btn-primary btn-big" onClick={onQuickClean}>
+                {t("home.quickClean")} ({formatBytes(recoverable, lang)})
+              </button>
+              <p className="muted small">{t("home.quickCleanNote")}</p>
+            </div>
+          )}
           <ul className="recs">
             {recs
               .filter((r) => r.size === null || r.size > 0)

@@ -37,6 +37,7 @@ export function About() {
     <>
       <Card>
         <div className="row stats">
+          <span className="brand-logo brand-logo-big" aria-hidden />
           <span className="big">Kleaner</span>
           {version && <span className="num muted">v{version}</span>}
         </div>

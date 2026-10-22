@@ -423,5 +423,7 @@
   "setup.finish": "Concluir",
   "autostart.title": "Inicialização",
   "autostart.label": "Iniciar o Kleaner com o Windows (minimizado, com direitos de administrador)",
-  "autostart.note": "O Kleaner só abre minimizado na barra de tarefas: ele não analisa nem limpa nada sozinho. Alterar isto pede direitos de administrador uma vez."
+  "autostart.note": "O Kleaner só abre minimizado na barra de tarefas: ele não analisa nem limpa nada sozinho. Alterar isto pede direitos de administrador uma vez.",
+  "home.quickClean": "Limpar sem risco",
+  "home.quickCleanNote": "Marca os itens sem risco e mostra a lista: nada é apagado antes da sua confirmação."
 }

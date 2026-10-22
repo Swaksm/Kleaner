@@ -423,5 +423,7 @@
   "setup.finish": "Fertig",
   "autostart.title": "Autostart",
   "autostart.label": "Kleaner mit Windows starten (minimiert, mit Administratorrechten)",
-  "autostart.note": "Kleaner öffnet sich nur minimiert in der Taskleiste: Es analysiert und bereinigt nichts von selbst. Diese Änderung fragt einmal nach Administratorrechten."
+  "autostart.note": "Kleaner öffnet sich nur minimiert in der Taskleiste: Es analysiert und bereinigt nichts von selbst. Diese Änderung fragt einmal nach Administratorrechten.",
+  "home.quickClean": "Risikofrei bereinigen",
+  "home.quickCleanNote": "Hakt die risikofreien Einträge an und zeigt dir die Liste: Nichts wird gelöscht, bevor du bestätigst."
 }

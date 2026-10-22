@@ -20,6 +20,11 @@ winget lit les manifestes du dépôt public `microsoft/winget-pkgs`. Il faut y o
 
    ```powershell
    node packaging/winget/make-manifests.mjs 0.1.0
+   ```
+
+   Le manifeste propose l'installateur NSIS (`kleaner-setup.exe`, choisi par défaut) et l'exe portable (`winget install Swaks.Kleaner --installer-type portable`). La release doit donc contenir les deux (à partir de v0.1.0-rc14).
+
+   ```powershell
    winget validate --manifest packaging/winget/manifests/s/Swaks/Kleaner/0.1.0
    ```
 

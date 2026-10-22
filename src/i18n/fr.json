@@ -423,5 +423,7 @@
   "setup.finish": "Terminer",
   "autostart.title": "Démarrage",
   "autostart.label": "Lancer Kleaner avec Windows (réduit, avec les droits admin)",
-  "autostart.note": "Kleaner s'ouvre seulement réduit dans la barre des tâches : il n'analyse et ne nettoie rien tout seul. Changer ce réglage demande les droits admin une fois."
+  "autostart.note": "Kleaner s'ouvre seulement réduit dans la barre des tâches : il n'analyse et ne nettoie rien tout seul. Changer ce réglage demande les droits admin une fois.",
+  "home.quickClean": "Nettoyer sans risque",
+  "home.quickCleanNote": "Coche les éléments sans risque et te montre la liste : rien n'est supprimé avant ta confirmation."
 }

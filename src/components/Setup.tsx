@@ -35,6 +35,7 @@ export function Setup({ elevated, onDone }: { elevated: boolean; onDone: () => v
   return (
     <div className="disclaimer">
       <div className="card disclaimer-card setup">
+        <span className="brand-logo brand-logo-big" aria-hidden />
         <h1>{t("setup.title")}</h1>
         <p className="muted">{t("setup.intro")}</p>
 
