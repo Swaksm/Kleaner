@@ -64,6 +64,9 @@ fn read_journal(limit: usize) -> Result<JournalView, String> {
     Ok(JournalView { path: dir.join("journal.log").display().to_string(), entries })
 }
 
+/// Page d'avis ouverte au départ (rien d'obligatoire), dans le navigateur habituel.
+const FEEDBACK_PAGE: &str = "https://swaks.org/kleaner/?bye#feedback";
+
 /// Efface toutes les données de Kleaner puis quitte. L'exe portable reste à supprimer à la main.
 #[tauri::command]
 fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
@@ -87,7 +90,8 @@ fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
         .ok()
         .and_then(|exe| exe.parent().map(|d| d.join("uninstall.exe")))
         .filter(|u| u.is_file())
-        .map_or(String::new(), |u| format!(" & start \"\" \"{}\"", u.display()));
+        // Portable : la page d'avis s'ouvre ici ; installée : c'est le désinstalleur qui l'ouvre (windows/hooks.nsh).
+        .map_or(format!(" & explorer.exe \"{FEEDBACK_PAGE}\""), |u| format!(" & start \"\" \"{}\"", u.display()));
     // WebView2 verrouille ses fichiers tant que l'appli tourne : on supprime 2 s après la fermeture.
     std::process::Command::new("cmd")
         .raw_arg(format!(

@@ -140,7 +140,7 @@
   "viewer.unsupported": "Este formato no se puede mostrar en Kleaner (MKV, AVI, HEIC, RAW…).",
   "cleanup.estimating": "Estimando…",
   "cleanup.showEmpty": "Mostrar también los elementos vacíos o no instalados",
-  "cleanup.nothing": "Nada que limpiar aquí por ahora.",
+  "cleanup.nothing": "Nada marcado todavía",
   "programs.measured": "Medido",
   "programs.declaredCol": "Declarado",
   "programs.showMeasured": "Mostrar el tamaño medido",
@@ -434,5 +434,6 @@
   "error.notFound": "Este archivo ya no existe. Actualiza la lista.",
   "error.autostartFirst": "Desactiva primero «Iniciar Kleaner con Windows» (se necesitan permisos de administrador). No se borró nada.",
   "error.admin": "Se necesitan permisos de administrador: usa «Análisis completo (admin)».",
-  "updates.wingetFailed": "winget no actualizó todo. Detalle:"
+  "updates.wingetFailed": "winget no actualizó todo. Detalle:",
+  "cleanup.ticked": "marcados"
 }

@@ -3,6 +3,8 @@
 
 const API = "https://api.github.com/repos/Swaksm/Kleaner/releases?per_page=10";
 const KEY = "updateCheck";
+/** Page de téléchargement : installateur ou version portable de la dernière version, en quelques clics. */
+export const DOWNLOAD_PAGE = "https://swaks.org/kleaner/";
 
 export type Update = { version: string; url: string };
 
@@ -46,5 +48,5 @@ export async function findUpdate(current: string): Promise<Update | null> {
   const best = releases
     .filter((r) => !r.draft && (onPre || !r.prerelease) && isNewer(r.tag_name, current))
     .sort((a, b) => (isNewer(a.tag_name, b.tag_name) ? -1 : 1))[0];
-  return best ? { version: best.tag_name.replace(/^v/, ""), url: best.html_url } : null;
+  return best ? { version: best.tag_name.replace(/^v/, ""), url: DOWNLOAD_PAGE } : null;
 }

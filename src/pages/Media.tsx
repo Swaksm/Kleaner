@@ -19,9 +19,9 @@ type View = "list" | "grid";
 
 function savedView(): View {
   try {
-    return localStorage.getItem("mediaView") === "grid" ? "grid" : "list";
+    return localStorage.getItem("mediaView") === "list" ? "list" : "grid";
   } catch {
-    return "list";
+    return "grid";
   }
 }
 

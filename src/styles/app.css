@@ -600,6 +600,34 @@ code {
   }
 }
 
+/* Nettoyage : barre d'action collée en haut pendant le défilement */
+.cleanup-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 0 -12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius-ctl);
+  box-shadow: 0 6px 12px -10px rgba(0, 0, 0, 0.6);
+}
+.link:disabled {
+  opacity: 0.45;
+  cursor: default;
+  text-decoration: none;
+}
+.cleanup-sum {
+  min-width: 170px;
+}
+.cleanup-more {
+  margin-left: auto;
+  font-size: 13px;
+}
+
 /* Accueil : nettoyage en un clic */
 .quick-clean {
   display: flex;

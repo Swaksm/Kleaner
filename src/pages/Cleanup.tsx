@@ -159,33 +159,41 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
       <Card>
         <p>{t("cleanup.intro")}</p>
         <AdminBanner elevated={view.elevated} />
+        {error && <StatusPill status="danger">{error}</StatusPill>}
+      </Card>
+
+      {/* Reste en haut pendant le défilement : on coche plus bas, on nettoie sans remonter. */}
+      <div className="cleanup-bar">
+        <span className="cleanup-sum">
+          {chosen.length === 0 ? (
+            <span className="muted">{t("cleanup.nothing")}</span>
+          ) : (
+            <>
+              <strong>{chosen.length}</strong> {t("cleanup.ticked")} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
+            </>
+          )}
+        </span>
         <div className="row">
-          <button className="btn btn-primary" disabled={chosen.length === 0 || running} onClick={() => setConfirm(true)}>
-            {running ? t("cleanup.running") : t("cleanup.run")}
+          <button className={chosen.length === 0 ? "btn btn-primary" : "btn"} disabled={running || !estimates} onClick={selectSafe}>
+            {t("cleanup.selectSafe")}
           </button>
           <button className="btn" disabled={chosen.length === 0 || running} onClick={() => setPreview(true)}>
             {t("preview.button")}
           </button>
-          <span className="muted">
-            {chosen.length} · <span className="num">{formatBytes(chosenBytes, lang)}</span>
-          </span>
-          <button className="btn" disabled={running || !estimates} onClick={selectSafe}>
-            {t("cleanup.selectSafe")}
+          <button className={chosen.length > 0 ? "btn btn-primary" : "btn"} disabled={chosen.length === 0 || running} onClick={() => setConfirm(true)}>
+            {running ? t("cleanup.running") : chosen.length > 0 ? `${t("cleanup.run")} · ${formatBytes(chosenBytes, lang)}` : t("cleanup.run")}
           </button>
-          <button className="btn" disabled={running || chosen.length === 0} onClick={() => setSelected(new Set())}>
+        </div>
+        <div className="row cleanup-more">
+          <button className="link" disabled={running || chosen.length === 0} onClick={() => setSelected(new Set())}>
             {t("cleanup.selectNone")}
           </button>
-          <button className="btn" disabled={running || !estimates} onClick={load}>
+          <button className="link" disabled={running || !estimates} onClick={load}>
             {estimates ? t("cleanup.refresh") : t("cleanup.estimating")}
           </button>
-          {!estimates && (
-            <span className="loading" role="status">
-              <span className="spinner" aria-hidden /> {t("cleanup.estimating")}
-            </span>
-          )}
+          {!estimates && <span className="spinner" role="status" aria-label={t("cleanup.estimating")} />}
         </div>
-        {error && <StatusPill status="danger">{error}</StatusPill>}
-      </Card>
+      </div>
 
       {estimates && (
         <Card title={t("cleanup.chart")}>

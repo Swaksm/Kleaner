@@ -140,7 +140,7 @@
   "viewer.unsupported": "This format cannot be shown in Kleaner (MKV, AVI, HEIC, RAW…).",
   "cleanup.estimating": "Estimating…",
   "cleanup.showEmpty": "Also show empty or not installed items",
-  "cleanup.nothing": "Nothing to clean here right now.",
+  "cleanup.nothing": "Nothing ticked yet",
   "programs.measured": "Measured",
   "programs.declaredCol": "Declared",
   "programs.showMeasured": "Show measured size",
@@ -434,5 +434,6 @@
   "error.notFound": "This file no longer exists. Refresh the list.",
   "error.autostartFirst": "Turn off “Start with Windows” first (admin rights needed). Nothing was deleted.",
   "error.admin": "Administrator rights are needed: use “Full scan (admin)”.",
-  "updates.wingetFailed": "winget did not update everything. Details:"
+  "updates.wingetFailed": "winget did not update everything. Details:",
+  "cleanup.ticked": "ticked"
 }
