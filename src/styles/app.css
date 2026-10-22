@@ -18,17 +18,19 @@ body {
 
 h1,
 h2 {
-  font-family: var(--font-title);
   margin: 0;
 }
 
+/* Titre de page : condensé gras, comme les titres de swaks.org */
 h1 {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-family: var(--font-title);
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.05;
 }
 
 h2 {
+  font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 700;
 }
@@ -73,8 +75,8 @@ html.mica .sidebar {
 
 .brand {
   font-family: var(--font-title);
-  font-weight: 800;
-  font-size: 20px;
+  font-weight: 900;
+  font-size: 24px;
   padding: 0 10px 16px;
   display: flex;
   align-items: center;
@@ -105,18 +107,18 @@ html.mica .sidebar {
 /* Nettoyage : l'action principale, en bouton plein. */
 .nav-item.nav-cta {
   background: var(--accent);
-  color: var(--bg); /* contraste correct dans les deux thèmes */
+  color: var(--on-accent);
   font-weight: 600;
   margin: 2px 0;
 }
 .nav-item.nav-cta:hover {
   background: var(--accent);
-  color: var(--bg);
+  color: var(--on-accent);
   filter: brightness(1.1);
 }
 .nav-item.nav-cta[aria-current="page"] {
   background: var(--accent);
-  color: var(--bg);
+  color: var(--on-accent);
   box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--accent);
 }
 
@@ -215,20 +217,25 @@ html.mica .sidebar {
 /* Status pill */
 .pill {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   width: fit-content;
+  max-width: 100%;
   padding: 2px 10px;
   border: 1px solid currentColor;
-  border-radius: 999px;
+  /* 11px : pilule sur une ligne, rectangle arrondi si un long message passe à la ligne (pas un gros ovale) */
+  border-radius: 11px;
   font-size: 12px;
   font-weight: 500;
+  line-height: 18px;
 }
 
 .pill::before {
   content: "";
+  flex-shrink: 0;
   width: 6px;
   height: 6px;
+  margin-top: 6px;
   border-radius: 50%;
   background: currentColor;
 }
@@ -263,7 +270,7 @@ html.mica .sidebar {
 .btn-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .btn-primary:hover:not(:disabled) {

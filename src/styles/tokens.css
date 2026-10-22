@@ -1,17 +1,37 @@
+/* Identité de swaks (comme swaks.org) : crème, taupe et mauve ; Roboto Condensed pour les titres, Outfit pour le texte.
+   Chiffres et chemins en IBM Plex Mono (lisibles en colonnes). Polices hébergées dans l'appli, sous-ensemble latin. */
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../assets/fonts/outfit-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Roboto Condensed";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("../assets/fonts/roboto-condensed-900-latin.woff2") format("woff2");
+}
+
 :root {
-  --bg: #FBFAF7;
-  --card: #FFFFFF;
-  --sunken: #F2F0EA;
-  --text: #1C1D1F;
-  --muted: #6B6A63;
-  --faint: #A3A099;
-  --border: #E7E4DB;
-  --border-strong: #D5D1C4;
-  --accent: #35479E;
+  --bg: #F1EEE7;
+  --card: #F8F6F0;
+  --sunken: #EDE5D0;
+  --text: #3A3530;
+  --muted: #6F6557;
+  --faint: #A89E88;
+  --border: #DDD6C8;
+  --border-strong: #C7C0A8;
+  /* Mauve foncé : lisible en texte sur la crème et avec du blanc dessus (contraste >= 4.5:1). */
+  --accent: #935683;
+  --on-accent: #FFFFFF;
+  /* Couleurs de verdict : jamais le mauve de la marque, pour ne pas confondre accent et alerte. */
   --danger: #B6324A;
   --warn: #A6670F;
   --ok: #2F7D53;
-  --shadow: 0 1px 2px rgba(28, 29, 31, 0.04);
+  --shadow: 0 1px 2px rgba(58, 53, 48, 0.05);
 
   /* Graphiques : couleurs catégorielles, ordre fixe (validées : daltonisme, contraste). */
   --series-1: #2a78d6;
@@ -24,23 +44,27 @@
   --radius-card: 10px;
   --radius-ctl: 7px;
 
-  --font-title: "Archivo", system-ui, sans-serif;
-  --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+  --font-title: "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-ui: "Outfit", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --bg: #15161B;
-  --card: #1C1E24;
-  --sunken: #0F1013;
-  --text: #ECE9E1;
-  --muted: #9B998F;
-  --faint: #6E6C66;
-  --border: #2B2D33;
-  --border-strong: #3B3E46;
-  --accent: #7E8DF2;
+  --bg: #1C1917;
+  --card: #24201C;
+  --sunken: #171412;
+  --text: #ECE6DC;
+  --muted: #A89D8F;
+  --faint: #6F665B;
+  --border: #36302B;
+  --border-strong: #4A423B;
+  --accent: #D49DC8;
+  --on-accent: #1C1917;
+  --danger: #E06C80;
+  --warn: #D9A04A;
+  --ok: #5DBB8A;
   --shadow: none;
   --series-1: #3987e5;
   --series-2: #d95926;
