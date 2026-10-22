@@ -8,7 +8,7 @@
   "settings.language": "Sprache",
   "settings.remove.title": "Kleaner entfernen",
   "settings.remove.what": "Löscht alle Daten von Kleaner: das Protokoll und die Einstellungen (Ordner %LOCALAPPDATA%\\Kleaner und %LOCALAPPDATA%\\com.swaksm.kleaner). Danach schließt sich Kleaner.",
-  "settings.remove.exe": "Portable Version: Lösche danach einfach die Datei kleaner.exe. Installierte Version: Deinstalliere Kleaner über Windows-Einstellungen > Apps.",
+  "settings.remove.exe": "Portable Version: Lösche danach einfach die Datei kleaner.exe. Installierte Version: Das Windows-Deinstallationsprogramm öffnet sich direkt danach.",
   "settings.remove.button": "Kleaner entfernen",
   "settings.remove.confirmTitle": "Kleaner von diesem PC entfernen?",
   "settings.remove.irreversible": "Das Protokoll geht endgültig verloren. Deine Dateien und Programme bleiben unberührt.",
@@ -433,5 +433,6 @@
   "error.link": "Abgelehnt: Dieser Pfad führt über eine Verknüpfung oder Junction, Kleaner folgt ihnen nie.",
   "error.notFound": "Diese Datei existiert nicht mehr. Aktualisiere die Liste.",
   "error.autostartFirst": "Schalte zuerst „Kleaner mit Windows starten“ aus (Administratorrechte nötig). Nichts wurde gelöscht.",
-  "error.admin": "Administratorrechte sind nötig: Nutze „Vollständige Analyse (Admin)“."
+  "error.admin": "Administratorrechte sind nötig: Nutze „Vollständige Analyse (Admin)“.",
+  "updates.wingetFailed": "winget hat nicht alles aktualisiert. Details:"
 }

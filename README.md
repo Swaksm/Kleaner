@@ -74,7 +74,7 @@ scoop install kleaner/kleaner
 
 ## Removing Kleaner
 
-*Settings → Remove Kleaner* erases `%LOCALAPPDATA%\Kleaner` and `%LOCALAPPDATA%\com.swaksm.kleaner`. Then delete `kleaner.exe` (portable) or uninstall Kleaner from *Windows Settings → Apps* (installer). If you turned on *Start with Windows*, turn it off first in Settings.
+*Settings → Remove Kleaner* erases `%LOCALAPPDATA%\Kleaner` and `%LOCALAPPDATA%\com.swaksm.kleaner`. Then delete `kleaner.exe` (portable). With the installer, the Windows uninstaller opens right after. If you turned on *Start with Windows*, turn it off first in Settings.
 
 ## Development
 

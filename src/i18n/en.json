@@ -8,7 +8,7 @@
   "settings.language": "Language",
   "settings.remove.title": "Remove Kleaner",
   "settings.remove.what": "Erases all Kleaner data: the log and preferences (%LOCALAPPDATA%\\Kleaner and %LOCALAPPDATA%\\com.swaksm.kleaner folders). Kleaner then closes.",
-  "settings.remove.exe": "Portable version: then just delete the kleaner.exe file. Installed version: uninstall Kleaner from Windows Settings > Apps.",
+  "settings.remove.exe": "Portable version: then just delete the kleaner.exe file. Installed version: the Windows uninstaller opens right after.",
   "settings.remove.button": "Remove Kleaner",
   "settings.remove.confirmTitle": "Remove Kleaner from this PC?",
   "settings.remove.irreversible": "The log will be permanently lost. Your files and programs are not touched.",
@@ -433,5 +433,6 @@
   "error.link": "Refused: this path goes through a link or junction, Kleaner never follows them.",
   "error.notFound": "This file no longer exists. Refresh the list.",
   "error.autostartFirst": "Turn off “Start with Windows” first (admin rights needed). Nothing was deleted.",
-  "error.admin": "Administrator rights are needed: use “Full scan (admin)”."
+  "error.admin": "Administrator rights are needed: use “Full scan (admin)”.",
+  "updates.wingetFailed": "winget did not update everything. Details:"
 }

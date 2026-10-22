@@ -8,7 +8,7 @@
   "settings.language": "Lingua",
   "settings.remove.title": "Rimuovi Kleaner",
   "settings.remove.what": "Cancella tutti i dati di Kleaner: il registro e le preferenze (cartelle %LOCALAPPDATA%\\Kleaner e %LOCALAPPDATA%\\com.swaksm.kleaner). Poi Kleaner si chiude.",
-  "settings.remove.exe": "Versione portatile: poi elimina semplicemente il file kleaner.exe. Versione installata: disinstalla Kleaner da Impostazioni di Windows > App.",
+  "settings.remove.exe": "Versione portatile: poi elimina semplicemente il file kleaner.exe. Versione installata: subito dopo si apre il programma di disinstallazione di Windows.",
   "settings.remove.button": "Rimuovi Kleaner",
   "settings.remove.confirmTitle": "Rimuovere Kleaner da questo PC?",
   "settings.remove.irreversible": "Il registro andrà perso definitivamente. I tuoi file e programmi non vengono toccati.",
@@ -433,5 +433,6 @@
   "error.link": "Rifiutato: questo percorso passa da un collegamento o una giunzione, Kleaner non li segue mai.",
   "error.notFound": "Questo file non esiste più. Aggiorna l'elenco.",
   "error.autostartFirst": "Disattiva prima «Avvia Kleaner con Windows» (servono i diritti di amministratore). Non è stato eliminato nulla.",
-  "error.admin": "Servono i diritti di amministratore: usa «Analisi completa (admin)»."
+  "error.admin": "Servono i diritti di amministratore: usa «Analisi completa (admin)».",
+  "updates.wingetFailed": "winget non ha aggiornato tutto. Dettagli:"
 }

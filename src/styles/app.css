@@ -1387,3 +1387,15 @@ select {
 .items.grid-ghosts li {
   grid-template-columns: minmax(0, 1fr) 160px 110px;
 }
+
+/* Sortie d'une commande (winget…) */
+pre.log {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--sunken);
+  border-radius: var(--radius-ctl);
+  font: 12px/1.5 var(--font-mono, monospace);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}

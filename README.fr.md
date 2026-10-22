@@ -74,7 +74,7 @@ scoop install kleaner/kleaner
 
 ## Retirer Kleaner
 
-*Paramètres → Retirer Kleaner* efface `%LOCALAPPDATA%\Kleaner` et `%LOCALAPPDATA%\com.swaksm.kleaner`. Supprime ensuite `kleaner.exe` (portable) ou désinstalle Kleaner depuis *Paramètres Windows → Applications* (installateur). Si tu as activé le démarrage avec Windows, coupe-le d'abord dans les Paramètres.
+*Paramètres → Retirer Kleaner* efface `%LOCALAPPDATA%\Kleaner` et `%LOCALAPPDATA%\com.swaksm.kleaner`. Supprime ensuite `kleaner.exe` (portable). Avec l'installateur, le désinstalleur de Windows s'ouvre juste après. Si tu as activé le démarrage avec Windows, coupe-le d'abord dans les Paramètres.
 
 ## Développement
 

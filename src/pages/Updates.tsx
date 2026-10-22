@@ -41,6 +41,8 @@ export function Updates() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirm, setConfirm] = useState(false);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
+  // Sortie de winget quand une mise à jour échoue (appli ouverte, installateur interactif…).
+  const [wingetLog, setWingetLog] = useState("");
   const day = (d: Date | null) => (d ? d.toLocaleDateString(lang) : "—");
 
   useEffect(() => {
@@ -75,8 +77,9 @@ export function Updates() {
     setAppsBusy(true);
     const ids = [...selected];
     try {
-      const [ok] = await upgradeApps(ids);
+      const [ok, log] = await upgradeApps(ids);
       setMessage({ status: ok === ids.length ? "ok" : "danger", text: `${ok}/${ids.length} ${t("updates.appsDone")}` });
+      setWingetLog(ok === ids.length ? "" : log);
       setApps(await appUpdates());
       setSelected(new Set());
     } catch (e) {
@@ -102,6 +105,12 @@ export function Updates() {
     <>
       <p className="muted">{t("updates.intro")}</p>
       {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
+      {wingetLog && (
+        <>
+          <p className="muted small">{t("updates.wingetFailed")}</p>
+          <pre className="log">{wingetLog}</pre>
+        </>
+      )}
 
       <Card title={t("updates.windows")}>
         {info && (

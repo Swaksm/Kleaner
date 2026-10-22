@@ -276,7 +276,11 @@ pub fn upgrade_apps(ids: &[String], journal_dir: &Path) -> Result<(u64, String),
         if out.status.success() {
             ok += 1;
         }
-        log.push_str(&format!("> winget upgrade --id {id}\n{}\n", String::from_utf8_lossy(&out.stdout).lines().last().unwrap_or("").trim()));
+        // Les dernières lignes de winget disent pourquoi (appli ouverte, installateur interactif, hash…).
+        let text = String::from_utf8_lossy(&out.stdout);
+        let tail: Vec<&str> = text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with(['-', '\\', '|', '/'])).collect();
+        let tail = tail[tail.len().saturating_sub(3)..].join("\n");
+        log.push_str(&format!("> winget upgrade --id {id} (exit {})\n{tail}\n\n", out.status.code().unwrap_or(-1)));
     }
     let mut j = journal::Entry::new("app-upgrade");
     j.paths = ids.to_vec();

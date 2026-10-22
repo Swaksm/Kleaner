@@ -82,10 +82,16 @@ fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
     if autostart::exists() {
         autostart::set(false, &ours).map_err(|e| format!("Turn off \"Start with Windows\" first ({e}). Nothing was deleted."))?;
     }
+    // Version installée (uninstall.exe à côté de l'exe) : son désinstalleur s'ouvre ensuite, avec sa propre confirmation.
+    let uninstall = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(|d| d.join("uninstall.exe")))
+        .filter(|u| u.is_file())
+        .map_or(String::new(), |u| format!(" & start \"\" \"{}\"", u.display()));
     // WebView2 verrouille ses fichiers tant que l'appli tourne : on supprime 2 s après la fermeture.
     std::process::Command::new("cmd")
         .raw_arg(format!(
-            "/C ping -n 3 127.0.0.1 >nul & rmdir /S /Q \"{}\" & rmdir /S /Q \"{}\"",
+            "/C ping -n 3 127.0.0.1 >nul & rmdir /S /Q \"{}\" & rmdir /S /Q \"{}\"{uninstall}",
             ours.display(),
             webview.display()
         ))
