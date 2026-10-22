@@ -8,6 +8,8 @@
 
 **Un nettoyeur Windows gratuit qui te dit ce que tu peux supprimer, et ce qui casse si tu le fais.**
 
+**[Télécharger Kleaner pour Windows 10 et 11](https://swaks.org/fr/kleaner/)** (installateur ou version portable, gratuit).
+
 ![Chaque gros fichier et dossier a un verdict](docs/img/verdicts.png)
 
 Kleaner analyse tes disques, explique ce qui prend la place, et nettoie ce qui est sans risque : caches, fichiers temporaires, restes de programmes désinstallés, vieux dossiers de projets. Tu restes connecté partout et tu ne perds ni fichier ni réglage. Gratuit, open source (MIT), sans compte, sans pub, sans télémétrie.

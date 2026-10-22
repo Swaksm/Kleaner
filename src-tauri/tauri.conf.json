@@ -32,7 +32,7 @@
     "active": true,
     "targets": ["nsis"],
     "publisher": "swaks",
-    "homepage": "https://github.com/Swaksm/Kleaner",
+    "homepage": "https://swaks.org/kleaner/",
     "shortDescription": "Free Windows cleaner that explains before it deletes",
     "windows": {
       "nsis": {
