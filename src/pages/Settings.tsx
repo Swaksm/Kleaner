@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { StatusPill } from "../components/StatusPill";
 import { LANGS, setLang, useT, type Lang } from "../i18n/useT";
-import { removeKleanerData } from "../lib/api";
+import { isElevated, removeKleanerData } from "../lib/api";
+import { autostartEnabled, chooseAutostart } from "../lib/autostart";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
 import { setUpdateCheck, updateCheckEnabled } from "../lib/update";
 
@@ -13,6 +14,20 @@ export function Settings() {
   const [confirm, setConfirm] = useState(false);
   const [autoUpdate, setAutoUpdate] = useState(updateCheckEnabled());
   const [error, setError] = useState<string | null>(null);
+  const [autostart, setAutostartState] = useState<boolean | null>(null);
+  const [elevated, setElevated] = useState(false);
+
+  useEffect(() => {
+    autostartEnabled().then(setAutostartState, () => setAutostartState(false));
+    isElevated().then(setElevated, () => {});
+  }, []);
+
+  function changeAutostart(on: boolean) {
+    chooseAutostart(on, elevated).then(
+      () => setAutostartState(on),
+      (e) => setError(String(e)),
+    );
+  }
 
   function changeTheme(next: ThemeChoice) {
     setTheme(next);
@@ -60,6 +75,14 @@ export function Settings() {
           {t("update.auto")}
         </label>
         <p className="muted small">{t("update.privacy")}</p>
+      </Card>
+
+      <Card title={t("autostart.title")}>
+        <label className="check">
+          <input type="checkbox" disabled={autostart === null} checked={!!autostart} onChange={(e) => changeAutostart(e.target.checked)} />
+          {t("autostart.label")}
+        </label>
+        <p className="muted small">{t("autostart.note")}</p>
       </Card>
 
       <Card title={t("settings.remove.title")}>

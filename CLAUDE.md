@@ -32,6 +32,7 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `onedrive.rs` : « Libérer de l'espace » (attributs +Unpinned -Pinned).
 - `system.rs` : infos machine, Windows Update (COM, lecture), winget (tableau lu), fin de support Windows.
 - `elevation.rs` : admin, relance UAC (`--relaunch`), privilège de sauvegarde, verrou d'instance unique (`.Dev` en debug).
+- `autostart.rs` : démarrage avec Windows sur demande (tâche planifiée « Kleaner », à l'ouverture de session, admin, `--minimized`), journalisé ; changer le réglage demande l'admin.
 - `journal.rs` : journal JSON lignes.
 - `startup.rs` : programmes au démarrage (Run, dossiers, tâches ; services en lecture seule), activation par `StartupApproved`.
 - `shortcuts.rs` : raccourcis `.lnk` cassés.
@@ -74,7 +75,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 
 1. CI verte.
 2. `git tag -a v0.1.0-rcN -m "v0.1.0-rcN" && git push origin v0.1.0-rcN`.
-3. `release.yml` compile, signe si `SIGNPATH_API_TOKEN` existe, publie l'exe et son SHA-256 (pré-release si le tag contient `-`).
+3. `release.yml` compile, signe si `SIGNPATH_API_TOKEN` existe, publie l'exe portable, l'installateur NSIS `kleaner-setup.exe` (par machine : Program Files, jamais `%LOCALAPPDATA%\Kleaner` qui est le dossier de données) et leurs SHA-256 (pré-release si le tag contient `-`).
 4. Mettre à jour `bucket/kleaner.json` (version, URL, hash). winget : `node packaging/winget/make-manifests.mjs <version>` puis soumission manuelle (`docs/distribution.md`).
 
 ## En cours
@@ -84,4 +85,5 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **Jamais testés en vrai** : nettoyages lourds (Windows.old, DISM, hibernation, points de restauration), recherche Windows Update, mise à jour d'une appli par winget, restauration et OneDrive dans l'exe.
 - **Scan rapide NTFS** : vérifié sur le vrai C: (2 s contre 8 à 21 s, écart 3 % d'espace dû aux recouvrements MSIX). Pas vérifié : volumes avec secteurs de 4 Ko, MFT très fragmentée, exFAT/ReFS (retombent sur le classique).
 - **Feuille de route v0.3+ réalisée** (T18 à T22, `SPEC.md` révision 8) : démarrage, raccourcis cassés, santé et sécurité, entrées fantômes, Dropbox. Jamais testés dans l'exe : désactivation d'un élément de démarrage, suppression d'une entrée fantôme, durées de démarrage (admin). Pas de « nettoyage du registre » ni de « boosts ».
+- **Installateur et assistant** (issue #2) : setup NSIS, assistant au premier lancement (`Setup.tsx` : langue, thème, mises à jour, démarrage avec Windows). Jamais testés en vrai : installation/désinstallation, création de la tâche de démarrage, lancement réduit.
 - Dernière release : v0.1.0-rc13. Pas encore de v0.1.0 stable (nécessaire pour winget et le `checkver` de Scoop).

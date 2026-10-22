@@ -46,6 +46,8 @@ Kleaner analyse tes disques, explique ce qui prend la place, et nettoie ce qui e
 
 3. Lance `kleaner.exe`. Rien à installer : c'est un exe portable. Windows 10 ou 11 en 64 bits. La langue se change dans *Settings → Language*.
 
+Tu préfères un installateur ? Télécharge plutôt `kleaner-setup.exe` (même vérification avec `kleaner-setup.exe.sha256`) : il installe Kleaner dans Program Files avec un raccourci dans le menu Démarrer, et se désinstalle depuis *Paramètres Windows → Applications*. Au premier lancement, Kleaner demande la langue, le thème, la vérification des mises à jour et le démarrage avec Windows.
+
 Ou avec Scoop :
 
 ```powershell
@@ -72,7 +74,7 @@ scoop install kleaner/kleaner
 
 ## Retirer Kleaner
 
-*Paramètres → Retirer Kleaner* efface `%LOCALAPPDATA%\Kleaner` et `%LOCALAPPDATA%\com.swaksm.kleaner`. Supprime ensuite `kleaner.exe`. Rien d'autre n'a été installé.
+*Paramètres → Retirer Kleaner* efface `%LOCALAPPDATA%\Kleaner` et `%LOCALAPPDATA%\com.swaksm.kleaner`. Supprime ensuite `kleaner.exe` (portable) ou désinstalle Kleaner depuis *Paramètres Windows → Applications* (installateur). Si tu as activé le démarrage avec Windows, coupe-le d'abord dans les Paramètres.
 
 ## Développement
 

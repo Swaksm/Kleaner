@@ -8,7 +8,7 @@
   "settings.language": "Langue",
   "settings.remove.title": "Retirer Kleaner",
   "settings.remove.what": "Efface toutes les données de Kleaner : le journal et les préférences (dossiers %LOCALAPPDATA%\\Kleaner et %LOCALAPPDATA%\\com.swaksm.kleaner). Kleaner se ferme ensuite.",
-  "settings.remove.exe": "Kleaner est portable : il n'y a rien d'autre à désinstaller. Supprime ensuite simplement le fichier kleaner.exe.",
+  "settings.remove.exe": "Version portable : supprime ensuite simplement le fichier kleaner.exe. Version installée : désinstalle Kleaner depuis Paramètres Windows > Applications.",
   "settings.remove.button": "Retirer Kleaner",
   "settings.remove.confirmTitle": "Retirer Kleaner de ce PC ?",
   "settings.remove.irreversible": "Le journal sera perdu définitivement. Tes fichiers et programmes ne sont pas touchés.",
@@ -417,5 +417,11 @@
   "analyse.fastHint": "En mode administrateur, Kleaner a lu directement la table des fichiers NTFS (en lecture seule) au lieu d’ouvrir les dossiers un par un.",
   "leftovers.warn.android": "D’autres outils s’en servent peut-être (Flutter, React Native, Unity…). Retire-le seulement si tu ne développes plus pour Android.",
   "startup.missing": "Programme absent",
-  "startup.missingHint": "Le programme que cette entrée lance n’existe plus : elle ne fait plus rien. Désactive-la ici (démarrage et tâches) ou retire-la dans Windows (Services)."
+  "startup.missingHint": "Le programme que cette entrée lance n’existe plus : elle ne fait plus rien. Désactive-la ici (démarrage et tâches) ou retire-la dans Windows (Services).",
+  "setup.title": "Configurer Kleaner",
+  "setup.intro": "Quelques choix. Tu pourras les changer plus tard dans les Paramètres.",
+  "setup.finish": "Terminer",
+  "autostart.title": "Démarrage",
+  "autostart.label": "Lancer Kleaner avec Windows (réduit, avec les droits admin)",
+  "autostart.note": "Kleaner s'ouvre seulement réduit dans la barre des tâches : il n'analyse et ne nettoie rien tout seul. Changer ce réglage demande les droits admin une fois."
 }

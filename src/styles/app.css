@@ -504,6 +504,33 @@ code {
   gap: 16px;
 }
 
+/* Assistant du premier lancement */
+.setup-langs {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.setup-langs legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.setup-langs .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.setup-langs .btn-selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.setup .small {
+  margin-top: -10px;
+}
+
 .disclaimer-card ul {
   margin: 0;
   padding-left: 20px;

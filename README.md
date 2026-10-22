@@ -46,6 +46,8 @@ Kleaner scans your drives, explains what takes up the space, and cleans what is 
 
 3. Run `kleaner.exe`. Nothing to install: it is a portable exe. Requires 64-bit Windows 10 or 11.
 
+Prefer an installer? Download `kleaner-setup.exe` instead (same check with `kleaner-setup.exe.sha256`): it installs Kleaner in Program Files with a Start menu shortcut, and uninstalls from *Windows Settings → Apps*. On first launch, Kleaner asks for the language, theme, update check and whether to start with Windows.
+
 Or with Scoop:
 
 ```powershell
@@ -72,7 +74,7 @@ scoop install kleaner/kleaner
 
 ## Removing Kleaner
 
-*Settings → Remove Kleaner* erases `%LOCALAPPDATA%\Kleaner` and `%LOCALAPPDATA%\com.swaksm.kleaner`. Then delete `kleaner.exe`. Nothing else was installed.
+*Settings → Remove Kleaner* erases `%LOCALAPPDATA%\Kleaner` and `%LOCALAPPDATA%\com.swaksm.kleaner`. Then delete `kleaner.exe` (portable) or uninstall Kleaner from *Windows Settings → Apps* (installer). If you turned on *Start with Windows*, turn it off first in Settings.
 
 ## Development
 

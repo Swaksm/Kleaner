@@ -8,7 +8,7 @@
   "settings.language": "Sprache",
   "settings.remove.title": "Kleaner entfernen",
   "settings.remove.what": "Löscht alle Daten von Kleaner: das Protokoll und die Einstellungen (Ordner %LOCALAPPDATA%\\Kleaner und %LOCALAPPDATA%\\com.swaksm.kleaner). Danach schließt sich Kleaner.",
-  "settings.remove.exe": "Kleaner ist portabel: Es gibt nichts weiter zu deinstallieren. Lösche danach einfach die Datei kleaner.exe.",
+  "settings.remove.exe": "Portable Version: Lösche danach einfach die Datei kleaner.exe. Installierte Version: Deinstalliere Kleaner über Windows-Einstellungen > Apps.",
   "settings.remove.button": "Kleaner entfernen",
   "settings.remove.confirmTitle": "Kleaner von diesem PC entfernen?",
   "settings.remove.irreversible": "Das Protokoll geht endgültig verloren. Deine Dateien und Programme bleiben unberührt.",
@@ -417,5 +417,11 @@
   "analyse.fastHint": "Im Administratormodus hat Kleaner die NTFS-Dateitabelle direkt gelesen (nur lesend), statt Ordner einzeln zu öffnen.",
   "leftovers.warn.android": "Andere Werkzeuge nutzen es vielleicht (Flutter, React Native, Unity …). Entferne es nur, wenn du nicht mehr für Android entwickelst.",
   "startup.missing": "Programm fehlt",
-  "startup.missingHint": "Das Programm, das dieser Eintrag startet, existiert nicht mehr, er bewirkt nichts. Deaktiviere ihn hier (Autostart und Aufgaben) oder entferne ihn in Windows (Dienste)."
+  "startup.missingHint": "Das Programm, das dieser Eintrag startet, existiert nicht mehr, er bewirkt nichts. Deaktiviere ihn hier (Autostart und Aufgaben) oder entferne ihn in Windows (Dienste).",
+  "setup.title": "Kleaner einrichten",
+  "setup.intro": "Ein paar Einstellungen. Du kannst sie später in den Einstellungen ändern.",
+  "setup.finish": "Fertig",
+  "autostart.title": "Autostart",
+  "autostart.label": "Kleaner mit Windows starten (minimiert, mit Administratorrechten)",
+  "autostart.note": "Kleaner öffnet sich nur minimiert in der Taskleiste: Es analysiert und bereinigt nichts von selbst. Diese Änderung fragt einmal nach Administratorrechten."
 }

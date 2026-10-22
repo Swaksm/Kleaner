@@ -1,4 +1,5 @@
 pub mod actions;
+pub mod autostart;
 pub mod catalog;
 pub mod duplicates;
 pub mod elevation;
@@ -46,6 +47,10 @@ fn remove_kleaner_data(app: tauri::AppHandle) -> Result<(), String> {
     let named = |p: &Path, name: &str| p.is_absolute() && p.file_name().is_some_and(|n| n == name);
     if !named(&ours, "Kleaner") || !named(&webview, &app.config().identifier) {
         return Err("Unexpected data folders, nothing was deleted.".into());
+    }
+    // Un exe Kleaner rangé dans le dossier de données serait effacé avec lui.
+    if std::env::current_exe().is_ok_and(|exe| exe.starts_with(&ours)) {
+        return Err("Kleaner itself is in its data folder, nothing was deleted.".into());
     }
     // WebView2 verrouille ses fichiers tant que l'appli tourne : on supprime 2 s après la fermeture.
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
@@ -212,6 +217,17 @@ fn relaunch_admin(app: tauri::AppHandle) -> Result<(), String> {
     elevation::relaunch_as_admin()?;
     app.exit(0);
     Ok(())
+}
+
+/// Démarrage avec Windows (tâche planifiée, réduit, admin).
+#[tauri::command]
+async fn autostart_enabled() -> Result<bool, String> {
+    tauri::async_runtime::spawn_blocking(autostart::enabled).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn set_autostart(on: bool) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || autostart::set(on, &journal::data_dir())).await.map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -563,6 +579,15 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .manage(ScanState::default())
+        .setup(|app| {
+            // Lancé par la tâche de démarrage : fenêtre réduite dans la barre des tâches.
+            if std::env::args().any(|a| a == autostart::MINIMIZED_ARG)
+                && let Some(w) = app.get_webview_window("main")
+            {
+                let _ = w.minimize();
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             read_journal,
             remove_kleaner_data,
@@ -573,6 +598,8 @@ pub fn run() {
             estimate_cleaners,
             run_cleaners,
             relaunch_admin,
+            autostart_enabled,
+            set_autostart,
             list_programs,
             uninstall_program,
             save_report,

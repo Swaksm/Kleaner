@@ -3,6 +3,8 @@ import { StatusPill } from "./components/StatusPill";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LangMenu } from "./components/LangMenu";
+import { isSetupDone, Setup } from "./components/Setup";
+import { applyPendingAutostart } from "./lib/autostart";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useT, type Key } from "./i18n/useT";
 import { isElevated, onedriveRoots } from "./lib/api";
@@ -44,6 +46,8 @@ function savedMoreOpen(): boolean {
 function App() {
   const { t } = useT();
   const [accepted, setAccepted] = useState(isDisclaimerAccepted());
+  // Le mode demo (captures) saute l'assistant.
+  const [setupDone, setSetupDone] = useState(import.meta.env.MODE === "demo" || isSetupDone());
   const [page, setPage] = useState<Page>(import.meta.env.MODE === "demo" ? demoPage() : "home");
   // Incrémenté par l'Accueil : l'Analyse lance alors une analyse.
   const [scanRequest, setScanRequest] = useState(import.meta.env.MODE === "demo" && new URLSearchParams(location.search).has("autoscan") ? 1 : 0);
@@ -70,11 +74,16 @@ function App() {
   );
 
   useEffect(() => {
-    isElevated().then(setElevated, () => {});
+    isElevated().then((e) => {
+      setElevated(e);
+      // Choix « démarrer avec Windows » fait avant la relance en admin.
+      if (e) applyPendingAutostart().catch(() => {});
+    }, () => {});
     onedriveRoots().then((r) => setHasOneDrive(r.length > 0), () => {});
   }, []);
 
   if (!accepted) return <Disclaimer onAccept={() => setAccepted(true)} />;
+  if (!setupDone) return <Setup elevated={elevated} onDone={() => setSetupDone(true)} />;
 
   return (
     <div className="shell">

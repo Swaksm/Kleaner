@@ -8,7 +8,7 @@
   "settings.language": "Idioma",
   "settings.remove.title": "Remover o Kleaner",
   "settings.remove.what": "Apaga todos os dados do Kleaner: o registro e as preferências (pastas %LOCALAPPDATA%\\Kleaner e %LOCALAPPDATA%\\com.swaksm.kleaner). Depois o Kleaner fecha.",
-  "settings.remove.exe": "O Kleaner é portátil: não há mais nada para desinstalar. Depois, basta apagar o arquivo kleaner.exe.",
+  "settings.remove.exe": "Versão portátil: depois, basta apagar o arquivo kleaner.exe. Versão instalada: desinstale o Kleaner em Configurações do Windows > Aplicativos.",
   "settings.remove.button": "Remover o Kleaner",
   "settings.remove.confirmTitle": "Remover o Kleaner deste PC?",
   "settings.remove.irreversible": "O registro será perdido para sempre. Seus arquivos e programas não são tocados.",
@@ -417,5 +417,11 @@
   "analyse.fastHint": "No modo administrador, o Kleaner leu diretamente a tabela de arquivos NTFS (somente leitura) em vez de abrir as pastas uma a uma.",
   "leftovers.warn.android": "Outras ferramentas podem usá-lo (Flutter, React Native, Unity…). Remova só se você não desenvolve mais para Android.",
   "startup.missing": "Programa ausente",
-  "startup.missingHint": "O programa que esta entrada inicia não existe mais, então ela não faz nada. Desative-a aqui (inicialização e tarefas) ou remova-a no Windows (Serviços)."
+  "startup.missingHint": "O programa que esta entrada inicia não existe mais, então ela não faz nada. Desative-a aqui (inicialização e tarefas) ou remova-a no Windows (Serviços).",
+  "setup.title": "Configurar o Kleaner",
+  "setup.intro": "Algumas escolhas. Você pode alterá-las depois nas Configurações.",
+  "setup.finish": "Concluir",
+  "autostart.title": "Inicialização",
+  "autostart.label": "Iniciar o Kleaner com o Windows (minimizado, com direitos de administrador)",
+  "autostart.note": "O Kleaner só abre minimizado na barra de tarefas: ele não analisa nem limpa nada sozinho. Alterar isto pede direitos de administrador uma vez."
 }

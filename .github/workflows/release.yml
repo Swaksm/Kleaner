@@ -26,10 +26,13 @@ jobs:
           workspaces: src-tauri
       - run: npm ci
       - run: cargo test --manifest-path src-tauri/Cargo.toml
-      # Exe portable seul, pas d'installeur.
-      - run: npm run tauri build -- --no-bundle
+      # Exe portable + installateur NSIS (Program Files, désinstallable depuis Windows).
+      # L'installateur embarque l'exe avant signature : à revoir quand SignPath sera actif.
+      - run: npm run tauri build -- --bundles nsis
       - shell: pwsh
-        run: Copy-Item src-tauri/target/release/kleaner.exe kleaner.exe
+        run: |
+          Copy-Item src-tauri/target/release/kleaner.exe kleaner.exe
+          Copy-Item (Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1).FullName kleaner-setup.exe
 
       - name: Upload unsigned exe for signing
         if: env.SIGNING == 'true'
@@ -60,12 +63,17 @@ jobs:
 
       - name: SHA-256
         shell: pwsh
-        run: (Get-FileHash kleaner.exe -Algorithm SHA256).Hash.ToLower() + "  kleaner.exe" | Out-File -Encoding ascii kleaner.exe.sha256
+        run: |
+          foreach ($f in 'kleaner.exe', 'kleaner-setup.exe') {
+            (Get-FileHash $f -Algorithm SHA256).Hash.ToLower() + "  $f" | Out-File -Encoding ascii "$f.sha256"
+          }
       - uses: softprops/action-gh-release@v2
         with:
           files: |
             kleaner.exe
             kleaner.exe.sha256
+            kleaner-setup.exe
+            kleaner-setup.exe.sha256
           generate_release_notes: true
           # v0.1.0-rc1 → pre-release ; v0.1.0 → release normale.
           prerelease: ${{ contains(github.ref_name, '-') }}
