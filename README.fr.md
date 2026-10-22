@@ -1,3 +1,5 @@
+<img src="docs/logo.svg" alt="Kleaner" width="96">
+
 # Kleaner
 
 [English](README.md) · **Français**

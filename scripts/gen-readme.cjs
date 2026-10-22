@@ -51,6 +51,8 @@ const winapp2Link = "[" + code("winapp2.json") + "](src-tauri/winapp2.json)";
 const knowledgeLink = "[" + code("knowledge.json") + "](src-tauri/knowledge.json)";
 
 const en = [
+  "<img src=\"docs/logo.svg\" alt=\"Kleaner\" width=\"96\">",
+  "",
   "# Kleaner",
   "",
   "**English** · [Français](README.fr.md)",
@@ -134,6 +136,8 @@ const en = [
 ].join("\n");
 
 const fr = [
+  "<img src=\"docs/logo.svg\" alt=\"Kleaner\" width=\"96\">",
+  "",
   "# Kleaner",
   "",
   "[English](README.md) · **Français**",
