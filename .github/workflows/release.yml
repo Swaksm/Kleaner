@@ -30,7 +30,7 @@ jobs:
       # L'installateur embarque l'exe avant signature : à revoir quand SignPath sera actif.
       - run: npm run tauri build -- --bundles nsis
         env:
-          # Version affichée et comparée aux releases (sinon « 0.1.0 » de tauri.conf.json pour toutes les rc).
+          # Version affichée et comparée aux releases (sinon celle de tauri.conf.json pour toutes les rc).
           VITE_APP_VERSION: ${{ github.ref_name }}
       - shell: pwsh
         run: |
@@ -78,5 +78,5 @@ jobs:
             kleaner-setup.exe
             kleaner-setup.exe.sha256
           generate_release_notes: true
-          # v0.1.0-rc1 → pre-release ; v0.1.0 → release normale.
+          # v1.1.0-rc1 → pre-release ; v1.0.0 → release normale.
           prerelease: ${{ contains(github.ref_name, '-') }}

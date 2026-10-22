@@ -1,4 +1,4 @@
-// Génère les manifestes winget d'une version publiée : node packaging/winget/make-manifests.mjs 0.1.0
+// Génère les manifestes winget d'une version publiée : node packaging/winget/make-manifests.mjs 1.0.0
 // Les hash sont lus dans kleaner-setup.exe.sha256 et kleaner.exe.sha256 de la release GitHub.
 // Deux installeurs : l'installateur NSIS (choisi par défaut par winget) et l'exe portable (--installer-type portable).
 // Sortie : packaging/winget/manifests/…
