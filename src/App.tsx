@@ -5,6 +5,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LangMenu } from "./components/LangMenu";
 import { NavIcon } from "./components/NavIcon";
 import { isSetupDone, Setup } from "./components/Setup";
+import { isTourPending, Tour } from "./components/Tour";
 import { applyPendingAutostart } from "./lib/autostart";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useT, type Key } from "./i18n/useT";
@@ -56,6 +57,8 @@ function App() {
   const [elevated, setElevated] = useState(false);
   const [moreOpen, setMoreOpen] = useState(savedMoreOpen);
   const [quickClean, setQuickClean] = useState(false);
+  // Visite guidée : après l'assistant du premier lancement, ou depuis les Paramètres (demo : ?tour).
+  const [tour, setTour] = useState(import.meta.env.MODE === "demo" ? new URLSearchParams(location.search).has("tour") : isTourPending());
   const scan = useScanResult();
   // « Vieux projets » n'apparaît que si l'analyse a trouvé des projets de code.
   const more = MORE.filter(
@@ -72,7 +75,7 @@ function App() {
   const item = (p: Page, className = "nav-item") => {
     const n = (MAIN as readonly string[]).indexOf(p);
     return (
-      <button key={p} className={className} aria-current={page === p ? "page" : undefined} title={n >= 0 ? `Ctrl+${n + 1}` : undefined} onClick={() => setPage(p)}>
+      <button key={p} data-tour={`nav-${p}`} className={className} aria-current={page === p ? "page" : undefined} title={n >= 0 ? `Ctrl+${n + 1}` : undefined} onClick={() => setPage(p)}>
         <NavIcon page={p} />
         {t(`nav.${p}` as Key)}
       </button>
@@ -82,7 +85,7 @@ function App() {
   // Raccourcis : Ctrl+1…8 pour les pages principales, F5 relance l'analyse (au lieu de recharger la fenêtre).
   const ready = accepted && setupDone;
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || tour) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey && !e.altKey && !e.shiftKey && /^[1-8]$/.test(e.key)) {
         e.preventDefault();
@@ -95,7 +98,7 @@ function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [ready]);
+  }, [ready, tour]);
 
   useEffect(() => {
     isElevated().then((e) => {
@@ -107,9 +110,19 @@ function App() {
   }, []);
 
   if (!accepted) return <Disclaimer onAccept={() => setAccepted(true)} />;
-  if (!setupDone) return <Setup elevated={elevated} onDone={() => setSetupDone(true)} />;
+  if (!setupDone)
+    return (
+      <Setup
+        elevated={elevated}
+        onDone={() => {
+          setSetupDone(true);
+          setTour(isTourPending());
+        }}
+      />
+    );
 
   return (
+    <>
     <div className="shell">
       <nav className="sidebar">
         <div className="brand">
@@ -123,7 +136,7 @@ function App() {
         )}
         {/* Nettoyage : l'action principale, mise en avant comme un bouton. */}
         {MAIN.map((p) => item(p, p === "cleanup" ? "nav-item nav-cta" : "nav-item"))}
-        <button className="nav-item nav-group" aria-expanded={moreOpen} onClick={toggleMore}>
+        <button className="nav-item nav-group" data-tour="nav-more" aria-expanded={moreOpen} onClick={toggleMore}>
           <span>{t("nav.more")}</span>
           <span className="chevron" aria-hidden>
             {moreOpen ? "▾" : "▸"}
@@ -131,7 +144,7 @@ function App() {
         </button>
         {/* La page ouverte reste visible même si le groupe est replié. */}
         {more.filter((p) => moreOpen || page === p).map((p) => item(p, "nav-item nav-sub"))}
-        <div className="nav-footer">
+        <div className="nav-footer" data-tour="footer">
           {item("about", "nav-item nav-small")}
           <LangMenu />
           <button
@@ -178,13 +191,22 @@ function App() {
           {page === "duplicates" && <Duplicates />}
           {page === "projects" && <Projects />}
           {page === "journal" && <Journal />}
-          {page === "settings" && <Settings />}
+          {page === "settings" && (
+            <Settings
+              onTour={() => {
+                setPage("home");
+                setTour(true);
+              }}
+            />
+          )}
           {page === "about" && <About />}
           {page === "cleanup" && <Cleanup quick={quickClean} onQuickDone={() => setQuickClean(false)} />}
           {page === "programs" && <Programs />}
         </ErrorBoundary>
       </main>
     </div>
+    {tour && <Tour onClose={() => setTour(false)} />}
+    </>
   );
 }
 

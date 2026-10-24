@@ -68,7 +68,7 @@ export function Home({ onScan, go, onQuickClean }: { onScan: () => void; go: (pa
       {!scan ? (
         <div className="card hero">
           <p>{t("home.intro")}</p>
-          <button className="btn btn-primary btn-big" onClick={onScan}>
+          <button className="btn btn-primary btn-big" data-tour="scan" onClick={onScan}>
             {t("analyse.start")}
           </button>
         </div>
@@ -98,7 +98,7 @@ export function Home({ onScan, go, onQuickClean }: { onScan: () => void; go: (pa
                 </li>
               ))}
           </ul>
-          <button className="btn" onClick={onScan}>
+          <button className="btn" data-tour="scan" onClick={onScan}>
             {t("analyse.restart")}
           </button>
         </Card>

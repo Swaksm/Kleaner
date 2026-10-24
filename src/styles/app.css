@@ -1454,3 +1454,97 @@ pre.log {
   overflow-wrap: anywhere;
   user-select: text;
 }
+
+/* Visite guidée : voile sur l'appli, halo mauve autour de l'élément présenté, bulle */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+.tour-hole {
+  position: fixed;
+  border-radius: var(--radius-card);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 9999px rgba(28, 25, 23, 0.62);
+  transition:
+    top 0.3s ease,
+    left 0.3s ease,
+    width 0.3s ease,
+    height 0.3s ease;
+  pointer-events: none;
+}
+.tour-hole-none {
+  box-shadow: 0 0 0 9999px rgba(28, 25, 23, 0.62);
+}
+.tour-pop {
+  position: fixed;
+  width: min(340px, calc(100vw - 32px));
+  padding: 18px 20px 16px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  animation: tour-in 0.25s ease;
+}
+.tour-pop h2 {
+  margin: 2px 0 8px;
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: 22px;
+  line-height: 1.15;
+}
+.tour-pop p {
+  margin: 0 0 14px;
+}
+.tour-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.tour-dots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.tour-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-strong);
+  transition: width 0.2s ease;
+}
+.tour-dots span.on {
+  width: 18px;
+  background: var(--accent);
+}
+.tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.tour-skip {
+  margin-right: auto;
+  font-weight: 500;
+  color: var(--muted);
+}
+@keyframes tour-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-hole,
+  .tour-pop,
+  .tour-dots span {
+    transition: none;
+    animation: none;
+  }
+}

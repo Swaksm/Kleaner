@@ -4,6 +4,7 @@ import { chooseAutostart } from "../lib/autostart";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
 import { setUpdateCheck, updateCheckEnabled } from "../lib/update";
 import { Flag } from "./LangMenu";
+import { requestTour } from "./Tour";
 
 const STORAGE_KEY = "setupDone";
 
@@ -27,6 +28,7 @@ export function Setup({ elevated, onDone }: { elevated: boolean; onDone: () => v
     try {
       localStorage.setItem(STORAGE_KEY, "1");
     } catch {}
+    requestTour();
     // Démarrage auto : seul choix qui demande les droits admin (relance de Kleaner si besoin).
     if (autostart) chooseAutostart(true, elevated).catch(() => {});
     onDone();

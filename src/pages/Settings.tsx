@@ -8,7 +8,7 @@ import { autostartEnabled, chooseAutostart } from "../lib/autostart";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
 import { setUpdateCheck, updateCheckEnabled } from "../lib/update";
 
-export function Settings() {
+export function Settings({ onTour }: { onTour: () => void }) {
   const { t, lang } = useT();
   const [theme, setTheme] = useState<ThemeChoice>(savedThemeChoice());
   const [confirm, setConfirm] = useState(false);
@@ -60,6 +60,11 @@ export function Settings() {
             ))}
           </select>
         </label>
+        <div className="row">
+          <button className="btn" onClick={onTour}>
+            {t("tour.replay")}
+          </button>
+        </div>
       </Card>
 
       <Card title={t("update.title")}>
