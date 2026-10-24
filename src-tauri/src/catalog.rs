@@ -3,6 +3,7 @@
 
 use crate::{guard, journal};
 use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, HashMap};
 use std::fs::{self, Metadata};
 use std::os::windows::fs::MetadataExt;
 use std::path::{Component, Path, PathBuf};
@@ -12,10 +13,74 @@ use std::time::{Duration, SystemTime};
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
 const CATALOG_JSON: &str = include_str!("../cleaners.json");
 
+/// Phrase anglaise → traduction, une table par langue (`texts/<langue>.json`). Phrase absente : l'interface montre l'anglais.
+fn translations() -> &'static [(&'static str, HashMap<String, String>)] {
+    static T: OnceLock<Vec<(&'static str, HashMap<String, String>)>> = OnceLock::new();
+    T.get_or_init(|| {
+        [
+            ("es", include_str!("../texts/es.json")),
+            ("de", include_str!("../texts/de.json")),
+            ("it", include_str!("../texts/it.json")),
+            ("pt", include_str!("../texts/pt.json")),
+            ("ru", include_str!("../texts/ru.json")),
+            ("zh", include_str!("../texts/zh.json")),
+        ]
+        .into_iter()
+        .map(|(lang, json)| (lang, serde_json::from_str(json).expect("texts/<langue>.json invalide")))
+        .collect()
+    })
+}
+
+/// Texte affiché : français et anglais écrits à la main, autres langues ajoutées depuis `texts/`.
 #[derive(Deserialize, Serialize, Clone, Debug, Default)]
+#[serde(from = "TextSource")]
 pub struct Text {
     pub fr: String,
     pub en: String,
+    /// es, de, it, pt, ru, zh.
+    #[serde(flatten, skip_serializing_if = "BTreeMap::is_empty")]
+    pub more: BTreeMap<&'static str, String>,
+}
+
+#[derive(Deserialize)]
+struct TextSource {
+    fr: String,
+    en: String,
+}
+
+impl From<TextSource> for Text {
+    fn from(t: TextSource) -> Self {
+        Text::new(t.en, t.fr)
+    }
+}
+
+impl Text {
+    pub fn new(en: impl Into<String>, fr: impl Into<String>) -> Self {
+        let en = en.into();
+        let more = translations().iter().filter_map(|(lang, map)| map.get(&en).map(|s| (*lang, s.clone()))).collect();
+        Self { fr: fr.into(), en, more }
+    }
+
+    /// La même transformation dans chaque langue.
+    pub fn map(&self, f: impl Fn(&str) -> String) -> Self {
+        Self { fr: f(&self.fr), en: f(&self.en), more: self.more.iter().map(|(l, s)| (*l, f(s))).collect() }
+    }
+
+    /// Remplace `{nom}` par sa valeur dans chaque langue.
+    pub fn with(&self, vars: &[(&str, &str)]) -> Self {
+        self.map(|s| vars.iter().fold(s.to_string(), |acc, (k, v)| acc.replace(&format!("{{{k}}}"), v)))
+    }
+
+    /// Assemble deux textes langue par langue ; une langue absente d'un côté y prend l'anglais.
+    pub fn join(&self, other: &Text, f: impl Fn(&str, &str) -> String) -> Self {
+        let get = |t: &Text, l: &str| t.more.get(l).unwrap_or(&t.en).clone();
+        let langs: Vec<&'static str> = self.more.keys().chain(other.more.keys()).copied().collect();
+        Self {
+            fr: f(&self.fr, &other.fr),
+            en: f(&self.en, &other.en),
+            more: langs.into_iter().map(|l| (l, f(&get(self, l), &get(other, l)))).collect(),
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -549,7 +614,36 @@ mod tests {
     }
 
     fn text() -> Text {
-        Text { fr: "x".into(), en: "x".into() }
+        Text::new("x", "x")
+    }
+
+    #[test]
+    fn text_helpers_apply_to_every_language() {
+        // Sans passer par Text::new : ce test ne dépend pas des fichiers texts/.
+        let raw = |en: &str, fr: &str, lang: &'static str, tr: &str| Text { en: en.into(), fr: fr.into(), more: [(lang, tr.to_string())].into() };
+        let a = raw("Inside {dir}.", "Dans {dir}.", "de", "In {dir}.");
+        let b = raw("Cache.", "Cache.", "es", "Caché.");
+        let j = a.with(&[("dir", "X")]).join(&b, |x, y| format!("{x} {y}"));
+        assert_eq!((j.en.as_str(), j.fr.as_str()), ("Inside X. Cache.", "Dans X. Cache."));
+        assert_eq!(j.more["de"], "In X. Cache.", "allemand d'un côté, anglais de l'autre");
+        assert_eq!(j.more["es"], "Inside X. Caché.");
+        let json = serde_json::to_value(&j).unwrap();
+        assert_eq!(json["de"], "In X. Cache.", "les autres langues sont à plat, à côté de fr et en");
+        // Le catalogue lu depuis cleaners.json reçoit les traductions de texts/.
+        let temp = &base().iter().find(|c| c.id == "user-temp").unwrap().label;
+        assert_eq!((temp.more["de"].as_str(), temp.more["zh"].as_str()), ("Temporäre Dateien", "临时文件"));
+    }
+
+    #[test]
+    fn translation_files_are_valid() {
+        for (lang, map) in translations() {
+            for (en, tr) in map {
+                assert!(!tr.trim().is_empty(), "{lang} : traduction vide pour « {en} »");
+                // Les gabarits gardent leurs {valeurs} et leurs {1} de capture.
+                let marks = |s: &str| s.match_indices('{').map(|(i, _)| s[i..].split('}').next().unwrap_or("").to_string()).collect::<std::collections::BTreeSet<_>>();
+                assert_eq!(marks(en), marks(tr), "{lang} : « {en} »");
+            }
+        }
     }
 
     fn cleaner(paths: Vec<String>) -> Cleaner {

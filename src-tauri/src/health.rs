@@ -40,7 +40,7 @@ pub struct HealthReport {
 }
 
 fn t(en: impl Into<String>, fr: impl Into<String>) -> Text {
-    Text { en: en.into(), fr: fr.into() }
+    Text::new(en, fr)
 }
 
 fn item(id: &'static str, group: &'static str, status: &'static str, title: Text, detail: Text, fix: Option<&'static str>) -> HealthItem {
@@ -135,7 +135,7 @@ fn disks() -> Vec<HealthItem> {
                 "disk",
                 "disk",
                 status,
-                t(format!("Disk {} ({})", d.name, d.media), format!("Disque {} ({})", d.name, d.media)),
+                t("Disk {name} ({media})", "Disque {name} ({media})").with(&[("name", &d.name), ("media", &d.media)]),
                 t(
                     format!("Health: {health}{}{}.{more}", if known { ", " } else { "" }, en.join(", ")),
                     format!("État : {health}{}{}.{plus}", if known { ", " } else { "" }, fr.join(", ")),
@@ -158,11 +158,12 @@ fn space() -> Vec<HealthItem> {
                 "space",
                 "disk",
                 status,
-                t(format!("Free space on {}", d.root), format!("Espace libre sur {}", d.root)),
+                t("Free space on {root}", "Espace libre sur {root}").with(&[("root", &d.root)]),
                 t(
-                    format!("{gb:.1} GB free ({pct}%). Windows slows down and cannot update below about 10%."),
-                    format!("{gb:.1} Go libres ({pct} %). Sous 10 % environ, Windows ralentit et ne peut plus se mettre à jour."),
-                ),
+                    "{gb} GB free ({pct}%). Windows slows down and cannot update below about 10%.",
+                    "{gb} Go libres ({pct} %). Sous 10 % environ, Windows ralentit et ne peut plus se mettre à jour.",
+                )
+                .with(&[("gb", &format!("{gb:.1}")), ("pct", &pct.to_string())]),
                 (status != "ok").then_some("ms-settings:storagesense"),
             )
         })
@@ -196,9 +197,10 @@ fn battery() -> Option<HealthItem> {
         status,
         t("Battery", "Batterie"),
         t(
-            format!("It now holds {pct}% of its original capacity. Below 60% a replacement is worth considering."),
-            format!("Elle ne tient plus que {pct} % de sa capacité d’origine. Sous 60 %, un remplacement se justifie."),
-        ),
+            "It now holds {pct}% of its original capacity. Below 60% a replacement is worth considering.",
+            "Elle ne tient plus que {pct} % de sa capacité d’origine. Sous 60 %, un remplacement se justifie.",
+        )
+        .with(&[("pct", &pct.to_string())]),
         None,
     ))
 }
@@ -241,9 +243,10 @@ fn crashes() -> Vec<HealthItem> {
             t("None in the last 30 days.", "Aucun ces 30 derniers jours.")
         } else {
             t(
-                format!("{} in the last 30 days. Update your drivers (Updates tab) and check the disk and memory.", c.bsod),
-                format!("{} ces 30 derniers jours. Mets à jour les pilotes (onglet Mises à jour), vérifie le disque et la mémoire.", c.bsod),
+                "{count} in the last 30 days. Update your drivers (Updates tab) and check the disk and memory.",
+                "{count} ces 30 derniers jours. Mets à jour les pilotes (onglet Mises à jour), vérifie le disque et la mémoire.",
             )
+            .with(&[("count", &c.bsod.to_string())])
         },
         None,
     ));
@@ -258,9 +261,10 @@ fn crashes() -> Vec<HealthItem> {
             t("No application crash recorded.", "Aucun plantage d’application enregistré.")
         } else {
             t(
-                format!("Most frequent: {list}. A program that crashes often should be updated or reinstalled."),
-                format!("Les plus fréquents : {list}. Un programme qui plante souvent est à mettre à jour ou à réinstaller."),
+                "Most frequent: {list}. A program that crashes often should be updated or reinstalled.",
+                "Les plus fréquents : {list}. Un programme qui plante souvent est à mettre à jour ou à réinstaller.",
             )
+            .with(&[("list", &list)])
         },
         None,
     ));
@@ -299,9 +303,10 @@ fn uptime_and_memory() -> Vec<HealthItem> {
         if days >= 30 { "warn" } else { "ok" },
         t("Time since last restart", "Durée depuis le dernier redémarrage"),
         t(
-            format!("{days} days. A restart finishes pending updates and frees leaked memory."),
-            format!("{days} jours. Un redémarrage termine les mises à jour en attente et libère la mémoire."),
-        ),
+            "{days} days. A restart finishes pending updates and frees leaked memory.",
+            "{days} jours. Un redémarrage termine les mises à jour en attente et libère la mémoire.",
+        )
+        .with(&[("days", &days.to_string())]),
         None,
     )];
     if ok {
@@ -312,9 +317,10 @@ fn uptime_and_memory() -> Vec<HealthItem> {
             if load >= 90 { "warn" } else { "ok" },
             t("Memory in use", "Mémoire utilisée"),
             t(
-                format!("{load}% of {:.0} GB right now. Close heavy programs if it stays above 90%.", m.ullTotalPhys as f64 / 1e9),
-                format!("{load} % de {:.0} Go en ce moment. Ferme les programmes lourds si ça reste au-dessus de 90 %.", m.ullTotalPhys as f64 / 1e9),
-            ),
+                "{load}% of {total} GB right now. Close heavy programs if it stays above 90%.",
+                "{load} % de {total} Go en ce moment. Ferme les programmes lourds si ça reste au-dessus de 90 %.",
+            )
+            .with(&[("load", &load.to_string()), ("total", &format!("{:.0}", m.ullTotalPhys as f64 / 1e9))]),
             None,
         ));
     }
@@ -359,9 +365,11 @@ fn support() -> Option<HealthItem> {
         status,
         t("Windows support", "Support de Windows"),
         if left < 0 {
-            t(format!("Security updates stopped on {end}. Move to a supported version of Windows."), format!("Les mises à jour de sécurité se sont arrêtées le {end}. Passe à une version de Windows encore prise en charge."))
+            t("Security updates stopped on {end}. Move to a supported version of Windows.", "Les mises à jour de sécurité se sont arrêtées le {end}. Passe à une version de Windows encore prise en charge.")
+                .with(&[("end", end)])
         } else {
-            t(format!("Security updates until {end} ({left} days)."), format!("Mises à jour de sécurité jusqu’au {end} ({left} jours)."))
+            t("Security updates until {end} ({left} days).", "Mises à jour de sécurité jusqu’au {end} ({left} jours).")
+                .with(&[("end", end), ("left", &left.to_string())])
         },
         (status != "ok").then_some("ms-settings:windowsupdate"),
     ))
@@ -379,7 +387,8 @@ fn last_update() -> Option<HealthItem> {
         "security",
         if days > 90 { "warn" } else { "ok" },
         t("Latest Windows update installed", "Dernière mise à jour Windows installée"),
-        t(format!("{days} days ago. Security updates arrive about every month."), format!("Il y a {days} jours. Les mises à jour de sécurité arrivent environ chaque mois.")),
+        t("{days} days ago. Security updates arrive about every month.", "Il y a {days} jours. Les mises à jour de sécurité arrivent environ chaque mois.")
+            .with(&[("days", &days.to_string())]),
         (days > 90).then_some("ms-settings:windowsupdate"),
     ))
 }
@@ -422,11 +431,11 @@ fn protection() -> Vec<HealthItem> {
     let (status, detail) = if p.av.is_empty() {
         ("unknown", t("Windows did not report any antivirus.", "Windows n’a signalé aucun antivirus."))
     } else if active.is_empty() {
-        ("bad", t(format!("{names}: protection is turned off."), format!("{names} : la protection est désactivée.")))
+        ("bad", t("{names}: protection is turned off.", "{names} : la protection est désactivée.").with(&[("names", &names)]))
     } else if active.iter().any(|a| !a.current) {
-        ("warn", t(format!("{names}: virus definitions are out of date."), format!("{names} : les définitions de virus ne sont pas à jour.")))
+        ("warn", t("{names}: virus definitions are out of date.", "{names} : les définitions de virus ne sont pas à jour.").with(&[("names", &names)]))
     } else {
-        ("ok", t(format!("{names}: active and up to date."), format!("{names} : actif et à jour.")))
+        ("ok", t("{names}: active and up to date.", "{names} : actif et à jour.").with(&[("names", &names)]))
     };
     out.push(item("antivirus", "security", status, t("Antivirus", "Antivirus"), detail, (status == "bad" || status == "warn").then_some("ms-settings:windowsdefender")));
 
@@ -441,7 +450,7 @@ fn protection() -> Vec<HealthItem> {
             if off.is_empty() {
                 t("On for every network profile.", "Activé pour tous les types de réseau.")
             } else {
-                t(format!("Turned off for: {}.", off.join(", ")), format!("Désactivé pour : {}.", off.join(", ")))
+                t("Turned off for: {list}.", "Désactivé pour : {list}.").with(&[("list", &off.join(", "))])
             },
             (status != "ok").then_some("windowsdefender://network"),
         ));
@@ -505,7 +514,7 @@ fn protection() -> Vec<HealthItem> {
         if p.tpm.starts_with("on") { "ok" } else if p.tpm == "off" { "warn" } else { "unknown" },
         t("TPM security chip", "Puce de sécurité TPM"),
         if let Some(v) = p.tpm.strip_prefix("on ") {
-            t(format!("Present and enabled (version {v})."), format!("Présente et activée (version {v})."))
+            t("Present and enabled (version {v}).", "Présente et activée (version {v}).").with(&[("v", v)])
         } else if p.tpm == "off" {
             t("Missing or turned off in the firmware. Windows 11 requires it.", "Absente ou désactivée dans le micrologiciel. Windows 11 en a besoin.")
         } else {

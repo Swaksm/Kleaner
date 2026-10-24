@@ -10,7 +10,7 @@ const ORDER = ["bad", "warn", "unknown", "info", "ok"];
 
 /** Bilan de santé et de sécurité, en lecture seule : chaque alerte renvoie vers l'écran de Windows qui la règle. */
 export function Health() {
-  const { t, tl } = useT();
+  const { t, tx } = useT();
   const [items, setItems] = useState<HealthItem[] | null>(null);
   const [elevated, setElevated] = useState(false);
   const [dism, setDism] = useState<HealthItem | null>(null);
@@ -48,8 +48,8 @@ export function Health() {
   const row = (i: HealthItem, n: number) => (
     <li key={`${i.id}-${n}`}>
       <div className="program">
-        <strong>{i.title[tl]}</strong>
-        <span className="muted small">{i.detail[tl]}</span>
+        <strong>{tx(i.title)}</strong>
+        <span className="muted small">{tx(i.detail)}</span>
       </div>
       <StatusPill status={PILL[i.status]}>{t(`health.status.${i.status}` as Key)}</StatusPill>
       {i.fix ? (

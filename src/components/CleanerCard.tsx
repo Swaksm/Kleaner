@@ -25,7 +25,7 @@ export function CleanerCard({
   compact?: boolean;
   children?: ReactNode;
 }) {
-  const { t, lang, tl } = useT();
+  const { t, lang, tx } = useT();
   const size =
     report === undefined
       ? <SkeletonInline />
@@ -39,10 +39,10 @@ export function CleanerCard({
         {onToggle ? (
           <label className="check">
             <input type="checkbox" checked={!!checked} disabled={!!locked} onChange={onToggle} />
-            <strong>{cleaner.label[tl]}</strong>
+            <strong>{tx(cleaner.label)}</strong>
           </label>
         ) : (
-          <strong>{cleaner.label[tl]}</strong>
+          <strong>{tx(cleaner.label)}</strong>
         )}
         <span className="num">{size}</span>
       </div>
@@ -53,11 +53,11 @@ export function CleanerCard({
       )}
       <dl className="cleaner-info" hidden={compact}>
         <dt>{t("cleanup.what")}</dt>
-        <dd>{cleaner.what[tl]}</dd>
+        <dd>{tx(cleaner.what)}</dd>
         <dt>{t("cleanup.why")}</dt>
-        <dd>{cleaner.why[tl]}</dd>
+        <dd>{tx(cleaner.why)}</dd>
         <dt>{t("cleanup.effect")}</dt>
-        <dd>{cleaner.effect[tl]}</dd>
+        <dd>{tx(cleaner.effect)}</dd>
         {cleaner.command && (
           <>
             <dt>{t("cleanup.command")}</dt>

@@ -123,12 +123,12 @@ fn entry_ok(e: &Entry) -> bool {
 /// Entrées de `winapp2.json` qui passent le filtre, sous forme de nettoyages du catalogue.
 pub fn cleaners() -> Vec<Cleaner> {
     let Ok(file) = serde_json::from_str::<File>(JSON) else { return Vec::new() };
-    let t = |en: &str, fr: &str| Text { en: en.into(), fr: fr.into() };
+    let t = Text::new;
     file.entries
         .into_iter()
         .filter(entry_ok)
         .map(|e| Cleaner {
-            label: Text { en: e.label.clone(), fr: e.label },
+            label: Text::new(e.label.clone(), e.label),
             what: t(
                 "Cache, temporary or log files of this program (community catalog Winapp2).",
                 "Fichiers de cache, temporaires ou journaux de ce programme (catalogue communautaire Winapp2).",
@@ -356,7 +356,7 @@ FileKey1=%AppData%\\Excluding\\App\\Cache|*.*
 [Chrome Cache *]
 FileKey1=%LocalAppData%\\Google\\Chrome\\Cache|*.*
 ";
-        let base = [Cleaner { label: Text { en: "Google Chrome: cache".into(), fr: String::new() }, ..sample() }];
+        let base = [Cleaner { label: Text::new("Google Chrome: cache", ""), ..sample() }];
         let got = convert(ini, &base);
         assert_eq!(got.len(), 2, "{got:?}");
         assert_eq!(got[0].id, "w2-example-app-cache");
@@ -381,10 +381,10 @@ FileKey1=%LocalAppData%\\Google\\Chrome\\Cache|*.*
         Cleaner {
             id: "x".into(),
             group: "apps".into(),
-            label: Text { en: String::new(), fr: String::new() },
-            what: Text { en: String::new(), fr: String::new() },
-            why: Text { en: String::new(), fr: String::new() },
-            effect: Text { en: String::new(), fr: String::new() },
+            label: Text::default(),
+            what: Text::default(),
+            why: Text::default(),
+            effect: Text::default(),
             paths: Vec::new(),
             only: Vec::new(),
             older_than_hours: 0,

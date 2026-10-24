@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import type { Text } from "../lib/api";
 import de from "./de.json";
 import en from "./en.json";
 import es from "./es.json";
@@ -58,9 +59,14 @@ export function translate(key: Key): string {
   return dicts[lang][key];
 }
 
+/** Texte du catalogue, des fiches ou du bilan dans la langue voulue ; pas encore traduit : l'anglais. */
+export function textIn(x: Text, l: Lang): string {
+  return x[l] || x.en;
+}
+
 export function useT() {
   const current = useSyncExternalStore(subscribe, () => lang);
-  // Textes du catalogue et des fiches : anglais et français seulement, anglais par défaut.
+  // Rapport pour une IA : anglais ou français.
   const tl: TextLang = current === "fr" ? "fr" : "en";
-  return { lang: current, tl, t: (key: Key) => dicts[current][key] };
+  return { lang: current, tl, t: (key: Key) => dicts[current][key], tx: (x: Text) => textIn(x, current) };
 }

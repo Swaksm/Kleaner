@@ -27,7 +27,7 @@ const CHART_GROUPS = ["windows", "browsers", "apps", "dev", "system", "heavy"] a
 
 /** `quick` : venu du bouton « Nettoyer sans risque » de l'Accueil, coche les éléments sans risque et ouvre la confirmation. */
 export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQuickDone?: () => void }) {
-  const { t, lang, tl } = useT();
+  const { t, lang, tx } = useT();
   const [view, setView] = useState<CleanersView | null>(null);
   const [estimates, setEstimates] = useState<Map<string, CleanReport> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -219,7 +219,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
           <ul className="items">
             {results.map((r) => (
               <li key={r.id}>
-                <span>{byId.get(r.id)?.label[tl] ?? r.id}</span>
+                <span>{byId.has(r.id) ? tx(byId.get(r.id)!.label) : r.id}</span>
                 <span className="num">{formatBytes(r.bytes, lang)}</span>
                 <span>
                   {r.error ? (
@@ -312,7 +312,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
         <ul className="paths">
           {chosen.map((c) => (
             <li key={c.id}>
-              {c.label[tl]} — {c.effect[tl]}
+              {tx(c.label)} — {tx(c.effect)}
             </li>
           ))}
         </ul>
@@ -320,7 +320,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
 
       <ConfirmDialog
         open={heavy !== null}
-        title={heavy ? heavy.label[tl] : ""}
+        title={heavy ? tx(heavy.label) : ""}
         confirmLabel={t("cleanup.heavyRun")}
         cancelLabel={t("common.cancel")}
         danger
@@ -333,9 +333,9 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
       >
         {heavy && (
           <>
-            <p>{heavy.what[tl]}</p>
+            <p>{tx(heavy.what)}</p>
             {heavy.command && <code>{heavy.command}</code>}
-            <p className="danger">{heavy.effect[tl]}</p>
+            <p className="danger">{tx(heavy.effect)}</p>
             <label className="check">
               <input type="checkbox" checked={heavyAck} onChange={(e) => setHeavyAck(e.target.checked)} />
               {t("cleanup.heavyAck")}

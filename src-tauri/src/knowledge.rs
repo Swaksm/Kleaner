@@ -135,8 +135,7 @@ fn matches(pattern: &str, path: &[char]) -> Option<(Vec<String>, usize)> {
 }
 
 fn fill(t: &Text, caps: &[String]) -> Text {
-    let sub = |s: &str| caps.iter().enumerate().fold(s.to_string(), |acc, (i, c)| acc.replace(&format!("{{{}}}", i + 1), c));
-    Text { en: sub(&t.en), fr: sub(&t.fr) }
+    t.map(|s| caps.iter().enumerate().fold(s.to_string(), |acc, (i, c)| acc.replace(&format!("{{{}}}", i + 1), c)))
 }
 
 fn from_rule(path: &str, r: &Rule, caps: &[String], dir: &str) -> Explanation {
@@ -149,15 +148,11 @@ fn from_rule(path: &str, r: &Rule, caps: &[String], dir: &str) -> Explanation {
             source: Source::Rule,
             rule: Some(r.id.clone()),
             cleaner: r.cleaner.clone(),
-            what: Text { en: format!("Inside {dir}. {}", what.en), fr: format!("Dans {dir}. {}", what.fr) },
-            consequence: Text {
-                en: "Deleting this file alone breaks the whole folder.".into(),
-                fr: "Supprimer ce fichier seul casse tout le dossier.".into(),
-            },
-            howto: Text {
-                en: format!("Only the whole folder can go: {dir}. {}", howto.en),
-                fr: format!("Seul le dossier entier peut partir : {dir}. {}", howto.fr),
-            },
+            what: Text::new("Inside {dir}.", "Dans {dir}.").with(&[("dir", dir)]).join(&what, |a, b| format!("{a} {b}")),
+            consequence: Text::new("Deleting this file alone breaks the whole folder.", "Supprimer ce fichier seul casse tout le dossier."),
+            howto: Text::new("Only the whole folder can go: {dir}.", "Seul le dossier entier peut partir : {dir}.")
+                .with(&[("dir", dir)])
+                .join(&howto, |a, b| format!("{a} {b}")),
             locked: true,
         };
     }
@@ -221,10 +216,8 @@ impl Context {
                 cleaner: Some(c.id.clone()),
                 what: c.what.clone(),
                 consequence: c.effect.clone(),
-                howto: Text {
-                    en: format!("Kleaner cleans it safely: Cleanup tab → {}.", c.label.en),
-                    fr: format!("Kleaner le nettoie sans risque : onglet Nettoyage → {}.", c.label.fr),
-                },
+                howto: Text::new("Kleaner cleans it safely: Cleanup tab → {label}.", "Kleaner le nettoie sans risque : onglet Nettoyage → {label}.")
+                    .join(&c.label, |a, label| a.replace("{label}", label)),
             };
         }
         if let Some((_, p)) = self.programs.iter().find(|(dir, _)| under(&lower, dir)) {
@@ -236,15 +229,17 @@ impl Context {
                 locked: false,
                 rule: None,
                 cleaner: None,
-                what: Text { en: format!("Part of the program {who}."), fr: format!("Fait partie du programme {who}.") },
-                consequence: Text {
-                    en: format!("Deleting files by hand breaks {} and leaves it half-installed.", p.name),
-                    fr: format!("Supprimer à la main casse {} et le laisse à moitié installé.", p.name),
-                },
-                howto: Text {
-                    en: format!("Uninstall {} from the Programs tab, or remove content from inside the app (e.g. games in its launcher).", p.name),
-                    fr: format!("Désinstalle {} depuis l’onglet Programmes, ou retire le contenu depuis l’appli (ex. les jeux dans leur launcher).", p.name),
-                },
+                what: Text::new("Part of the program {who}.", "Fait partie du programme {who}.").with(&[("who", &who)]),
+                consequence: Text::new(
+                    "Deleting files by hand breaks {name} and leaves it half-installed.",
+                    "Supprimer à la main casse {name} et le laisse à moitié installé.",
+                )
+                .with(&[("name", &p.name)]),
+                howto: Text::new(
+                    "Uninstall {name} from the Programs tab, or remove content from inside the app (e.g. games in its launcher).",
+                    "Désinstalle {name} depuis l’onglet Programmes, ou retire le contenu depuis l’appli (ex. les jeux dans leur launcher).",
+                )
+                .with(&[("name", &p.name)]),
             };
         }
         if let Some(e) = first(true) {
@@ -257,15 +252,12 @@ impl Context {
             locked: false,
             rule: None,
             cleaner: None,
-            what: Text { en: "Kleaner doesn’t know this item.".into(), fr: "Kleaner ne connaît pas cet élément.".into() },
-            consequence: Text {
-                en: "Unknown: don’t delete it unless you know what it is.".into(),
-                fr: "Inconnu : ne le supprime pas sans savoir ce que c’est.".into(),
-            },
-            howto: Text {
-                en: "Open it in Explorer to see what’s inside, search the folder name online, or use « Report for an AI ».".into(),
-                fr: "Ouvre-le dans l’Explorateur pour voir le contenu, cherche le nom du dossier en ligne, ou utilise « Rapport pour une IA ».".into(),
-            },
+            what: Text::new("Kleaner doesn’t know this item.", "Kleaner ne connaît pas cet élément."),
+            consequence: Text::new("Unknown: don’t delete it unless you know what it is.", "Inconnu : ne le supprime pas sans savoir ce que c’est."),
+            howto: Text::new(
+                "Open it in Explorer to see what’s inside, search the folder name online, or use « Report for an AI ».",
+                "Ouvre-le dans l’Explorateur pour voir le contenu, cherche le nom du dossier en ligne, ou utilise « Rapport pour une IA ».",
+            ),
         }
     }
 }

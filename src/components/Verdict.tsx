@@ -37,7 +37,7 @@ export function VerdictPill({ e, onOpen }: { e?: Explanation; onOpen: (e: Explan
 
 /** Fiche « Qu'est-ce que c'est ? ». */
 export function ExplainDialog({ e, onClose }: { e: Explanation; onClose: () => void }) {
-  const { t, tl } = useT();
+  const { t, tx } = useT();
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => ref.current?.showModal(), []);
   return (
@@ -55,11 +55,11 @@ export function ExplainDialog({ e, onClose }: { e: Explanation; onClose: () => v
         </StatusPill>
         <dl className="cleaner-info">
           <dt>{t("verdict.what")}</dt>
-          <dd>{e.what[tl]}</dd>
+          <dd>{tx(e.what)}</dd>
           <dt>{t("verdict.consequence")}</dt>
-          <dd>{e.consequence[tl]}</dd>
+          <dd>{tx(e.consequence)}</dd>
           <dt>{t("verdict.howto")}</dt>
-          <dd>{e.howto[tl]}</dd>
+          <dd>{tx(e.howto)}</dd>
         </dl>
         <p className="muted small">{t(`verdict.source.${e.source}` as Key)}</p>
         {e.verdict === "unknown" && <p className="muted small">{t("rule.hint")}</p>}

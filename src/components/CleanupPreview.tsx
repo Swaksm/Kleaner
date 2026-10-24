@@ -7,7 +7,7 @@ import { StatusPill } from "./StatusPill";
 
 /** Simulation : la liste exacte des fichiers qui seraient supprimés. Rien n'est supprimé. */
 export function CleanupPreview({ cleaners, onClose }: { cleaners: Cleaner[]; onClose: () => void }) {
-  const { t, lang, tl } = useT();
+  const { t, lang, tx } = useT();
   const ref = useRef<HTMLDialogElement>(null);
   const [view, setView] = useState<PreviewView | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +34,7 @@ export function CleanupPreview({ cleaners, onClose }: { cleaners: Cleaner[]; onC
           return (
             <details key={e.id} className="preview-entry">
               <summary>
-                <strong>{c?.label[tl] ?? e.id}</strong> · <span className="num">{e.files.toLocaleString(lang)}</span>{" "}
+                <strong>{c ? tx(c.label) : e.id}</strong> · <span className="num">{e.files.toLocaleString(lang)}</span>{" "}
                 {t("analyse.files")} · <span className="num">{formatBytes(e.bytes, lang)}</span>
               </summary>
               {c?.command && <code>{c.command}</code>}

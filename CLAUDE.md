@@ -42,7 +42,7 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `health.rs` : santé et sécurité en lecture seule ; `PAGES` = liste fermée des écrans Windows ouvrables.
 - `programs.rs` gère aussi les entrées fantômes (`ghosts`, `remove_ghost`, `restore_ghost`).
 
-`src/` : `App.tsx` (navigation : essentiel / « Plus d'outils » / À propos + engrenage), `pages/*`, `components/*`, `lib/api.ts` (seul point de contact avec Rust), `lib/scanStore.ts` (dernier résultat partagé), `i18n/*.json` (8 langues : en, fr, es, de, it, pt, ru, zh ; textes du catalogue, des fiches et du bilan de santé en en/fr seulement, via `tl`).
+`src/` : `App.tsx` (navigation : essentiel / « Plus d'outils » / À propos + engrenage), `pages/*`, `components/*`, `lib/api.ts` (seul point de contact avec Rust), `lib/scanStore.ts` (dernier résultat partagé), `i18n/*.json` (8 langues : en, fr, es, de, it, pt, ru, zh). Textes du catalogue, des fiches et du bilan de santé (`catalog::Text`) : fr et en écrits à la main, les six autres dans `src-tauri/texts/<langue>.json` (clé = phrase anglaise exacte ; phrase absente ou modifiée → anglais), affichés via `tx`. Changer une phrase anglaise : mettre à jour ses traductions. Textes du code avec valeurs : gabarits `{nom}` + `Text::with` (un `format!` ne sera pas traduit).
 
 ## Commandes
 

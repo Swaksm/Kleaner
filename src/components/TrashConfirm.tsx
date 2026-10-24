@@ -20,7 +20,7 @@ export function TrashConfirm({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  const { t, lang, tl } = useT();
+  const { t, lang, tx } = useT();
   const [ack, setAck] = useState(false);
   const total = items.reduce((s, i) => s + i.size, 0);
   const critical = items.filter((i) => {
@@ -57,9 +57,9 @@ export function TrashConfirm({
               const e = explanations!.get(i.path)!;
               return (
                 <li key={i.path}>
-                  <strong>{t(`verdict.${e.verdict}` as Key)}</strong> — {e.consequence[tl]}
+                  <strong>{t(`verdict.${e.verdict}` as Key)}</strong> — {tx(e.consequence)}
                   <br />
-                  <span className="muted small">{e.howto[tl]}</span>
+                  <span className="muted small">{tx(e.howto)}</span>
                 </li>
               );
             })}

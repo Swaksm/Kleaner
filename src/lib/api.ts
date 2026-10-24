@@ -61,7 +61,8 @@ export const saveReport = (content: string) => call<string>("save_report", { con
 export const previewMedia = (path: string) => call<string>("preview_media", { path });
 export const openMedia = (path: string) => call<void>("open_media", { path });
 
-export type Text = { fr: string; en: string };
+/** Texte du catalogue, des fiches ou du bilan : fr et en toujours, les autres langues quand elles sont traduites. */
+export type Text = { fr: string; en: string } & Partial<Record<"es" | "de" | "it" | "pt" | "ru" | "zh", string>>;
 export type Cleaner = {
   id: string;
   group: "windows" | "browsers" | "apps" | "dev" | "community" | "system" | "heavy";
