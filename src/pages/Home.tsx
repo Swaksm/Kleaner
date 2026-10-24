@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { SizeBar } from "../components/SizeBar";
 import { useT, type Key } from "../i18n/useT";
-import { findLeftovers, listDrives, onedriveRoots, type DriveInfo } from "../lib/api";
+import { findLeftovers, freedTotal, listDrives, onedriveRoots, type DriveInfo } from "../lib/api";
 import { formatBytes } from "../lib/format";
 import { useScanResult } from "../lib/scanStore";
 import { useRecoverable } from "../lib/useRecoverable";
@@ -18,10 +18,13 @@ export function Home({ onScan, go, onQuickClean }: { onScan: () => void; go: (pa
   const [drives, setDrives] = useState<DriveInfo[]>([]);
   const [leftovers, setLeftovers] = useState<number | null>(null);
   const [onedrive, setOnedrive] = useState(false);
+  // Espace libéré par Kleaner depuis le début, lu dans le journal (rien de nouveau n'est enregistré).
+  const [gained, setGained] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     listDrives().then((d) => setDrives(d.filter((x) => x.kind === "fixed")), () => {});
     onedriveRoots().then((r) => setOnedrive(r.length > 0), () => {});
+    freedTotal().then(setGained, () => {});
   }, []);
 
   useEffect(() => {
@@ -43,6 +46,13 @@ export function Home({ onScan, go, onQuickClean }: { onScan: () => void; go: (pa
 
   return (
     <>
+      {gained && gained[0] > 0 && (
+        <p className="gained">
+          {t("home.gained")
+            .replace("{size}", formatBytes(gained[0], lang))
+            .replace("{date}", new Date(gained[1] * 1000).toLocaleDateString(lang, { day: "numeric", month: "long", year: "numeric" }))}
+        </p>
+      )}
       <Card title={t("home.drives")}>
         {drives.map((d) => (
           <SizeBar

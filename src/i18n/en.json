@@ -435,5 +435,9 @@
   "error.autostartFirst": "Turn off “Start with Windows” first (admin rights needed). Nothing was deleted.",
   "error.admin": "Administrator rights are needed: use “Full scan (admin)”.",
   "updates.wingetFailed": "winget did not update everything. Details:",
-  "cleanup.ticked": "ticked"
+  "cleanup.ticked": "ticked",
+  "home.gained": "Kleaner has freed {size} since {date}.",
+  "update.install": "Install the update",
+  "update.installing": "Downloading and checking the update…",
+  "update.installFailed": "The update could not be installed automatically. Download it from the website instead."
 }

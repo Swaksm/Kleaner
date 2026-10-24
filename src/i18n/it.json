@@ -435,5 +435,9 @@
   "error.autostartFirst": "Disattiva prima «Avvia Kleaner con Windows» (servono i diritti di amministratore). Non è stato eliminato nulla.",
   "error.admin": "Servono i diritti di amministratore: usa «Analisi completa (admin)».",
   "updates.wingetFailed": "winget non ha aggiornato tutto. Dettagli:",
-  "cleanup.ticked": "selezionati"
+  "cleanup.ticked": "selezionati",
+  "home.gained": "Kleaner ha liberato {size} dal {date}.",
+  "update.install": "Installa l’aggiornamento",
+  "update.installing": "Download e verifica dell’aggiornamento…",
+  "update.installFailed": "Non è stato possibile installare l’aggiornamento automaticamente. Scaricalo invece dal sito."
 }

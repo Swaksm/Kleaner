@@ -28,11 +28,14 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
     case "is_elevated":
     case "autostart_enabled":
     case "mica":
+    case "is_installed":
       return ok(false);
     case "onedrive_roots":
     case "list_programs":
     case "find_duplicates":
       return ok([]);
+    case "freed_total":
+      return ok([51_800_000_000, 1_790_000_000]);
     case "read_journal":
       return ok({ path: "C:\\Users\\alex\\AppData\\Local\\Kleaner\\journal.log", entries: [] });
     default:

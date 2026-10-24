@@ -435,5 +435,9 @@
   "error.autostartFirst": "Coupe d'abord « Lancer Kleaner avec Windows » (droits admin nécessaires). Rien n'a été supprimé.",
   "error.admin": "Les droits administrateur sont nécessaires : utilise « Analyse complète (admin) ».",
   "updates.wingetFailed": "winget n'a pas tout mis à jour. Détail :",
-  "cleanup.ticked": "cochés"
+  "cleanup.ticked": "cochés",
+  "home.gained": "Kleaner t’a fait gagner {size} depuis le {date}.",
+  "update.install": "Installer la mise à jour",
+  "update.installing": "Téléchargement et vérification de la mise à jour…",
+  "update.installFailed": "La mise à jour n’a pas pu s’installer automatiquement. Télécharge-la plutôt depuis le site."
 }

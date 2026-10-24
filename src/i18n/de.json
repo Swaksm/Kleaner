@@ -435,5 +435,9 @@
   "error.autostartFirst": "Schalte zuerst „Kleaner mit Windows starten“ aus (Administratorrechte nötig). Nichts wurde gelöscht.",
   "error.admin": "Administratorrechte sind nötig: Nutze „Vollständige Analyse (Admin)“.",
   "updates.wingetFailed": "winget hat nicht alles aktualisiert. Details:",
-  "cleanup.ticked": "angehakt"
+  "cleanup.ticked": "angehakt",
+  "home.gained": "Kleaner hat seit dem {date} {size} freigegeben.",
+  "update.install": "Update installieren",
+  "update.installing": "Update wird heruntergeladen und geprüft…",
+  "update.installFailed": "Das Update konnte nicht automatisch installiert werden. Lade es stattdessen von der Website herunter."
 }

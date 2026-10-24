@@ -2,7 +2,8 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
 import { BugReportButton } from "../components/BugReportButton";
 import { Card } from "../components/Card";
-import { findUpdate } from "../lib/update";
+import { UpdateAction } from "../components/UpdateBanner";
+import { findUpdate, type Update } from "../lib/update";
 import { appVersion } from "../lib/version";
 import { useT, type Key } from "../i18n/useT";
 
@@ -17,13 +18,13 @@ export function About() {
   const { t } = useT();
   const [version, setVersion] = useState("");
   const [check, setCheck] = useState<string | null>(null);
-  const [updateUrl, setUpdateUrl] = useState<string | null>(null);
+  const [update, setUpdate] = useState<Update | null>(null);
 
   async function checkNow() {
     setCheck(t("update.checking"));
     try {
       const u = await findUpdate(version);
-      setUpdateUrl(u?.url ?? null);
+      setUpdate(u);
       setCheck(u ? `${t("update.available")} ${u.version}` : t("update.upToDate"));
     } catch (e) {
       setCheck(String(e));
@@ -69,11 +70,7 @@ export function About() {
             {t("update.checkNow")}
           </button>
           {check && <span className="muted">{check}</span>}
-          {updateUrl && (
-            <button className="btn btn-primary" onClick={() => openUrl(updateUrl)}>
-              {t("update.download")} →
-            </button>
-          )}
+          {update && <UpdateAction update={update} />}
         </div>
       </Card>
 

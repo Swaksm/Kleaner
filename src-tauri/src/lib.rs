@@ -16,6 +16,7 @@ pub mod shortcuts;
 pub mod startup;
 pub mod system;
 pub mod tray;
+pub mod updater;
 pub mod winapp2;
 
 use serde::Serialize;
@@ -66,6 +67,32 @@ fn read_journal(limit: usize) -> Result<JournalView, String> {
 
 /// Page d'avis ouverte au départ (rien d'obligatoire), dans le navigateur habituel.
 const FEEDBACK_PAGE: &str = "https://swaks.org/kleaner/?bye#feedback";
+
+/// Version installée (installateur) : la mise à jour peut se faire en un clic.
+#[tauri::command]
+fn is_installed() -> bool {
+    updater::is_installed()
+}
+
+/// Mise à jour en un clic : télécharge l'installateur de `version`, vérifie son SHA-256, le lance, puis ferme Kleaner.
+#[tauri::command]
+async fn install_update(app: tauri::AppHandle, version: String) -> Result<(), String> {
+    if !updater::is_installed() {
+        return Err("Refused: portable version, download it from the website".into());
+    }
+    let dir = journal::data_dir();
+    let v = version.clone();
+    let setup = tauri::async_runtime::spawn_blocking(move || updater::download(&v, &dir.join("updates"))).await.map_err(|e| e.to_string())??;
+    updater::launch(&setup, &version, &journal::data_dir())?;
+    app.exit(0);
+    Ok(())
+}
+
+/// Espace libéré par Kleaner depuis le début (octets, date de la première action).
+#[tauri::command]
+fn freed_total() -> Result<(u64, u64), String> {
+    journal::freed_total(&journal::data_dir()).map_err(|e| e.to_string())
+}
 
 /// Efface toutes les données de Kleaner puis quitte. L'exe portable reste à supprimer à la main.
 #[tauri::command]
@@ -645,6 +672,9 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             read_journal,
+            freed_total,
+            is_installed,
+            install_update,
             remove_kleaner_data,
             start_scan,
             cancel_scan,

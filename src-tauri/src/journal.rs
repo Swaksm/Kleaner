@@ -55,6 +55,17 @@ pub fn read_last(dir: &Path, n: usize) -> io::Result<Vec<Entry>> {
     Ok(text.lines().rev().filter_map(|l| serde_json::from_str(l).ok()).take(n).collect())
 }
 
+/// Espace libéré par Kleaner depuis le début du journal : (octets, date de la première action, en secondes).
+/// Seuls les nettoyages (`clean:…`, Corbeille vidée comprise) et « Libérer de l'espace » OneDrive comptent :
+/// une mise à la Corbeille ne libère rien tant qu'elle n'est pas vidée, et la compter ferait un doublon.
+pub fn freed_total(dir: &Path) -> io::Result<(u64, u64)> {
+    let entries = read_last(dir, usize::MAX)?;
+    let freeing = entries.iter().filter(|e| e.action.starts_with("clean:") || e.action == "cloud-free-up");
+    let bytes = freeing.clone().map(|e| e.bytes).sum();
+    let first = freeing.map(|e| e.ts).min().unwrap_or(0);
+    Ok((bytes, first))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,5 +109,18 @@ mod tests {
     #[test]
     fn data_dir_under_localappdata() {
         assert!(data_dir().ends_with("Kleaner"));
+    }
+
+    #[test]
+    fn freed_total_counts_cleanups_only() {
+        let dir = std::env::temp_dir().join(format!("kleaner-freed-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        for (action, bytes, ts) in [("clean:temp", 100, 50), ("trash", 1000, 10), ("cloud-free-up", 20, 70), ("clean:recycle-bin", 5, 60)] {
+            let e = Entry { ts, action: action.into(), bytes, ..Default::default() };
+            append(&dir, &e).unwrap();
+        }
+        assert_eq!(freed_total(&dir).unwrap(), (125, 50), "la Corbeille ne compte pas, première date = premier nettoyage");
+        assert_eq!(freed_total(&dir.join("vide")).unwrap(), (0, 0));
+        fs::remove_dir_all(&dir).unwrap();
     }
 }

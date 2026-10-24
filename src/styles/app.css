@@ -643,6 +643,15 @@ code {
   font-size: 13px;
 }
 
+/* Accueil : espace gagné depuis le début */
+.gained {
+  margin: -8px 0 0;
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--accent);
+}
+
 /* Accueil : nettoyage en un clic */
 .quick-clean {
   display: flex;
