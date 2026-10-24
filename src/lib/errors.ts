@@ -12,6 +12,7 @@ const KNOWN: [RegExp, Key][] = [
   [/\(outside allowed locations\)/, "error.outside"],
   [/\(online-only file\)/, "error.cloudOnly"],
   [/\(a program is installed there\)/, "error.programInside"],
+  [/\(part of a code project\)/, "error.codeProject"],
   [/is in use, close the programs/, "error.inUse"],
   [/not enough free space/, "error.noSpace"],
   [/^Refused: .* already exists$/, "error.exists"],

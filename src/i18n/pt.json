@@ -460,6 +460,7 @@
   "error.outside": "Recusado: só podem ser movidas subpastas de Área de Trabalho, Documentos, Downloads, Imagens, Músicas e Vídeos.",
   "error.cloudOnly": "Recusado: esta pasta tem arquivos somente online (OneDrive). Deixe-os disponíveis neste dispositivo primeiro, ou mantenha-os no OneDrive.",
   "error.programInside": "Recusado: há um programa instalado nesta pasta. Movê-la iria quebrá-lo.",
+  "error.codeProject": "Recusado: esta pasta faz parte de um projeto de código, ou contém um. Movê-la quebraria o projeto; as pastas de build e de dependências dele podem ser excluídas com segurança em Projetos antigos.",
   "error.inUse": "Recusado: um arquivo desta pasta está aberto. Feche os programas que o usam e tente de novo.",
   "error.noSpace": "Recusado: espaço livre insuficiente nesse disco.",
   "error.exists": "Recusado: o destino já existe. O Kleaner nunca sobrescreve nem mescla.",

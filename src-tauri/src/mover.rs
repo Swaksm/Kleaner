@@ -95,6 +95,18 @@ pub fn personal_roots(home: &Path) -> Vec<PathBuf> {
     ["Desktop", "Documents", "Downloads", "Pictures", "Music", "Videos"].iter().map(|d| home.join(d)).collect()
 }
 
+/// Fichiers qui signalent un projet de code (noms en minuscules) : en déplacer une partie le casse,
+/// et ses dossiers de build ou de dépendances se suppriment depuis « Vieux projets ».
+const PROJECT_MARKERS: [&str; 12] = [
+    ".git", "cargo.toml", "package.json", "pyproject.toml", "requirements.txt", "go.mod", "pom.xml", "build.gradle",
+    "build.gradle.kts", "pubspec.yaml", "composer.json", "cmakelists.txt",
+];
+
+fn project_marker(name: &std::ffi::OsStr) -> bool {
+    let n = name.to_string_lossy().to_lowercase();
+    PROJECT_MARKERS.contains(&n.as_str()) || n.ends_with(".sln") || n.ends_with(".csproj")
+}
+
 /// Vérifie la source et la lit. Renvoie son chemin canonique et son contenu.
 fn inspect(source: &Path, home: &Path, programs: &[Program]) -> Result<(PathBuf, Vec<Item>), String> {
     let c = guard::check_move(source, &personal_roots(home)).map_err(|e| format!("Refused: {} ({e})", source.display()))?;
@@ -106,6 +118,14 @@ fn inspect(source: &Path, home: &Path, programs: &[Program]) -> Result<(PathBuf,
         return Err(format!("Refused: {} (a program is installed there)", plain(&c)));
     }
     let items = walk(&c)?;
+    // Dans un projet (le dossier ou un parent jusqu'au dossier personnel) ou contenant un projet : refusé.
+    let roots: Vec<PathBuf> = personal_roots(home).iter().filter_map(|r| fs::canonicalize(r).ok()).collect();
+    let inside = c.ancestors().take_while(|a| !roots.iter().any(|r| r == a)).any(|a| {
+        fs::read_dir(a).is_ok_and(|rd| rd.flatten().any(|e| project_marker(&e.file_name())))
+    });
+    if inside || items.iter().any(|i| i.rel.file_name().is_some_and(project_marker)) {
+        return Err(format!("Refused: {} (part of a code project)", plain(&c)));
+    }
     Ok((c, items))
 }
 
@@ -431,5 +451,11 @@ mod tests {
         assert!(plan(&home.join("Videos"), &home, &[]).is_err(), "le dossier Vidéos lui-même : non");
         assert!(plan(&home.join("AppData/Local/App"), &home, &[]).is_err(), "AppData : non");
         assert!(plan(&home.join("Videos/Rushes"), &home, &[installed]).unwrap_err().contains("program is installed"));
+        // Projet de code : ni une partie (target), ni le projet, ni un dossier qui en contient un.
+        fill(&home.join("Desktop/Lab/App/target"));
+        fs::write(home.join("Desktop/Lab/App/Cargo.toml"), b"").unwrap();
+        for p in ["Desktop/Lab/App/target", "Desktop/Lab/App", "Desktop/Lab"] {
+            assert!(plan(&home.join(p), &home, &[]).unwrap_err().contains("code project"), "{p}");
+        }
     }
 }

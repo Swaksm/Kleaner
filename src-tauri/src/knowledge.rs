@@ -5,6 +5,7 @@
 use crate::catalog::{self, Text};
 use crate::programs::Program;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::sync::OnceLock;
 
 const KNOWLEDGE_JSON: &str = include_str!("../knowledge.json");
@@ -45,6 +46,9 @@ pub struct Rule {
     /// Le dossier ne se supprime qu'en entier : un fichier dedans le casse.
     #[serde(default)]
     pub whole: bool,
+    /// Fichier qui doit se trouver à côté du dossier reconnu (« target » n'est du Rust qu'à côté de Cargo.toml).
+    #[serde(default)]
+    pub beside: Option<String>,
     pub verdict: Verdict,
     #[serde(default)]
     pub cleaner: Option<String>,
@@ -198,8 +202,10 @@ impl Context {
         let original = chars(path);
         let first = |generic: bool| {
             rules().iter().filter(|r| r.generic == generic).find_map(|r| {
-                r.patterns.iter().find_map(|p| matches(p, &original)).map(|(caps, end)| {
-                    from_rule(path, r, &caps, &original[..end].iter().collect::<String>())
+                let beside_ok = |dir: &str| r.beside.as_ref().is_none_or(|f| Path::new(dir).parent().is_some_and(|p| p.join(f).is_file()));
+                r.patterns.iter().find_map(|p| matches(p, &original)).and_then(|(caps, end)| {
+                    let dir = original[..end].iter().collect::<String>();
+                    beside_ok(&dir).then(|| from_rule(path, r, &caps, &dir))
                 })
             })
         };
@@ -286,6 +292,22 @@ mod tests {
 
     fn g(p: &str, s: &str) -> bool {
         glob(&lower_chars(p), &chars(s), &mut Vec::new())
+    }
+
+    #[test]
+    fn target_is_rust_only_next_to_cargo_toml() {
+        let root = std::env::temp_dir().join(format!("kleaner-target-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        for d in ["rust/target/debug", "other/target"] {
+            std::fs::create_dir_all(root.join(d)).unwrap();
+        }
+        std::fs::write(root.join("rust/Cargo.toml"), b"").unwrap();
+        let ctx = Context::new(Vec::new());
+        let rule = |p: &str| ctx.explain(&root.join(p.replace('/', "\\")).display().to_string()).rule;
+        assert_eq!(rule("rust/target").as_deref(), Some("rust-target-root"));
+        assert_eq!(rule("rust/target/debug").as_deref(), Some("rust-target"), "règle précise d'abord");
+        assert_ne!(rule("other/target").as_deref(), Some("rust-target-root"), "sans Cargo.toml : pas du Rust");
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]

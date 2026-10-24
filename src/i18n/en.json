@@ -460,6 +460,7 @@
   "error.outside": "Refused: only subfolders of Desktop, Documents, Downloads, Pictures, Music and Videos can be moved.",
   "error.cloudOnly": "Refused: this folder holds online-only files (OneDrive). Make them available on this device first, or leave them in OneDrive.",
   "error.programInside": "Refused: a program is installed in this folder. Moving it would break it.",
+  "error.codeProject": "Refused: this folder is part of a code project, or contains one. Moving it would break the project; its build and dependency folders can be deleted safely from Old projects.",
   "error.inUse": "Refused: a file in this folder is open. Close the programs using it, then try again.",
   "error.noSpace": "Refused: not enough free space on that drive.",
   "error.exists": "Refused: the destination already exists. Kleaner never overwrites or merges.",

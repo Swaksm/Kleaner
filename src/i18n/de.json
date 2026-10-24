@@ -460,6 +460,7 @@
   "error.outside": "Abgelehnt: Nur Unterordner von Desktop, Dokumente, Downloads, Bilder, Musik und Videos können verschoben werden.",
   "error.cloudOnly": "Abgelehnt: Dieser Ordner enthält reine Online-Dateien (OneDrive). Mach sie zuerst auf diesem Gerät verfügbar oder lass sie in OneDrive.",
   "error.programInside": "Abgelehnt: In diesem Ordner ist ein Programm installiert. Verschieben würde es beschädigen.",
+  "error.codeProject": "Abgelehnt: Dieser Ordner gehört zu einem Code-Projekt oder enthält eines. Ihn zu verschieben würde das Projekt beschädigen; seine Build- und Abhängigkeitsordner lassen sich unter „Alte Projekte“ sicher löschen.",
   "error.inUse": "Abgelehnt: Eine Datei in diesem Ordner ist geöffnet. Schließe die Programme, die sie nutzen, und versuche es erneut.",
   "error.noSpace": "Abgelehnt: nicht genug freier Platz auf diesem Laufwerk.",
   "error.exists": "Abgelehnt: Das Ziel existiert bereits. Kleaner überschreibt und vermischt nie.",

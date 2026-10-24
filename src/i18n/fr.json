@@ -460,6 +460,7 @@
   "error.outside": "Refusé : seuls les sous-dossiers de Bureau, Documents, Téléchargements, Images, Musique et Vidéos peuvent être déplacés.",
   "error.cloudOnly": "Refusé : ce dossier contient des fichiers en ligne seulement (OneDrive). Rends-les disponibles sur cet appareil d’abord, ou laisse-les dans OneDrive.",
   "error.programInside": "Refusé : un programme est installé dans ce dossier. Le déplacer le casserait.",
+  "error.codeProject": "Refusé : ce dossier fait partie d’un projet de code, ou en contient un. Le déplacer casserait le projet ; ses dossiers de build et de dépendances se suppriment sans risque depuis « Vieux projets ».",
   "error.inUse": "Refusé : un fichier de ce dossier est ouvert. Ferme les programmes qui l’utilisent, puis réessaie.",
   "error.noSpace": "Refusé : pas assez de place sur ce disque.",
   "error.exists": "Refusé : la destination existe déjà. Kleaner n’écrase et ne fusionne jamais.",

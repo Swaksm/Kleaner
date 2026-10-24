@@ -1279,6 +1279,26 @@
     }
   },
   {
+    "id": "rust-target-root",
+    "match": [
+      "**\\target"
+    ],
+    "beside": "Cargo.toml",
+    "verdict": "cleanup",
+    "what": {
+      "en": "Probably a Rust build folder (Cargo).",
+      "fr": "Probablement un dossier de build Rust (Cargo)."
+    },
+    "consequence": {
+      "en": "The next build takes longer.",
+      "fr": "Le prochain build est plus long."
+    },
+    "howto": {
+      "en": "cargo clean in the project folder (next to Cargo.toml).",
+      "fr": "cargo clean dans le dossier du projet (à côté de Cargo.toml)."
+    }
+  },
+  {
     "id": "web-build-cache",
     "match": [
       "**\\.next\\cache",

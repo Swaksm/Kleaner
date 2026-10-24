@@ -460,6 +460,7 @@
   "error.outside": "Rifiutato: si possono spostare solo le sottocartelle di Desktop, Documenti, Download, Immagini, Musica e Video.",
   "error.cloudOnly": "Rifiutato: questa cartella contiene file solo online (OneDrive). Rendili prima disponibili su questo dispositivo, o lasciali in OneDrive.",
   "error.programInside": "Rifiutato: in questa cartella è installato un programma. Spostarla lo romperebbe.",
+  "error.codeProject": "Rifiutato: questa cartella fa parte di un progetto di codice, o ne contiene uno. Spostarla romperebbe il progetto; le sue cartelle di build e delle dipendenze si eliminano in sicurezza da Vecchi progetti.",
   "error.inUse": "Rifiutato: un file di questa cartella è aperto. Chiudi i programmi che lo usano, poi riprova.",
   "error.noSpace": "Rifiutato: spazio libero insufficiente su quel disco.",
   "error.exists": "Rifiutato: la destinazione esiste già. Kleaner non sovrascrive né unisce mai.",
