@@ -10,4 +10,5 @@ test("comparaison de versions, préversions comprises", () => {
   expect(isNewer("0.1.0-rc9", "0.1.0")).toBe(false);
   expect(isNewer("0.0.9", "0.1.0")).toBe(false);
   expect(isNewer("1.0.0", "0.1.0-rc18")).toBe(true);
+  expect(isNewer("1.1.0", "1.0.0")).toBe(true);
 });

@@ -19,25 +19,25 @@ winget lit les manifestes du dépôt public `microsoft/winget-pkgs`. Il faut y o
 2. Générer et valider les manifestes :
 
    ```powershell
-   node packaging/winget/make-manifests.mjs 1.0.0
+   node packaging/winget/make-manifests.mjs 1.1.0
    ```
 
    Le manifeste propose l'installateur NSIS (`kleaner-setup.exe`, choisi par défaut) et l'exe portable (`winget install Swaks.Kleaner --installer-type portable`). La release doit donc contenir les deux (à partir de v0.1.0-rc14).
 
    ```powershell
-   winget validate --manifest packaging/winget/manifests/s/Swaks/Kleaner/1.0.0
+   winget validate --manifest packaging/winget/manifests/s/Swaks/Kleaner/1.1.0
    ```
 
 3. Tester l'installation en local :
 
    ```powershell
    winget settings --enable LocalManifestFiles
-   winget install --manifest packaging/winget/manifests/s/Swaks/Kleaner/1.0.0
+   winget install --manifest packaging/winget/manifests/s/Swaks/Kleaner/1.1.0
    ```
 
 4. Soumettre (au choix) :
-   - avec l'outil officiel : `winget install Microsoft.WingetCreate`, puis `wingetcreate submit packaging/winget/manifests/s/Swaks/Kleaner/1.0.0` ;
-   - ou à la main : forker `microsoft/winget-pkgs`, copier le dossier dans `manifests/s/Swaks/Kleaner/1.0.0/`, ouvrir la pull request.
+   - avec l'outil officiel : `winget install Microsoft.WingetCreate`, puis `wingetcreate submit packaging/winget/manifests/s/Swaks/Kleaner/1.1.0` ;
+   - ou à la main : forker `microsoft/winget-pkgs`, copier le dossier dans `manifests/s/Swaks/Kleaner/1.1.0/`, ouvrir la pull request.
 
 Une fois fusionné : `winget install Swaks.Kleaner`.
 
