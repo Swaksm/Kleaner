@@ -35,7 +35,7 @@ Kleaner scans your drives, explains what takes up the space, and cleans what is 
 - **Startup**: what starts with Windows and how long the last boots took. Turning an item off deletes nothing and can be undone.
 - **Health & security** (read-only): disks, battery, crashes, pending restart, antivirus, firewall, Secure Boot, BitLocker… Each alert opens the Windows screen that fixes it. Not an antivirus.
 - **Broken shortcuts**, **Cloud** (OneDrive and Dropbox: keep large files online only), **Updates & drivers** (Windows Update and winget, on click).
-- **Journal** of every action, **AI report** (optional, offline: a Markdown summary you paste into the AI of your choice), 6 languages, light and dark themes.
+- **Journal** of every action, **AI report** (optional, offline: a Markdown summary you paste into the AI of your choice), 8 languages, light and dark themes.
 
 ## Download
 

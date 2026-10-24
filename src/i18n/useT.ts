@@ -5,8 +5,10 @@ import es from "./es.json";
 import fr from "./fr.json";
 import it from "./it.json";
 import pt from "./pt.json";
+import ru from "./ru.json";
+import zh from "./zh.json";
 
-export type Lang = "en" | "fr" | "es" | "de" | "it" | "pt";
+export type Lang = "en" | "fr" | "es" | "de" | "it" | "pt" | "ru" | "zh";
 export const LANGS: [Lang, string][] = [
   ["en", "English"],
   ["fr", "Français"],
@@ -14,12 +16,14 @@ export const LANGS: [Lang, string][] = [
   ["de", "Deutsch"],
   ["it", "Italiano"],
   ["pt", "Português"],
+  ["ru", "Русский"],
+  ["zh", "中文"],
 ];
 export type TextLang = "fr" | "en";
 export type Key = keyof typeof en;
 
 // Le typage force chaque langue à contenir toutes les clés de l'anglais.
-const dicts: Record<Lang, Record<Key, string>> = { en, fr, es, de, it, pt };
+const dicts: Record<Lang, Record<Key, string>> = { en, fr, es, de, it, pt, ru, zh };
 
 function initialLang(): Lang {
   try {

@@ -5,8 +5,10 @@ import es from "./es.json";
 import fr from "./fr.json";
 import it from "./it.json";
 import pt from "./pt.json";
+import ru from "./ru.json";
+import zh from "./zh.json";
 
-const all = { en, fr, es, de, it, pt };
+const all = { en, fr, es, de, it, pt, ru, zh };
 
 test("toutes les langues ont exactement les mêmes clés que l'anglais", () => {
   const keys = Object.keys(en).sort();

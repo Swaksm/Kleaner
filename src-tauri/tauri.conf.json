@@ -38,7 +38,7 @@
       "nsis": {
         "installMode": "perMachine",
         "displayLanguageSelector": true,
-        "languages": ["English", "French", "Spanish", "German", "Italian", "Portuguese"],
+        "languages": ["English", "French", "Spanish", "German", "Italian", "Portuguese", "Russian", "SimpChinese"],
         "installerIcon": "icons/icon.ico",
         "installerHooks": "./windows/hooks.nsh"
       }

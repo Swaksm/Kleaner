@@ -35,7 +35,7 @@ Kleaner analyse tes disques, explique ce qui prend la place, et nettoie ce qui e
 - **Démarrage** : ce qui se lance avec Windows et la durée des derniers démarrages. Désactiver un élément ne supprime rien et se défait.
 - **Santé et sécurité** (lecture seule) : disques, batterie, plantages, redémarrage en attente, antivirus, pare-feu, Secure Boot, BitLocker… Chaque alerte ouvre l'écran de Windows qui la règle. Pas un antivirus.
 - **Raccourcis cassés**, **Cloud** (OneDrive et Dropbox : garder les gros fichiers en ligne uniquement), **Mises à jour et pilotes** (Windows Update et winget, sur clic).
-- **Journal** de chaque action, **rapport pour une IA** (facultatif, hors ligne : un résumé Markdown à coller dans l'IA de ton choix), 6 langues, thèmes clair et sombre.
+- **Journal** de chaque action, **rapport pour une IA** (facultatif, hors ligne : un résumé Markdown à coller dans l'IA de ton choix), 8 langues, thèmes clair et sombre.
 
 ## Télécharger
 

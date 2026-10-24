@@ -28,6 +28,13 @@ const FLAGS: Record<Lang, React.ReactNode> = {
   de: bands("h", ["#000", "#DD0000", "#FFCE00"]),
   es: bands("h", ["#AA151B", "#F1BF00", "#AA151B"], [1, 2, 1]),
   pt: bands("v", ["#046A38", "#DA291C"], [2, 3]),
+  ru: bands("h", ["#fff", "#0039A6", "#D52B1E"]),
+  zh: (
+    <>
+      <rect width="30" height="20" fill="#EE1C25" />
+      <path d="M5 2.2l.9 2.8h2.9l-2.4 1.7.9 2.8L5 7.8 2.7 9.5l.9-2.8-2.4-1.7h2.9z" fill="#FFFF00" />
+    </>
+  ),
 };
 
 export function Flag({ lang }: { lang: Lang }) {

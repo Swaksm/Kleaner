@@ -30,6 +30,8 @@ fn texts() -> Texts {
         0x07 => Texts { open: "Kleaner öffnen", quit: "Beenden", title: "Laufwerk fast voll", body: "{drive}: nur noch {free} frei. Öffne Kleaner, um zu sehen, was weg kann." },
         0x10 => Texts { open: "Apri Kleaner", quit: "Esci", title: "Disco quasi pieno", body: "{drive}: restano solo {free} liberi. Apri Kleaner per vedere cosa si può togliere." },
         0x16 => Texts { open: "Abrir o Kleaner", quit: "Sair", title: "Disco quase cheio", body: "{drive}: só restam {free} livres. Abra o Kleaner para ver o que pode sair." },
+        0x19 => Texts { open: "Открыть Kleaner", quit: "Выйти", title: "Диск почти заполнен", body: "{drive}: свободно всего {free}. Откройте Kleaner, чтобы узнать, что можно удалить." },
+        0x04 => Texts { open: "打开 Kleaner", quit: "退出", title: "磁盘快满了", body: "{drive} 只剩 {free} 可用空间。打开 Kleaner 看看哪些可以清理。" },
         _ => Texts { open: "Open Kleaner", quit: "Quit", title: "Drive almost full", body: "{drive} has only {free} free. Open Kleaner to see what can go." },
     }
 }
