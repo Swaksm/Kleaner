@@ -9,6 +9,7 @@ pub mod journal;
 pub mod knowledge;
 pub mod leftovers;
 pub mod mft;
+pub mod mover;
 pub mod onedrive;
 pub mod programs;
 pub mod scan;
@@ -153,6 +154,12 @@ struct ScanState {
     artifacts: Arc<Mutex<Vec<String>>>,
     dup_cancel: Arc<AtomicBool>,
     leftovers: Arc<Mutex<Vec<leftovers::Leftover>>>,
+    /// Programmes dont Kleaner a lancé le désinstalleur : leurs restes sont cherchés une fois qu'ils ont disparu.
+    uninstalled: Arc<Mutex<Vec<programs::Program>>>,
+    leftovers_for: Arc<Mutex<Vec<leftovers::Leftover>>>,
+    /// Plus gros dossiers de la dernière analyse : seuls candidats au déplacement vers un autre disque.
+    dirs: Arc<Mutex<Vec<String>>>,
+    move_cancel: Arc<AtomicBool>,
     cloud: Arc<Mutex<Vec<String>>>,
     apps: Arc<Mutex<Vec<String>>>,
     startup: Arc<Mutex<Vec<String>>>,
@@ -194,7 +201,7 @@ fn start_scan(app: tauri::AppHandle, state: State<ScanState>, roots: Option<Vec<
     }
     state.cancel.store(false, Relaxed);
     let (cancel, running) = (state.cancel.clone(), state.running.clone());
-    let (dups, artifacts, trashable) = (state.dups.clone(), state.artifacts.clone(), state.trashable.clone());
+    let (dups, artifacts, trashable, dirs) = (state.dups.clone(), state.artifacts.clone(), state.trashable.clone(), state.dirs.clone());
     std::thread::spawn(move || {
         let progress = Arc::new(scan::Progress::default());
         let done = Arc::new(AtomicBool::new(false));
@@ -222,6 +229,7 @@ fn start_scan(app: tauri::AppHandle, state: State<ScanState>, roots: Option<Vec<
             .collect();
         *dups.lock().unwrap() = candidates;
         *artifacts.lock().unwrap() = result.artifacts.iter().map(|a| a.path.clone()).collect();
+        *dirs.lock().unwrap() = result.top_dirs.iter().map(|d| d.path.clone()).collect();
         done.store(true, Relaxed);
         let _ = ticker.join();
         let _ = app.emit("scan-done", &result);
@@ -331,8 +339,10 @@ async fn program_sizes() -> Result<Vec<programs::RealSize>, String> {
 }
 
 #[tauri::command]
-fn uninstall_program(id: String) -> Result<(), String> {
-    programs::uninstall(&id, &journal::data_dir())
+fn uninstall_program(id: String, state: State<'_, ScanState>) -> Result<(), String> {
+    let program = programs::uninstall(&id, &journal::data_dir())?;
+    state.uninstalled.lock().unwrap().push(program);
+    Ok(())
 }
 
 #[tauri::command]
@@ -459,10 +469,31 @@ async fn find_leftovers(state: State<'_, ScanState>) -> Result<Vec<leftovers::Le
     Ok(list)
 }
 
+/// Restes d'un programme que Kleaner vient de désinstaller (id connu côté Rust, programme absent de la liste).
+/// Gardés à part (une nouvelle recherche générale ne les efface pas) pour que `trash_leftovers` les accepte.
+#[tauri::command]
+async fn find_leftovers_for(id: String, state: State<'_, ScanState>) -> Result<Vec<leftovers::Leftover>, String> {
+    let gone = state.uninstalled.lock().unwrap().iter().find(|p| p.id == id).cloned().ok_or("Refused: not uninstalled by Kleaner")?;
+    let found = tauri::async_runtime::spawn_blocking(move || {
+        let installed = programs::list();
+        if installed.iter().any(|p| p.id == gone.id) {
+            return Err("Refused: still installed".to_string());
+        }
+        Ok(leftovers::find_for(&gone, &installed))
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+    let mut known = state.leftovers_for.lock().unwrap();
+    known.retain(|l| !found.iter().any(|f| f.path == l.path));
+    known.extend(found.iter().cloned());
+    Ok(found)
+}
+
 /// Envoie à la Corbeille des restes trouvés par la dernière recherche (et seulement ceux-là).
 #[tauri::command]
 async fn trash_leftovers(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
-    let known = state.leftovers.lock().unwrap().clone();
+    let mut known = state.leftovers.lock().unwrap().clone();
+    known.extend(state.leftovers_for.lock().unwrap().iter().cloned());
     let mut sizes = Vec::new();
     for p in &paths {
         match known.iter().find(|l| &l.path == p) {
@@ -475,6 +506,69 @@ async fn trash_leftovers(paths: Vec<String>, state: State<'_, ScanState>) -> Res
     tauri::async_runtime::spawn_blocking(move || actions::trash_dirs(&dirs, &guard::Protected::from_env(), &journal::data_dir(), &sizes))
         .await
         .map_err(|e| e.to_string())?
+}
+
+fn home() -> Result<PathBuf, String> {
+    std::env::var_os("USERPROFILE").map(PathBuf::from).ok_or_else(|| "USERPROFILE not set".to_string())
+}
+
+#[derive(Serialize, Clone)]
+struct MoveProgress {
+    done: u64,
+    total: u64,
+}
+
+/// Ce que donnerait le déplacement d'un gros dossier de la dernière analyse vers un autre disque. Lecture seule.
+#[tauri::command]
+async fn plan_move(path: String, state: State<'_, ScanState>) -> Result<mover::Plan, String> {
+    check_known(std::slice::from_ref(&path), &state.dirs.lock().unwrap())?;
+    let home = home()?;
+    tauri::async_runtime::spawn_blocking(move || mover::plan(Path::new(&path), &home, &programs::list())).await.map_err(|e| e.to_string())?
+}
+
+/// Déplace le dossier vers le disque `root` : copie vérifiée, puis retrait de l'original. Événements `move-progress`.
+#[tauri::command]
+async fn move_folder(app: tauri::AppHandle, path: String, root: String, state: State<'_, ScanState>) -> Result<(actions::ActionReport, String), String> {
+    check_known(std::slice::from_ref(&path), &state.dirs.lock().unwrap())?;
+    let home = home()?;
+    state.move_cancel.store(false, Relaxed);
+    let cancel = state.move_cancel.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let progress = |done, total| {
+            let _ = app.emit("move-progress", MoveProgress { done, total });
+        };
+        mover::move_folder(Path::new(&path), &root, &home, &programs::list(), &journal::data_dir(), &cancel, &progress)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+fn cancel_move(state: State<ScanState>) {
+    state.move_cancel.store(true, Relaxed);
+}
+
+/// Remet à sa place un dossier déplacé par Kleaner (Journal). Seulement un déplacement réussi du journal, pas déjà annulé.
+#[tauri::command]
+async fn move_back(app: tauri::AppHandle, original: String, moved: String, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
+    let entries = journal::read_last(&journal::data_dir(), usize::MAX).map_err(|e| e.to_string())?;
+    let pair = [original.clone(), moved.clone()];
+    let back = [moved.clone(), original.clone()];
+    let moved_at = entries.iter().filter(|e| e.action == "move" && e.error.is_none() && e.paths == pair).map(|e| e.ts).max();
+    let Some(ts) = moved_at else { return Err("Refused: this move is not in the journal".into()) };
+    if entries.iter().any(|e| e.action == "move-back" && e.error.is_none() && e.paths == back && e.ts >= ts) {
+        return Err("Refused: already moved back".into());
+    }
+    state.move_cancel.store(false, Relaxed);
+    let cancel = state.move_cancel.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let progress = |done, total| {
+            let _ = app.emit("move-progress", MoveProgress { done, total });
+        };
+        mover::move_back(Path::new(&original), Path::new(&moved), &journal::data_dir(), &cancel, &progress)
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 /// Remet à leur place des éléments que Kleaner a envoyés à la Corbeille.
@@ -700,6 +794,11 @@ pub fn run() {
             delete_artifacts,
             preview_cleaners,
             find_leftovers,
+            find_leftovers_for,
+            plan_move,
+            move_folder,
+            cancel_move,
+            move_back,
             trash_leftovers,
             restore_trashed,
             bug_report,

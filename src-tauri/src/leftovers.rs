@@ -349,6 +349,69 @@ pub fn find(programs: &[Program]) -> Vec<Leftover> {
     out
 }
 
+/// Restes d'un programme qui vient d'être désinstallé : dossiers à son nom ou à celui de son éditeur, et son dossier
+/// d'installation s'il est resté. Sans la règle des 30 jours (il tournait encore), mais avec les mêmes exclusions :
+/// rien qui appartienne à un programme encore installé, à Windows, à un dossier partagé ou à une règle précise.
+pub fn find_for(gone: &Program, installed: &[Program]) -> Vec<Leftover> {
+    let ctx = knowledge::Context::new(installed.to_vec());
+    // Rattaché à une règle précise ou au catalogue : pas un reste.
+    let only_generic = |p: &Path| {
+        let e = ctx.explain(&p.display().to_string());
+        e.source == Source::Rule && e.rule.as_deref().is_some_and(|r| knowledge::rules().iter().any(|k| k.id == r && k.generic))
+    };
+    let local = env("LOCALAPPDATA");
+    let roots: Vec<(PathBuf, Place)> = [
+        (local.clone(), Place::AppData),
+        (env("APPDATA"), Place::AppData),
+        (local.as_ref().map(|l| PathBuf::from(format!("{}Low", l.display()))), Place::AppData),
+        (local.as_ref().map(|l| l.join("Programs")), Place::Programs),
+        (env("ProgramFiles"), Place::ProgramFiles),
+        (env("ProgramFiles(x86)"), Place::ProgramFiles),
+        (env("ProgramData"), Place::ProgramData),
+    ]
+    .into_iter()
+    .filter_map(|(root, place)| Some((root?, place)))
+    .collect();
+    find_for_in(gone, installed, &roots, &only_generic)
+}
+
+fn find_for_in(gone: &Program, installed: &[Program], roots: &[(PathBuf, Place)], only_generic: &dyn Fn(&Path) -> bool) -> Vec<Leftover> {
+    let name_of = |p: &Path| p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+    let mine = |p: &Path| {
+        let name = name_of(p);
+        let n = norm(&name);
+        // owned_by répond oui aux noms trop courts (pour ne rien proposer) : ici il faut un vrai nom.
+        let named = stem(&name).len() >= 3 && owned_by(&name, gone);
+        (named || under(&gone.location, p))
+            && !SHARED.contains(&n.as_str())
+            && !SYSTEM_PREFIXES.iter().any(|s| n.starts_with(s))
+            && !PRODUCTS.iter().any(|(v, _)| *v == n)
+            && !installed.iter().any(|prog| owned_by(&name, prog) || under(&prog.location, p))
+    };
+    let candidates: Vec<(PathBuf, Place)> = roots
+        .iter()
+        .flat_map(|(root, place)| subdirs(root).into_iter().map(move |p| (p, *place)))
+        .filter(|(p, place)| mine(p) && (*place == Place::Programs || only_generic(p)))
+        .collect();
+    let mut out: Vec<Leftover> = candidates
+        .par_iter()
+        .filter_map(|(p, place)| {
+            let (size, modified) = size_and_newest(p);
+            (size > 0).then(|| Leftover {
+                path: p.display().to_string(),
+                name: name_of(p),
+                place: *place,
+                size,
+                modified,
+                trashable: matches!(place, Place::AppData | Place::Programs),
+                warning: None,
+            })
+        })
+        .collect();
+    out.sort_by_key(|l| std::cmp::Reverse(l.size));
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -411,6 +474,28 @@ mod tests {
         assert!(owned_by("Discord", &prog("Discord", "Discord Inc.")));
         assert!(owned_by("ab", &prog("Zzz", "Yyy")), "nom trop court : jamais proposé");
         assert!(!owned_by("Arduino15", &prog("7-Zip 24.08 (x64)", "Igor Pavlov")));
+    }
+
+    #[test]
+    fn targeted_search_finds_only_the_gone_program() {
+        let root = std::env::temp_dir().join("kleaner-find-for");
+        let _ = std::fs::remove_dir_all(&root);
+        for d in ["Opera Software", "Opera GX", "Discord", "Microsoft", "Programs", "ab", "Empty Opera"] {
+            std::fs::create_dir_all(root.join(d)).unwrap();
+            if d != "Empty Opera" {
+                std::fs::write(root.join(d).join("f"), b"x").unwrap();
+            }
+        }
+        let roots = [(root.clone(), Place::AppData)];
+        let gone = prog("Opera GX Stable", "Opera Software");
+        let names = |installed: &[Program]| {
+            let mut n: Vec<String> = find_for_in(&gone, installed, &roots, &|_| true).into_iter().map(|l| l.name).collect();
+            n.sort();
+            n
+        };
+        assert_eq!(names(&[prog("Discord", "Discord Inc.")]), ["Opera GX", "Opera Software"], "ni Discord (installé), ni Windows, ni nom court, ni vide");
+        assert_eq!(names(&[prog("Opera Stable", "Opera Software")]), ["Opera GX"], "dossier de l'éditeur encore utilisé : gardé");
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]

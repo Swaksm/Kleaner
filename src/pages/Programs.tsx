@@ -7,7 +7,7 @@ import { Leftovers } from "../components/Leftovers";
 import { SortHeader, type HeaderCell } from "../components/SortHeader";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
-import { isElevated, listPrograms, programSizes, uninstallProgram, type Program } from "../lib/api";
+import { findLeftoversFor, isElevated, listPrograms, programSizes, uninstallProgram, type Leftover, type Program } from "../lib/api";
 import { formatBytes, formatDay } from "../lib/format";
 import { sortBy, type SortState } from "../lib/sort";
 
@@ -37,8 +37,10 @@ export function Programs() {
 
   const [real, setReal] = useState<Map<string, number> | null>(null);
   const [lastUsed, setLastUsed] = useState<Map<string, number>>(new Map());
-  // Programmes dont le désinstalleur a été lancé : id → heure de lancement.
-  const [watching, setWatching] = useState<Map<string, number>>(new Map());
+  // Programmes dont le désinstalleur a été lancé : id → heure de lancement et nom.
+  const [watching, setWatching] = useState<Map<string, { start: number; name: string }>>(new Map());
+  // Restes trouvés juste après une désinstallation, proposés en haut de la page.
+  const [recent, setRecent] = useState<{ id: string; name: string; list: Leftover[] }[]>([]);
 
   // Le désinstalleur tourne hors de Kleaner : on relit le registre jusqu'à ce que le programme disparaisse.
   useEffect(() => {
@@ -53,13 +55,21 @@ export function Programs() {
       const present = new Set(list.map((p) => p.id));
       const now = Date.now();
       const gone = [...watching.keys()].filter((id) => !present.has(id));
-      const expired = [...watching].filter(([id, start]) => present.has(id) && now - start > WATCH_MS).map(([id]) => id);
+      const expired = [...watching].filter(([id, w]) => present.has(id) && now - w.start > WATCH_MS).map(([id]) => id);
       if (gone.length === 0 && expired.length === 0) return;
-      setPrograms((prev) => {
-        const names = prev?.filter((p) => gone.includes(p.id)).map((p) => p.name) ?? [];
-        if (names.length > 0) setMessage({ status: "ok", text: `${names.join(", ")} : ${t("programs.removed")}` });
-        return prev?.filter((p) => !gone.includes(p.id)) ?? prev;
-      });
+      setPrograms((prev) => prev?.filter((p) => !gone.includes(p.id)) ?? prev);
+      for (const id of gone) {
+        const name = watching.get(id)!.name;
+        setMessage({ status: "ok", text: `${name} : ${t("programs.removed")}` });
+        // Juste après la désinstallation : ses restes, sans attendre 30 jours.
+        findLeftoversFor(id).then(
+          (list) => {
+            if (list.length > 0) setRecent((prev) => [{ id, name, list }, ...prev.filter((r) => r.id !== id)]);
+            else setMessage({ status: "ok", text: `${name} : ${t("programs.removed")} ${t("leftovers.forNone")}` });
+          },
+          () => {},
+        );
+      }
       setWatching((prev) => {
         const next = new Map(prev);
         [...gone, ...expired].forEach((id) => next.delete(id));
@@ -97,7 +107,7 @@ export function Programs() {
     if (!p) return;
     try {
       await uninstallProgram(p.id);
-      setWatching((prev) => new Map(prev).set(p.id, Date.now()));
+      setWatching((prev) => new Map(prev).set(p.id, { start: Date.now(), name: p.name }));
       setMessage({ status: "ok", text: `${p.name} : ${t("programs.launched")}` });
     } catch (e) {
       setMessage({ status: "danger", text: String(e) });
@@ -167,6 +177,9 @@ export function Programs() {
         {message && <StatusPill status={message.status}>{message.text}</StatusPill>}
       </Card>
 
+      {recent.map((r) => (
+        <Leftovers key={r.id} program={r} />
+      ))}
       {/* Avant la longue liste : sinon on ne la voit pas. */}
       <Leftovers />
       <Ghosts onChange={load} />

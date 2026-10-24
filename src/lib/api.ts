@@ -166,9 +166,20 @@ export type Leftover = {
   warning: "android" | null;
 };
 export const findLeftovers = () => call<Leftover[]>("find_leftovers");
+/** Restes d'un programme que Kleaner vient de désinstaller (il doit avoir disparu de la liste). */
+export const findLeftoversFor = (id: string) => call<Leftover[]>("find_leftovers_for", { id });
 export const trashLeftovers = (paths: string[]) => call<ActionReport>("trash_leftovers", { paths });
 
 export const restoreTrashed = (paths: string[]) => call<ActionReport>("restore_trashed", { paths });
+
+export type MovePlan = { source: string; files: number; bytes: number; targets: { root: string; dest: string; free: number }[] };
+export const planMove = (path: string) => call<MovePlan>("plan_move", { path });
+/** Renvoie le rapport et le dossier d'arrivée. */
+export const moveFolder = (path: string, root: string) => call<[ActionReport, string]>("move_folder", { path, root });
+export const cancelMove = () => call<void>("cancel_move");
+export const moveBack = (original: string, moved: string) => call<ActionReport>("move_back", { original, moved });
+export const onMoveProgress = (fn: (p: { done: number; total: number }) => void) =>
+  listen<{ done: number; total: number }>("move-progress", (e) => fn(e.payload));
 export const bugReport = () => call<string>("bug_report");
 
 export type CloudFile = { path: string; size: number; modified: number; pinned: boolean; provider: "OneDrive" | "Dropbox" };

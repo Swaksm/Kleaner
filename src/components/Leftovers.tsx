@@ -7,12 +7,17 @@ import { Card } from "./Card";
 import { StatusPill } from "./StatusPill";
 import { TrashConfirm } from "./TrashConfirm";
 
-/** Restes de programmes désinstallés : dossiers d'AppData (et autres) qui n'appartiennent plus à rien. */
-export function Leftovers() {
+/**
+ * Restes de programmes désinstallés : dossiers d'AppData (et autres) qui n'appartiennent plus à rien.
+ * Avec `program` : les restes déjà trouvés d'un programme que Kleaner vient de désinstaller, cochés d'avance.
+ */
+export function Leftovers({ program }: { program?: { name: string; list: Leftover[] } }) {
   const { t, lang } = useT();
-  const [list, setList] = useState<Leftover[] | null>(null);
+  const [list, setList] = useState<Leftover[] | null>(program?.list ?? null);
   const [running, setRunning] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(program?.list.filter((l) => l.trashable).map((l) => l.path)),
+  );
   const [confirming, setConfirming] = useState<Leftover[]>([]);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string; bin?: boolean } | null>(null);
 
@@ -54,12 +59,14 @@ export function Leftovers() {
   const total = (l: Leftover[]) => l.reduce((s, x) => s + x.size, 0);
 
   return (
-    <Card title={t("leftovers.title")}>
-      <p>{t("leftovers.intro")}</p>
+    <Card title={program ? t("leftovers.forTitle").replace("{name}", program.name) : t("leftovers.title")}>
+      <p>{program ? t("leftovers.forIntro").replace("{name}", program.name) : t("leftovers.intro")}</p>
       <div className="row">
-        <button className="btn btn-primary" disabled={running} onClick={search}>
-          {list ? t("dups.again") : t("leftovers.search")}
-        </button>
+        {!program && (
+          <button className="btn btn-primary" disabled={running} onClick={search}>
+            {list ? t("dups.again") : t("leftovers.search")}
+          </button>
+        )}
         {running && (
           <span className="loading" role="status">
             <span className="spinner" aria-hidden /> {t("leftovers.searching")}
@@ -67,7 +74,7 @@ export function Leftovers() {
         )}
         {list && list.length > 0 && (
           <>
-            <button className="btn" disabled={chosen.length === 0} onClick={() => setConfirming(chosen)}>
+            <button className={program ? "btn btn-primary" : "btn"} disabled={chosen.length === 0} onClick={() => setConfirming(chosen)}>
               {t("trash.button")}
             </button>
             <span className="muted">

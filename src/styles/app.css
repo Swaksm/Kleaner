@@ -1146,6 +1146,10 @@ select {
   grid-template-columns: minmax(0, 1fr) 110px 90px 84px 70px;
 }
 
+.items.grid-6 li {
+  grid-template-columns: minmax(0, 1fr) 110px 90px 84px 70px 86px;
+}
+
 .verdict-tag {
   all: unset;
   cursor: pointer;

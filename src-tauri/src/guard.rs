@@ -75,7 +75,7 @@ fn inside(child: &str, parent: &str) -> bool {
 }
 
 /// Refuse si le chemin ou l'un de ses parents est un lien symbolique ou une jonction.
-fn no_links(p: &Path) -> Result<(), GuardError> {
+pub fn no_links(p: &Path) -> Result<(), GuardError> {
     for a in p.ancestors() {
         if let Ok(m) = std::fs::symlink_metadata(a)
             && m.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0
@@ -99,6 +99,12 @@ pub fn check_delete(p: &Path, roots: &[PathBuf]) -> Result<PathBuf, GuardError> 
         }
     }
     Err(GuardError::OutsideRoots)
+}
+
+/// Autorise le déplacement de `p` vers un autre disque seulement s'il est strictement sous une des `roots`
+/// (dossiers personnels : Bureau, Documents… ; pour un retour, le dossier « Kleaner moved » du disque).
+pub fn check_move(p: &Path, roots: &[PathBuf]) -> Result<PathBuf, GuardError> {
+    check_delete(p, roots)
 }
 
 /// Emplacements interdits à la mise à la Corbeille.

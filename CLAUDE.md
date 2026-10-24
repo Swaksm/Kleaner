@@ -9,6 +9,7 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - **Aucun réseau**, sauf la vérification de mise à jour optionnelle (désactivée par défaut, `api.github.com`, autorisée dans la CSP). Windows Update, winget et « Installer la mise à jour » (`updater.rs` : installateur de la release, SHA-256 vérifié, version installée seulement) ne contactent Internet que sur clic.
 - **Suppression définitive** seulement dans les dossiers de `src-tauri/cleaners.json` et `src-tauri/winapp2.json` (vérifié par `guard::check_delete`), ou les dossiers régénérables de projets trouvés par la dernière analyse (`delete_artifacts`).
 - **Fichiers personnels et restes de programmes** : Corbeille uniquement (`guard::check_trash`, restaurable depuis le Journal).
+- **Déplacer vers un autre disque** (`mover.rs`) : seulement un gros dossier de la dernière analyse, strictement dans Bureau, Documents, Téléchargements, Images, Musique ou Vidéos (`guard::check_move`), sans lien, fichier système, fichier en ligne seulement ni programme installé dedans. Original renommé (refus s'il est ouvert), copie relue et comparée (blake3), original retiré seulement après ; destination jamais écrasée. Annulable depuis le Journal (`move_back`, seulement un déplacement du journal).
 - **Registre** : aucun nettoyage ni « réparation ». Seulement, sur demande et réversible : `StartupApproved` (démarrage) et la suppression d'une entrée fantôme de la liste des programmes, après sauvegarde `.reg` (SPEC, révision 8).
 - **Liens et jonctions jamais suivis.** Fichiers verrouillés ignorés et comptés.
 - **Chaque action qui modifie le disque** écrit une ligne dans `%LOCALAPPDATA%\Kleaner\journal.log`.
@@ -26,7 +27,8 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `winapp2.rs` + `winapp2.json` : catalogue communautaire (Winapp2, CC BY-SA 4.0), converti et filtré (`entry_ok`), fusionné dans `catalog::all()` ; `catalog::base()` = le catalogue écrit à la main. Voir `WINAPP2-NOTICE.md`.
 - `mft.rs` : scan rapide NTFS (admin) : lit la MFT en lecture seule et alimente `scan::walk` ; retombe sur le parcours classique au moindre doute ; `KLEANER_NO_MFT=1` le coupe. Test réel (terminal admin) : `mft::tests::real`.
 - `duplicates.rs` : taille → échantillon → blake3, contenu personnel seulement.
-- `leftovers.rs` : restes de programmes désinstallés (AppData, Programs, dossiers d'outils ; Program Files et ProgramData signalés seulement).
+- `leftovers.rs` : restes de programmes désinstallés (AppData, Programs, dossiers d'outils ; Program Files et ProgramData signalés seulement). `find_for` : restes d'un programme que Kleaner vient de désinstaller (sans la règle des 30 jours).
+- `mover.rs` : déplacer un dossier personnel vers `<disque>:\Kleaner moved\…` et le remettre à sa place.
 - `programs.rs` : registre, taille réelle, dernier lancement (Prefetch, admin), désinstalleur officiel.
 - `actions.rs` : Corbeille (fichiers, dossiers), restauration, rapport de bug, rapport pour IA.
 - `onedrive.rs` : « Libérer de l'espace » (attributs +Unpinned -Pinned).

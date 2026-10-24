@@ -3,11 +3,11 @@ import { BugReportButton } from "../components/BugReportButton";
 import { Card } from "../components/Card";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
-import { readJournal, restoreGhost, restoreTrashed, revealInExplorer, type JournalEntry, type JournalView } from "../lib/api";
+import { moveBack, readJournal, restoreGhost, restoreTrashed, revealInExplorer, type JournalEntry, type JournalView } from "../lib/api";
 import { formatBytes, formatDate } from "../lib/format";
 
-/** Actions qui passent par la Corbeille : on peut les annuler. */
-const RESTORABLE = ["trash", "trash-leftovers", "ghost-remove"];
+/** Actions qu'on peut annuler : Corbeille, entrée fantôme sauvegardée, dossier déplacé vers un autre disque. */
+const RESTORABLE = ["trash", "trash-leftovers", "ghost-remove", "move"];
 
 export function Journal() {
   const { t, lang } = useT();
@@ -23,7 +23,11 @@ export function Journal() {
 
   async function restore(e: JournalEntry, key: number) {
     try {
-      if (e.action === "ghost-remove" && e.output) {
+      if (e.action === "move") {
+        setRestored((m) => new Map(m).set(key, t("move.moving")));
+        await moveBack(e.paths[0], e.paths[1]);
+        setRestored((m) => new Map(m).set(key, t("move.backDone")));
+      } else if (e.action === "ghost-remove" && e.output) {
         await restoreGhost(e.output);
         setRestored((m) => new Map(m).set(key, `1 ${t("journal.restoredCount")}`));
       } else {
@@ -35,6 +39,11 @@ export function Journal() {
       setRestored((m) => new Map(m).set(key, String(err)));
     }
   }
+
+  // Dossier déjà remis à sa place : plus de bouton.
+  const movedBack = (e: JournalEntry) =>
+    e.action === "move" &&
+    !!view?.entries.some((b) => b.action === "move-back" && !b.error && b.ts >= e.ts && b.paths[0] === e.paths[1] && b.paths[1] === e.paths[0]);
 
   return (
     <>
@@ -63,7 +72,7 @@ export function Journal() {
             ) : (
               <StatusPill status="ok">{t("journal.done")}</StatusPill>
             )}
-            {RESTORABLE.includes(e.action) && !e.error && (
+            {RESTORABLE.includes(e.action) && !e.error && !movedBack(e) && (
               <button className="btn btn-small" disabled={restored.has(e.ts)} onClick={() => restore(e, e.ts)}>
                 {t("journal.restore")}
               </button>
@@ -81,6 +90,11 @@ export function Journal() {
               </span>
             )}
           </div>
+          {(e.action === "move" || e.action === "move-back") && e.paths.length === 2 && (
+            <p className="muted small path">
+              {e.paths[0]} → {e.paths[1]}
+            </p>
+          )}
           {e.error && <p className="danger">{e.error}</p>}
         </Card>
       ))}

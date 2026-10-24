@@ -38,6 +38,16 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
       return ok([51_800_000_000, 1_790_000_000]);
     case "read_journal":
       return ok({ path: "C:\\Users\\alex\\AppData\\Local\\Kleaner\\journal.log", entries: [] });
+    case "plan_move": {
+      const source = args.path as string;
+      const rel = source.replace(/^C:\\Users\\[^\\]+\\/, "");
+      return ok({
+        source,
+        files: 1_284,
+        bytes: 38_600_000_000,
+        targets: [{ root: "D:\\", dest: `D:\\Kleaner moved\\${rel}`, free: 812_000_000_000 }],
+      });
+    }
     default:
       return Promise.reject(new Error(`demo : ${cmd} n'est pas simulé`));
   }

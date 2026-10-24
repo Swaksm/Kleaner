@@ -417,7 +417,8 @@ pub fn split_command(cmd: &str) -> Option<(String, String)> {
 
 /// Lance le désinstalleur officiel du programme `id`. Ne supprime rien soi-même.
 /// ShellExecute (et non CreateProcess) pour que Windows affiche l'UAC si le désinstalleur l'exige.
-pub fn uninstall(id: &str, journal_dir: &Path) -> Result<(), String> {
+/// Lance le désinstalleur et renvoie le programme visé (gardé pour chercher ses restes une fois parti).
+pub fn uninstall(id: &str, journal_dir: &Path) -> Result<Program, String> {
     let (prefix, key_name) = id.split_once('\\').ok_or("Invalid id")?;
     let root = open(prefix).ok_or("Program not found")?;
     let program = read(prefix, &root, key_name).ok_or("Program not found")?;
@@ -430,7 +431,7 @@ pub fn uninstall(id: &str, journal_dir: &Path) -> Result<(), String> {
     let result = shell_open(&exe, &args);
     entry.error = result.as_ref().err().cloned();
     journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
-    result
+    result.map(|_| program)
 }
 
 fn shell_open(exe: &str, args: &str) -> Result<(), String> {

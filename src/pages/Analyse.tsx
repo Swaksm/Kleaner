@@ -4,6 +4,7 @@ import { Card } from "../components/Card";
 import { DiskMap } from "../components/DiskMap";
 import { Donut } from "../components/Donut";
 import { DrivePicker } from "../components/DrivePicker";
+import { MoveDialog } from "../components/MoveDialog";
 import { SizeBar } from "../components/SizeBar";
 import { StatusPill } from "../components/StatusPill";
 import { ReportDialog } from "../components/ReportDialog";
@@ -45,6 +46,9 @@ const VERDICT_ORDER: Verdict[] = ["system", "breaks", "uninstall", "personal", "
 
 type Message = { status: "danger"; text: string };
 
+// Sous-dossier de Bureau, Documents, Téléchargements, Images, Musique ou Vidéos : seuls candidats au déplacement.
+const MOVABLE = /^[a-z]:\\Users\\[^\\]+\\(Desktop|Documents|Downloads|Pictures|Music|Videos)\\./i;
+
 export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void; scanRequest: number }) {
   const { t, lang } = useT();
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
@@ -65,6 +69,7 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
   }, [scanRequest, drives.length > 0]);
   const [explanations, setExplanations] = useState<Map<string, Explanation>>(new Map());
   const [explaining, setExplaining] = useState<Explanation | null>(null);
+  const [moving, setMoving] = useState<string | null>(null);
 
   // Verdict « est-ce que ça casse ? » de chaque gros fichier et dossier, calculé une fois par analyse.
   useEffect(() => {
@@ -281,8 +286,8 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
       </Card>
 
       <Card title={t("analyse.topDirs")}>
-        <ul className="items grid-5">
-          <SortHeader cells={headerCells(t("sort.folder"))} value={dirSort} onChange={setDirSort} />
+        <ul className="items grid-6">
+          <SortHeader cells={[...headerCells(t("sort.folder")), null]} value={dirSort} onChange={setDirSort} />
           {dirs.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <span className="path" title={i.path}>
@@ -294,12 +299,29 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
               <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
                 {t("analyse.open")}
               </button>
+              {/* Dossiers personnels seulement ; Rust vérifie tout le reste (emplacement, liens, programmes, place). */}
+              {explanations.get(i.path)?.verdict === "personal" && MOVABLE.test(i.path) ? (
+                <button className="btn btn-small" onClick={() => setMoving(i.path)}>
+                  {t("move.button")}
+                </button>
+              ) : (
+                <span />
+              )}
             </li>
           ))}
         </ul>
         {showAllButton}
       </Card>
 
+      {moving && (
+        <MoveDialog
+          path={moving}
+          onClose={(moved) => {
+            setMoving(null);
+            if (moved) start();
+          }}
+        />
+      )}
       {report && <ReportDialog scan={r} onClose={() => setReport(false)} />}
       {explaining && <ExplainDialog e={explaining} onClose={() => setExplaining(null)} />}
     </>
