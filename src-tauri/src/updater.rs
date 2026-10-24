@@ -1,5 +1,7 @@
 //! Mise à jour en un clic (version installée seulement) : télécharge `kleaner-setup.exe` de la version choisie,
-//! vérifie son empreinte SHA-256 publiée à côté, puis lance l'installateur ; l'appelant ferme Kleaner.
+//! vérifie son empreinte SHA-256 publiée à côté, puis lance l'installateur sans assistant ; l'appelant ferme Kleaner.
+//! L'installateur Tauri : `/P` barre de progression seule (et ferme Kleaner s'il tourne encore), `/UPDATE` garde
+//! l'installation et les raccourcis, `/R` relance Kleaner à la fin. Seule la demande admin de Windows reste.
 //! Uniquement sur clic. L'adresse est construite ici à partir d'un numéro de version vérifié, jamais reçue de l'interface.
 
 use crate::journal;
@@ -51,14 +53,14 @@ pub fn download(version: &str, dir: &Path) -> Result<PathBuf, String> {
     }
 }
 
-/// Lance l'installateur téléchargé (il demande lui-même les droits admin) et l'écrit au journal.
+/// Lance l'installateur téléchargé en mode automatique (il demande lui-même les droits admin) et l'écrit au journal.
 pub fn launch(installer: &Path, version: &str, journal_dir: &Path) -> Result<(), String> {
     use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::UI::Shell::ShellExecuteW;
     use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
     let w = |s: &std::ffi::OsStr| s.encode_wide().chain([0]).collect::<Vec<u16>>();
-    let (verb, file) = (w("open".as_ref()), w(installer.as_os_str()));
-    let r = unsafe { ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL) };
+    let (verb, file, args) = (w("open".as_ref()), w(installer.as_os_str()), w("/P /UPDATE /R".as_ref()));
+    let r = unsafe { ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), args.as_ptr(), std::ptr::null(), SW_SHOWNORMAL) };
     let mut j = journal::Entry::new("update");
     j.paths = vec![version.to_string(), installer.display().to_string()];
     if r as isize <= 32 {
