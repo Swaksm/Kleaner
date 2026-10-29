@@ -741,9 +741,36 @@ async fn restore_ghost(file: String) -> Result<(), String> {
     .map_err(|e| e.to_string())?
 }
 
+/// Sans WebView2 (exe portable sur un PC qui ne l'a pas), Tauri affiche une erreur en anglais et s'arrête.
+/// On prévient avant, dans la langue de Windows, et on propose l'installateur officiel de Microsoft.
+fn webview2_missing() {
+    use windows_sys::Win32::Globalization::GetUserDefaultUILanguage;
+    use windows_sys::Win32::UI::WindowsAndMessaging::{IDYES, MB_ICONERROR, MB_SETFOREGROUND, MB_YESNO, MessageBoxW};
+    let text = match unsafe { GetUserDefaultUILanguage() } & 0x3ff {
+        0x0c => "Kleaner a besoin de Microsoft WebView2, qui n'est pas installé sur ce PC.\n\nTélécharger WebView2 maintenant ? (installateur officiel de Microsoft, gratuit)\n\nAutre solution : installer Kleaner avec kleaner-setup.exe, qui ajoute WebView2 tout seul.",
+        0x0a => "Kleaner necesita Microsoft WebView2, que no está instalado en este PC.\n\n¿Descargar WebView2 ahora? (instalador oficial de Microsoft, gratuito)\n\nOtra opción: instalar Kleaner con kleaner-setup.exe, que añade WebView2 por sí solo.",
+        0x07 => "Kleaner braucht Microsoft WebView2, das auf diesem PC nicht installiert ist.\n\nWebView2 jetzt herunterladen? (offizieller, kostenloser Installer von Microsoft)\n\nAlternativ: Kleaner mit kleaner-setup.exe installieren, das WebView2 selbst hinzufügt.",
+        0x10 => "Kleaner ha bisogno di Microsoft WebView2, che non è installato su questo PC.\n\nScaricare WebView2 ora? (programma di installazione ufficiale di Microsoft, gratuito)\n\nIn alternativa: installa Kleaner con kleaner-setup.exe, che aggiunge WebView2 da solo.",
+        0x16 => "O Kleaner precisa do Microsoft WebView2, que não está instalado neste PC.\n\nBaixar o WebView2 agora? (instalador oficial da Microsoft, gratuito)\n\nOutra opção: instalar o Kleaner com kleaner-setup.exe, que adiciona o WebView2 sozinho.",
+        0x19 => "Для работы Kleaner нужен Microsoft WebView2, но он не установлен на этом компьютере.\n\nСкачать WebView2 сейчас? (официальный бесплатный установщик Microsoft)\n\nИли установите Kleaner через kleaner-setup.exe: он сам добавит WebView2.",
+        0x04 => "Kleaner 需要 Microsoft WebView2，但此电脑上没有安装。\n\n现在下载 WebView2 吗？（Microsoft 官方免费安装程序）\n\n也可以用 kleaner-setup.exe 安装 Kleaner，它会自动添加 WebView2。",
+        _ => "Kleaner needs Microsoft WebView2, which is not installed on this PC.\n\nDownload WebView2 now? (free, official Microsoft installer)\n\nOr install Kleaner with kleaner-setup.exe, which adds WebView2 by itself.",
+    };
+    let w = |s: &str| s.encode_utf16().chain([0]).collect::<Vec<u16>>();
+    let answer = unsafe { MessageBoxW(std::ptr::null_mut(), w(text).as_ptr(), w("Kleaner").as_ptr(), MB_YESNO | MB_ICONERROR | MB_SETFOREGROUND) };
+    if answer == IDYES {
+        // Installateur « Evergreen Bootstrapper » de Microsoft, ouvert dans le navigateur.
+        let _ = system::open_uri("https://go.microsoft.com/fwlink/p/?LinkId=2124703");
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if !elevation::single_instance() {
+        return;
+    }
+    if tauri::webview_version().is_err() {
+        webview2_missing();
         return;
     }
     tauri::Builder::default()
