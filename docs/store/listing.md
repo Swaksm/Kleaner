@@ -5,7 +5,7 @@ Captures : `npm run demo:build && npm run store:shots` → `docs/store/screensho
 
 Champs communs aux deux langues :
 
-- **Privacy policy URL** : `https://swaks.org/kleaner/privacy/` (page : `docs/store/privacy.html`)
+- **Privacy policy URL** : `https://swaks.org/kleaner/privacy/` (source : dépôt `Swaksm/portfolio`, `kleaner/privacy/index.html`)
 - **Website** : `https://swaks.org/kleaner/`
 - **Support contact info** : `https://github.com/Swaksm/Kleaner/issues`
 - **Copyright and trademark info** : `© 2026 swaks. MIT License.`

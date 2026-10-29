@@ -49,6 +49,6 @@ Identité Partner Center : `Swaks.Kleaner`, éditeur `CN=6258F58B-4AB8-4F17-B676
 
 1. `npm run tauri build -- --no-bundle` (version stable, sans `VITE_APP_VERSION`), puis `npm run msix` → `src-tauri/target/msix/Kleaner_<version>.0_x64.msix`, non signé (le Store signe).
 2. Partner Center → nouvelle soumission → Packages : déposer le `.msix`, coller la justification de `docs/store/capabilities.md`.
-3. Fiche : `docs/store/listing.md`, captures `npm run demo:build && npm run store:shots` → `docs/store/screenshots/`. Politique de confidentialité : `docs/store/privacy.html`, publiée sur `https://swaks.org/kleaner/privacy/`.
+3. Fiche : `docs/store/listing.md`, captures `npm run demo:build && npm run store:shots` → `docs/store/screenshots/`. Politique de confidentialité : `https://swaks.org/kleaner/privacy/` (dépôt `Swaksm/portfolio`, `kleaner/privacy/index.html`, déployée à chaque push).
 
 Même exe que la version portable : dans son paquet (`store.rs`), il cache la mise à jour intégrée et passe par la `StartupTask` du paquet au lieu de la tâche planifiée.
