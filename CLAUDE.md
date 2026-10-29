@@ -73,7 +73,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **Doublons** : jamais les .dll, .exe ou bases de données (MySQL, Flutter et Riot en double sont normaux).
 - **Restes** : WSL, les pilotes (Realtek…) et les outils en ligne de commande (pnpm, gh, uv…) sont exclus. Android (SDK, `.android`) est proposé sans Android Studio mais avec un avertissement (Flutter s'en sert) : on avertit, on n'empêche pas.
 - **Analyse** : pas de suppression depuis les listes de gros fichiers (verdict + « Ouvrir » seulement).
-- **Version** : `tauri.conf.json`, `Cargo.toml` et `package.json` portent la version stable (1.1.1) ; pour une rc, la vraie version (tag) arrive par `VITE_APP_VERSION` au build de la release (`appVersion()` côté interface, `app_version()` côté Rust). Sans elle, les rc se croiraient à jour.
+- **Version** : `tauri.conf.json`, `Cargo.toml` et `package.json` portent la version stable (1.1.2) ; pour une rc, la vraie version (tag) arrive par `VITE_APP_VERSION` au build de la release (`appVersion()` côté interface, `app_version()` côté Rust). Sans elle, les rc se croiraient à jour.
 - **winget** coupe les identifiants longs par « … » dans son tableau : ils sont ignorés (inutilisables avec `--id --exact`).
 - **Erreurs** : Rust renvoie de l'anglais (aussi écrit au journal) ; `lib/errors.ts` traduit les plus courantes.
 
@@ -95,4 +95,4 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **Visite guidée** (`Tour.tsx`) : demandée à la fin de l'assistant (`localStorage.tour` = `pending`, puis `done` ; survit à une relance en admin), relançable depuis Paramètres ; voile + halo sur les éléments `data-tour="…"`, l'appli derrière est `inert`. Demo : `?tour`.
 - **Visuel** : effet Mica (Windows 11, fenêtre `transparent`, le CSS peint le fond ; classe `html.mica`), icônes de navigation (Lucide), raccourcis Ctrl+1…8 et F5. Jamais vus en vrai : Mica sous la barre latérale, icône près de l'horloge, notification de disque plein.
 - **Départ** : `src-tauri/windows/hooks.nsh` ouvre `swaks.org/kleaner/?bye#feedback` après une vraie désinstallation (désinstalleur lancé depuis `%TEMP%`, jamais en silencieux ni pendant une réinstallation) ; « Retirer Kleaner » en portable ouvre la même page. Jamais testé en vrai.
-- Première version stable : v1.0.0 (winget soumis, `checkver` de Scoop actif). Dernière : v1.1.1.
+- Première version stable : v1.0.0 (winget soumis, `checkver` de Scoop actif). Dernière : v1.1.2.

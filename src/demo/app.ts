@@ -1,2 +1,2 @@
 // Remplace @tauri-apps/api/app dans le mode « demo ».
-export const getVersion = () => Promise.resolve("1.1.1");
+export const getVersion = () => Promise.resolve("1.1.2");

@@ -15,7 +15,7 @@ body:
     attributes:
       label: Kleaner version / Version de Kleaner
       description: Shown in Kleaner → About. / Visible dans Kleaner → À propos.
-      placeholder: 1.1.1
+      placeholder: 1.1.2
   - type: dropdown
     id: windows
     attributes:
