@@ -35,7 +35,8 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `system.rs` : infos machine, Windows Update (COM, lecture), winget (tableau lu), fin de support Windows.
 - `elevation.rs` : admin, relance UAC (`--relaunch`), privilège de sauvegarde, verrou d'instance unique (`.Dev` en debug).
 - `tray.rs` : en mode `--minimized` (démarrage auto), fenêtre cachée, icône près de l'horloge (Ouvrir / Quitter), notification si un disque fixe a moins de 10 % libre (une fois par 24 h). Textes dans la langue de Windows.
-- `autostart.rs` : démarrage avec Windows sur demande (tâche planifiée « Kleaner », à l'ouverture de session, admin, `--minimized`), journalisé ; changer le réglage demande l'admin.
+- `autostart.rs` : démarrage avec Windows sur demande (tâche planifiée « Kleaner », à l'ouverture de session, admin, `--minimized`), journalisé ; changer le réglage demande l'admin. Version Store : `StartupTask` du paquet, sans admin.
+- `store.rs` : version Microsoft Store (même exe dans le paquet MSIX `packaging/msix`) : pas de mise à jour intégrée, relance admin par l'alias du paquet, lancement par la tâche de démarrage détecté.
 - `journal.rs` : journal JSON lignes.
 - `startup.rs` : programmes au démarrage (Run, dossiers, tâches ; services en lecture seule), activation par `StartupApproved`.
 - `shortcuts.rs` : raccourcis `.lnk` cassés.
@@ -83,6 +84,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 2. Passer la version dans `tauri.conf.json`, `src-tauri/Cargo.toml` et `package.json` pour une version stable, puis `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z` (`vX.Y.Z-rcN` pour une préversion).
 3. `release.yml` compile, signe si `SIGNPATH_API_TOKEN` existe, publie l'exe portable, l'installateur NSIS `kleaner-setup.exe` (par machine : Program Files, jamais `%LOCALAPPDATA%\Kleaner` qui est le dossier de données) et leurs SHA-256 (pré-release si le tag contient `-`).
 4. Mettre à jour `bucket/kleaner.json` (version, URL, hash). winget : `node packaging/winget/make-manifests.mjs <version>` puis soumission manuelle (`docs/distribution.md`).
+5. Microsoft Store : `npm run msix` puis soumission dans Partner Center (`docs/distribution.md`).
 
 ## En cours
 
@@ -96,3 +98,4 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **Visuel** : effet Mica (Windows 11, fenêtre `transparent`, le CSS peint le fond ; classe `html.mica`), icônes de navigation (Lucide), raccourcis Ctrl+1…8 et F5. Jamais vus en vrai : Mica sous la barre latérale, icône près de l'horloge, notification de disque plein.
 - **Départ** : `src-tauri/windows/hooks.nsh` ouvre `swaks.org/kleaner/?bye#feedback` après une vraie désinstallation (désinstalleur lancé depuis `%TEMP%`, jamais en silencieux ni pendant une réinstallation) ; « Retirer Kleaner » en portable ouvre la même page. Jamais testé en vrai.
 - Première version stable : v1.0.0 (winget soumis, `checkver` de Scoop actif). Dernière : v1.1.2.
+- **Microsoft Store** : paquet MSIX prêt (`npm run msix`), capacités restreintes `runFullTrust`, `allowElevation`, `unvirtualizedResources` (justification `docs/store/capabilities.md`). Jamais testés en vrai : installation du paquet, relance admin par l'alias, `StartupTask`, revue Microsoft.

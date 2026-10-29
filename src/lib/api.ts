@@ -96,6 +96,7 @@ export const runCleaners = (ids: string[]) => call<CleanReport[]>("run_cleaners"
 export const relaunchAdmin = () => call<void>("relaunch_admin");
 export const isElevated = () => call<boolean>("is_elevated");
 export const isInstalled = () => call<boolean>("is_installed");
+export const isStore = () => call<boolean>("is_store");
 export const installUpdate = (version: string) => call<void>("install_update", { version });
 export const freedTotal = () => call<[number, number]>("freed_total");
 export const micaEnabled = () => call<boolean>("mica");

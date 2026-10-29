@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { BugReportButton } from "../components/BugReportButton";
 import { Card } from "../components/Card";
 import { UpdateAction } from "../components/UpdateBanner";
+import { useIsStore } from "../lib/store";
 import { findUpdate, type Update } from "../lib/update";
 import { appVersion } from "../lib/version";
 import { useT, type Key } from "../i18n/useT";
@@ -19,6 +20,7 @@ export function About() {
   const [version, setVersion] = useState("");
   const [check, setCheck] = useState<string | null>(null);
   const [update, setUpdate] = useState<Update | null>(null);
+  const store = useIsStore();
 
   async function checkNow() {
     setCheck(t("update.checking"));
@@ -65,13 +67,15 @@ export function About() {
           </button>
           <BugReportButton />
         </div>
-        <div className="row">
-          <button className="btn" disabled={!version} onClick={checkNow}>
-            {t("update.checkNow")}
-          </button>
-          {check && <span className="muted">{check}</span>}
-          {update && <UpdateAction update={update} />}
-        </div>
+        {store === false && (
+          <div className="row">
+            <button className="btn" disabled={!version} onClick={checkNow}>
+              {t("update.checkNow")}
+            </button>
+            {check && <span className="muted">{check}</span>}
+            {update && <UpdateAction update={update} />}
+          </div>
+        )}
       </Card>
 
       <Card title={t("about.doesTitle")}>

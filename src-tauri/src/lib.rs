@@ -15,6 +15,7 @@ pub mod programs;
 pub mod scan;
 pub mod shortcuts;
 pub mod startup;
+pub mod store;
 pub mod system;
 pub mod tray;
 pub mod updater;
@@ -78,6 +79,9 @@ fn is_installed() -> bool {
 /// Mise à jour en un clic : télécharge l'installateur de `version`, vérifie son SHA-256, le lance, puis ferme Kleaner.
 #[tauri::command]
 async fn install_update(app: tauri::AppHandle, version: String) -> Result<(), String> {
+    if store::is_packaged() {
+        return Err("Refused: Microsoft Store version, updates come from the Store".into());
+    }
     if !updater::is_installed() {
         return Err("Refused: portable version, download it from the website".into());
     }
@@ -314,7 +318,13 @@ fn relaunch_admin(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-/// Démarrage avec Windows (tâche planifiée, réduit, admin).
+/// Version Microsoft Store : pas de mise à jour intégrée, démarrage sans droits admin.
+#[tauri::command]
+fn is_store() -> bool {
+    store::is_packaged()
+}
+
+/// Démarrage avec Windows (tâche planifiée, réduit, admin ; Store : tâche de démarrage du paquet).
 #[tauri::command]
 async fn autostart_enabled() -> Result<bool, String> {
     tauri::async_runtime::spawn_blocking(autostart::enabled).await.map_err(|e| e.to_string())
@@ -786,7 +796,7 @@ pub fn run() {
                 MICA.store(w.set_effects(EffectsBuilder::new().effect(Effect::Mica).build()).is_ok(), Relaxed);
             }
             // Lancé par la tâche de démarrage : icône près de l'horloge, fenêtre cachée.
-            if std::env::args().any(|a| a == autostart::MINIMIZED_ARG) {
+            if std::env::args().any(|a| a == autostart::MINIMIZED_ARG) || store::launched_at_startup() {
                 tray::start(app.handle())?;
             }
             Ok(())
@@ -795,6 +805,7 @@ pub fn run() {
             read_journal,
             freed_total,
             is_installed,
+            is_store,
             install_update,
             remove_kleaner_data,
             start_scan,

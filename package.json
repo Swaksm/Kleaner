@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "demo:build": "vite build --mode demo --outDir dist-demo",
     "demo:shots": "node scripts/screenshots.cjs",
+    "store:shots": "node scripts/screenshots.cjs --store",
+    "msix": "node packaging/msix/make-msix.mjs",
     "tauri": "tauri",
     "lint": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"

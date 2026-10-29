@@ -427,6 +427,8 @@
   "autostart.title": "Inicialização",
   "autostart.label": "Iniciar o Kleaner com o Windows (perto do relógio, com direitos de administrador)",
   "autostart.note": "O Kleaner só aparece como ícone perto do relógio e avisa se um disco estiver quase cheio: ele não analisa nem limpa nada sozinho. Alterar isto pede direitos de administrador uma vez.",
+  "autostart.labelStore": "Iniciar o Kleaner com o Windows (perto do relógio)",
+  "autostart.noteStore": "O Kleaner só aparece como ícone perto do relógio e avisa se um disco estiver quase cheio: ele não analisa nem limpa nada sozinho. Também dá para desativar em Configurações do Windows > Aplicativos > Inicialização.",
   "home.quickClean": "Limpar sem risco",
   "home.quickCleanNote": "Marca os itens sem risco e mostra a lista: nada é apagado antes da sua confirmação.",
   "cleanup.freeSpace": "livres",

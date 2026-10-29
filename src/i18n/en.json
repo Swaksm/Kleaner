@@ -427,6 +427,8 @@
   "autostart.title": "Startup",
   "autostart.label": "Start Kleaner with Windows (near the clock, with admin rights)",
   "autostart.note": "Kleaner only appears as an icon near the clock and warns you if a drive is almost full: it scans and cleans nothing by itself. Changing this asks for admin rights once.",
+  "autostart.labelStore": "Start Kleaner with Windows (near the clock)",
+  "autostart.noteStore": "Kleaner only appears as an icon near the clock and warns you if a drive is almost full: it scans and cleans nothing by itself. You can also turn this off in Windows Settings > Apps > Startup.",
   "home.quickClean": "Clean risk-free",
   "home.quickCleanNote": "Ticks the risk-free items and shows you the list: nothing is deleted before you confirm.",
   "cleanup.freeSpace": "free",

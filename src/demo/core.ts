@@ -29,6 +29,7 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
     case "autostart_enabled":
     case "mica":
     case "is_installed":
+    case "is_store":
       return ok(false);
     case "onedrive_roots":
     case "list_programs":

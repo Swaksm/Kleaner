@@ -2,7 +2,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState } from "react";
 import { appVersion } from "../lib/version";
 import { useT } from "../i18n/useT";
-import { installUpdate, isInstalled } from "../lib/api";
+import { installUpdate, isInstalled, isStore } from "../lib/api";
 import { DOWNLOAD_PAGE, findUpdate, updateCheckEnabled, type Update } from "../lib/update";
 
 /**
@@ -46,15 +46,15 @@ export function UpdateAction({ update }: { update: Update }) {
   );
 }
 
-/** Bandeau « nouvelle version », seulement si l'utilisateur a activé la vérification. */
+/** Bandeau « nouvelle version », seulement si l'utilisateur a activé la vérification (jamais dans la version Store). */
 export function UpdateBanner() {
   const { t } = useT();
   const [update, setUpdate] = useState<Update | null>(null);
 
   useEffect(() => {
     if (!updateCheckEnabled()) return;
-    appVersion()
-      .then(findUpdate)
+    isStore()
+      .then((store) => (store ? null : appVersion().then(findUpdate)))
       .then(setUpdate, () => {});
   }, []);
 

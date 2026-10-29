@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LANGS, setLang, useT } from "../i18n/useT";
 import { chooseAutostart } from "../lib/autostart";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
+import { useIsStore } from "../lib/store";
 import { setUpdateCheck, updateCheckEnabled } from "../lib/update";
 import { Flag } from "./LangMenu";
 import { requestTour } from "./Tour";
@@ -22,6 +23,7 @@ export function Setup({ elevated, onDone }: { elevated: boolean; onDone: () => v
   const [theme, setTheme] = useState<ThemeChoice>(savedThemeChoice());
   const [update, setUpdate] = useState(updateCheckEnabled());
   const [autostart, setAutostartChoice] = useState(false);
+  const store = useIsStore();
 
   function finish() {
     setUpdateCheck(update);
@@ -67,17 +69,21 @@ export function Setup({ elevated, onDone }: { elevated: boolean; onDone: () => v
           </select>
         </label>
 
-        <label className="check">
-          <input type="checkbox" checked={update} onChange={(e) => setUpdate(e.target.checked)} />
-          {t("update.auto")}
-        </label>
-        <p className="muted small">{t("update.privacy")}</p>
+        {store === false && (
+          <>
+            <label className="check">
+              <input type="checkbox" checked={update} onChange={(e) => setUpdate(e.target.checked)} />
+              {t("update.auto")}
+            </label>
+            <p className="muted small">{t("update.privacy")}</p>
+          </>
+        )}
 
         <label className="check">
           <input type="checkbox" checked={autostart} onChange={(e) => setAutostartChoice(e.target.checked)} />
-          {t("autostart.label")}
+          {t(store ? "autostart.labelStore" : "autostart.label")}
         </label>
-        <p className="muted small">{t("autostart.note")}</p>
+        <p className="muted small">{t(store ? "autostart.noteStore" : "autostart.note")}</p>
 
         <button className="btn btn-primary" onClick={finish}>
           {t("setup.finish")}

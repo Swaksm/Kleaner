@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Paquet Microsoft Store de Kleaner. {version} est remplacé par make-msix.mjs. Identité : Partner Center (Store ID 9N00P7TVWDMM). -->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 desktop desktop6 rescap">
+
+  <Identity Name="Swaks.Kleaner" Publisher="CN=6258F58B-4AB8-4F17-B676-8F34E41CF25D" Version="{version}" ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Kleaner</DisplayName>
+    <PublisherDisplayName>Swaks</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <!-- Kleaner nettoie les vrais dossiers (AppData, Temp) et le vrai registre (StartupApproved, entrées fantômes) :
+         sans ça, Windows redirigerait ses écritures vers une copie privée au paquet. -->
+    <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
+    <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.18362.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+    <Resource Language="fr-fr" />
+  </Resources>
+
+  <Applications>
+    <Application Id="Kleaner" Executable="kleaner.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Kleaner"
+        Description="Free Windows cleaner that explains before it deletes"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Square71x71Logo="Assets\Square71x71Logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <!-- Relance en admin par cet alias : l'instance admin garde l'identité du paquet (elevation.rs). -->
+        <uap3:Extension Category="windows.appExecutionAlias" Executable="kleaner.exe" EntryPoint="Windows.FullTrustApplication">
+          <uap3:AppExecutionAlias>
+            <desktop:ExecutionAlias Alias="kleaner.exe" />
+          </uap3:AppExecutionAlias>
+        </uap3:Extension>
+        <!-- Démarrage avec Windows, désactivé tant que l'utilisateur ne le demande pas (autostart.rs, store.rs). -->
+        <desktop:Extension Category="windows.startupTask" Executable="kleaner.exe" EntryPoint="Windows.FullTrustApplication">
+          <desktop:StartupTask TaskId="KleanerStartup" Enabled="false" DisplayName="Kleaner" />
+        </desktop:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="allowElevation" />
+    <rescap:Capability Name="unvirtualizedResources" />
+  </Capabilities>
+</Package>

@@ -6,6 +6,7 @@ import { LANGS, setLang, useT, type Lang } from "../i18n/useT";
 import { isElevated, removeKleanerData } from "../lib/api";
 import { autostartEnabled, chooseAutostart } from "../lib/autostart";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
+import { useIsStore } from "../lib/store";
 import { setUpdateCheck, updateCheckEnabled } from "../lib/update";
 
 export function Settings({ onTour }: { onTour: () => void }) {
@@ -16,6 +17,7 @@ export function Settings({ onTour }: { onTour: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [autostart, setAutostartState] = useState<boolean | null>(null);
   const [elevated, setElevated] = useState(false);
+  const store = useIsStore();
 
   useEffect(() => {
     autostartEnabled().then(setAutostartState, () => setAutostartState(false));
@@ -67,27 +69,29 @@ export function Settings({ onTour }: { onTour: () => void }) {
         </div>
       </Card>
 
-      <Card title={t("update.title")}>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={autoUpdate}
-            onChange={(e) => {
-              setAutoUpdate(e.target.checked);
-              setUpdateCheck(e.target.checked);
-            }}
-          />
-          {t("update.auto")}
-        </label>
-        <p className="muted small">{t("update.privacy")}</p>
-      </Card>
+      {store === false && (
+        <Card title={t("update.title")}>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={autoUpdate}
+              onChange={(e) => {
+                setAutoUpdate(e.target.checked);
+                setUpdateCheck(e.target.checked);
+              }}
+            />
+            {t("update.auto")}
+          </label>
+          <p className="muted small">{t("update.privacy")}</p>
+        </Card>
+      )}
 
       <Card title={t("autostart.title")}>
         <label className="check">
           <input type="checkbox" disabled={autostart === null} checked={!!autostart} onChange={(e) => changeAutostart(e.target.checked)} />
-          {t("autostart.label")}
+          {t(store ? "autostart.labelStore" : "autostart.label")}
         </label>
-        <p className="muted small">{t("autostart.note")}</p>
+        <p className="muted small">{t(store ? "autostart.noteStore" : "autostart.note")}</p>
       </Card>
 
       <Card title={t("settings.remove.title")}>

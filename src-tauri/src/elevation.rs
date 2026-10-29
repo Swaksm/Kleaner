@@ -103,7 +103,11 @@ fn wide(s: &std::ffi::OsStr) -> Vec<u16> {
 
 /// Relance l'exe en admin (fenêtre UAC de Windows). `Err` si l'utilisateur refuse.
 pub fn relaunch_as_admin() -> Result<(), String> {
-    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    // Version Store : par l'alias du paquet, sinon l'instance admin perdrait son identité de paquet.
+    let exe = match crate::store::is_packaged().then(crate::store::alias).flatten() {
+        Some(alias) => alias,
+        None => std::env::current_exe().map_err(|e| e.to_string())?,
+    };
     let verb = wide("runas".as_ref());
     let file = wide(exe.as_os_str());
     // La nouvelle instance attend que celle-ci se ferme (voir `single_instance`).

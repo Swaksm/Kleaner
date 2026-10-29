@@ -1,13 +1,14 @@
 // Démarrage avec Windows (tâche planifiée, réduit, admin). Changer le réglage demande les droits admin :
 // sans eux, le choix est mémorisé, Kleaner se relance en admin et l'applique au démarrage suivant.
-import { autostartEnabled, relaunchAdmin, setAutostart } from "./api";
+// Version Store : tâche de démarrage du paquet, appliquée tout de suite, sans admin.
+import { autostartEnabled, isStore, relaunchAdmin, setAutostart } from "./api";
 
 const PENDING = "autostartPending";
 
 export { autostartEnabled };
 
 export async function chooseAutostart(on: boolean, elevated: boolean): Promise<void> {
-  if (elevated) return setAutostart(on);
+  if (elevated || (await isStore().catch(() => false))) return setAutostart(on);
   try {
     localStorage.setItem(PENDING, on ? "1" : "0");
   } catch {}

@@ -1,8 +1,10 @@
 //! Démarrage avec Windows, sur demande seulement : une tâche planifiée « Kleaner » lance l'exe réduit
 //! (`--minimized`) à l'ouverture de session de l'utilisateur, avec les droits admin et sans invite UAC.
 //! Kleaner n'analyse ni ne nettoie rien au démarrage. Créer ou retirer la tâche demande les droits admin.
+//! Version Store : la tâche de démarrage du paquet MSIX (`StartupTask`), sans droits admin ; la tâche planifiée n'y sert pas.
 
 use crate::journal;
+use crate::store;
 use crate::system::ps_run;
 use std::path::Path;
 
@@ -36,17 +38,49 @@ fn state() -> Option<bool> {
     (!out.is_empty()).then(|| out != "Disabled")
 }
 
-pub fn enabled() -> bool {
-    state() == Some(true)
+/// Tâche de démarrage du paquet (version Store). Windows la crée à l'installation, désactivée.
+fn store_task() -> windows::core::Result<windows::ApplicationModel::StartupTask> {
+    windows::ApplicationModel::StartupTask::GetAsync(&store::STARTUP_TASK.into())?.join()
 }
 
-/// La tâche existe, active ou non.
+fn store_enabled() -> bool {
+    use windows::ApplicationModel::StartupTaskState as S;
+    store_task().and_then(|t| t.State()).is_ok_and(|s| s == S::Enabled || s == S::EnabledByPolicy)
+}
+
+pub fn enabled() -> bool {
+    if store::is_packaged() { store_enabled() } else { state() == Some(true) }
+}
+
+/// La tâche existe, active ou non. Version Store : seulement si elle est active (le paquet la garde toujours).
 pub fn exists() -> bool {
-    state().is_some()
+    if store::is_packaged() { store_enabled() } else { state().is_some() }
+}
+
+/// Version Store. Si l'utilisateur l'a coupée dans les Paramètres de Windows, seul lui peut la rallumer là-bas.
+fn set_store(on: bool) -> Result<(), String> {
+    use windows::ApplicationModel::StartupTaskState as S;
+    let task = store_task().map_err(|e| e.to_string())?;
+    if !on {
+        return task.Disable().map_err(|e| e.to_string());
+    }
+    match task.RequestEnableAsync().and_then(|a| a.join()).map_err(|e| e.to_string())? {
+        S::Enabled | S::EnabledByPolicy => Ok(()),
+        S::DisabledByUser => Err("Startup was turned off in Windows Settings (Apps > Startup): turn Kleaner on there.".into()),
+        _ => Err("Startup is blocked on this PC (policy).".into()),
+    }
 }
 
 /// Active ou retire le démarrage automatique. Écrit une ligne dans le journal.
 pub fn set(on: bool, journal_dir: &Path) -> Result<(), String> {
+    if store::is_packaged() {
+        let result = set_store(on);
+        let mut entry = journal::Entry::new(if on { "autostart-on" } else { "autostart-off" });
+        entry.paths = vec![format!(r"Startup task\{}", store::STARTUP_TASK)];
+        entry.error = result.as_ref().err().cloned();
+        journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
+        return result;
+    }
     if !crate::elevation::is_elevated() {
         return Err("Admin rights are needed to change the startup task.".into());
     }
