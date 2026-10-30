@@ -1,5 +1,6 @@
 //! Conseils sans IA, sur des règles simples et vérifiables. Lecture seule : la Corbeille ou Steam font le reste.
-//! - installeurs (.exe, .msi, .msix…) de Téléchargements vieux de plus de 30 jours : on peut les retélécharger ;
+//! - installeurs (.exe, .msi, .msix…, images .iso) de Téléchargements vieux de plus de 30 jours : on peut les retélécharger ;
+//!   pas les .img, souvent la sauvegarde d'une carte SD, introuvable ailleurs ;
 //! - archives (.zip, .7z, .rar) de Téléchargements à côté d'un dossier du même nom : déjà extraites ;
 //! - jeux Steam pas lancés depuis 6 mois : Steam les désinstalle et les réinstalle sur demande.
 
@@ -10,7 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 const DAY: u64 = 86_400;
 const OLD_INSTALLER: u64 = 30 * DAY;
 const OLD_GAME: u64 = 182 * DAY;
-const INSTALLERS: [&str; 6] = ["exe", "msi", "msix", "msixbundle", "appx", "appxbundle"];
+const INSTALLERS: [&str; 7] = ["exe", "msi", "msix", "msixbundle", "appx", "appxbundle", "iso"];
 const ARCHIVES: [&str; 3] = ["zip", "7z", "rar"];
 
 #[derive(Serialize, Clone, Debug)]
@@ -133,14 +134,17 @@ mod tests {
     #[test]
     fn old_installers_and_extracted_archives_only() {
         let d = sandbox("dl");
-        for f in ["setup.exe", "tool.msi", "photos.zip", "lonely.zip", "notes.txt"] {
+        for f in ["setup.exe", "tool.msi", "win11.iso", "sdcard.img", "photos.zip", "lonely.zip", "notes.txt"] {
             fs::write(d.join(f), b"x").unwrap();
         }
         fs::create_dir(d.join("photos")).unwrap();
         let later = now() + 31 * DAY;
         let mut found: Vec<(&str, String)> = downloads_in(&d, later).into_iter().map(|a| (a.kind, a.name)).collect();
         found.sort();
-        assert_eq!(found, [("archive", "photos.zip".into()), ("installer", "setup.exe".into()), ("installer", "tool.msi".into())]);
+        assert_eq!(
+            found,
+            [("archive", "photos.zip".into()), ("installer", "setup.exe".into()), ("installer", "tool.msi".into()), ("installer", "win11.iso".into())]
+        );
         assert!(downloads_in(&d, now()).iter().all(|a| a.kind == "archive"), "installeur récent : gardé");
         fs::remove_dir_all(&d).unwrap();
     }

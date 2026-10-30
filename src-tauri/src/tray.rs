@@ -68,6 +68,21 @@ fn monthly_due(file: &Path) -> bool {
     std::fs::metadata(file).and_then(|m| m.modified()).ok().and_then(|t| t.elapsed().ok()).is_none_or(|e| e >= MONTHLY)
 }
 
+/// Rappel mensuel coupé dans les Paramètres : fichier `no-reminder` du dossier de données (absent : actif).
+pub fn reminder_enabled() -> bool {
+    !crate::journal::data_dir().join("no-reminder").exists()
+}
+
+pub fn set_reminder(on: bool) -> std::io::Result<()> {
+    let dir = crate::journal::data_dir();
+    let file = dir.join("no-reminder");
+    if on {
+        std::fs::remove_file(&file).or_else(|e| if e.kind() == std::io::ErrorKind::NotFound { Ok(()) } else { Err(e) })
+    } else {
+        std::fs::create_dir_all(&dir).and_then(|_| std::fs::write(&file, b""))
+    }
+}
+
 fn show(app: &AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.show();
@@ -128,7 +143,7 @@ pub fn start(app: &AppHandle) -> tauri::Result<()> {
             // Après la première attente : pas de rappel dès l'ouverture de session.
             let dir = crate::journal::data_dir();
             let file = dir.join("reminder");
-            if monthly_due(&file) {
+            if reminder_enabled() && monthly_due(&file) {
                 let bytes = safe_bytes();
                 // Daté même sous le seuil : on ne réestime pas toutes les 30 min.
                 let _ = std::fs::create_dir_all(&dir).and_then(|_| std::fs::write(&file, b""));

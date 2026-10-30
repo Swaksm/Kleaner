@@ -102,6 +102,8 @@ export const freedTotal = () => call<[number, number]>("freed_total");
 export const micaEnabled = () => call<boolean>("mica");
 export const autostartEnabled = () => call<boolean>("autostart_enabled");
 export const setAutostart = (on: boolean) => call<void>("set_autostart", { on });
+export const monthlyReminder = () => call<boolean>("monthly_reminder");
+export const setMonthlyReminder = (on: boolean) => call<void>("set_monthly_reminder", { on });
 
 export type Program = {
   id: string;

@@ -345,6 +345,16 @@ async fn set_autostart(on: bool) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn monthly_reminder() -> bool {
+    tray::reminder_enabled()
+}
+
+#[tauri::command]
+fn set_monthly_reminder(on: bool) -> Result<(), String> {
+    tray::set_reminder(on).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 async fn list_programs() -> Result<Vec<programs::Program>, String> {
     tauri::async_runtime::spawn_blocking(programs::list).await.map_err(|e| e.to_string())
 }
@@ -859,6 +869,8 @@ pub fn run() {
             mica,
             autostart_enabled,
             set_autostart,
+            monthly_reminder,
+            set_monthly_reminder,
             list_programs,
             uninstall_program,
             save_report,

@@ -61,9 +61,13 @@ try {
   });
 
   await step("assistant du premier lancement (choix par défaut)", async () => {
-    const finish = await b.$(".setup button=Finish");
-    if (await finish.isExisting()) await finish.click();
+    // « .setup button=Finish » n'est pas un sélecteur valide pour WebDriver : chercher le bouton dans l'assistant.
+    const setup = await b.$(".setup");
+    if (await setup.isExisting()) await (await setup.$("button=Finish")).click();
     await (await b.$(".sidebar")).waitForExist({ timeout: 10_000 });
+    // La visite guidée proposée à la fin de l'assistant rend l'appli inerte : la passer.
+    const skip = await b.$("button=Skip the tour");
+    if (await skip.waitForExist({ timeout: 5_000 }).catch(() => false)) await skip.click();
   });
 
   await step("accueil en anglais par défaut", async () => {
@@ -151,7 +155,8 @@ try {
 
   await step("raccourcis cassés et entrées fantômes : recherches", async () => {
     const link = await (await b.$(".sidebar")).$("button=Broken shortcuts");
-    if (!(await link.isExisting())) await nav("More tools");
+    // Le bouton du groupe se termine par une flèche (▸) : correspondance partielle.
+    if (!(await link.isExisting())) await (await (await b.$(".sidebar")).$("button*=More tools")).click();
     await nav("Broken shortcuts");
     await (await inContent("button=Find broken shortcuts")).click();
     await b.waitUntil(async () => !(await (await b.$(".loading")).isExisting()), { timeout: 120_000, timeoutMsg: "recherche trop longue" });
@@ -160,12 +165,24 @@ try {
     await (await b.$("p=No ghost entry found.")).waitForExist({ timeout: 60_000 }).catch(() => {});
   });
 
+  await step("conseils : recherche en lecture seule", async () => {
+    await nav("Tips");
+    await (await inContent("button=Find tips")).click();
+    await b.waitUntil(async () => !(await (await b.$(".loading")).isExisting()), { timeout: 60_000, timeoutMsg: "recherche trop longue" });
+    await b.waitUntil(async () => (await b.$$(".content .card")).length > 1 || (await (await b.$("p=Nothing to report.")).isExisting()), {
+      timeout: 10_000,
+      timeoutMsg: "ni conseil ni message « rien à signaler »",
+    });
+  });
+
   await step("paramètres : passage en français", async () => {
     await (await b.$(".sidebar button[aria-label=Settings]")).click();
-    const selects = await b.$$("select");
-    await selects[1].selectByAttribute("value", "fr");
+    await b.waitUntil(async () => (await h1()) === "Settings", { timeout: 10_000, timeoutMsg: "page Paramètres absente" });
+    // Le menu des langues, pas un autre menu de la page.
+    const language = await b.$("select:has(option[value=fr])");
+    await language.selectByAttribute("value", "fr");
     assert((await h1()) === "Paramètres", `h1 = ${await h1()}`);
-    await selects[1].selectByAttribute("value", "en");
+    await language.selectByAttribute("value", "en");
   });
 } finally {
   await b.deleteSession().catch(() => {});

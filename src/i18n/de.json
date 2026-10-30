@@ -448,6 +448,7 @@
   "autostart.note": "Kleaner erscheint nur als Symbol neben der Uhr und warnt dich, wenn ein Laufwerk fast voll ist: Es analysiert und bereinigt nichts von selbst. Diese Änderung fragt einmal nach Administratorrechten.",
   "autostart.labelStore": "Kleaner mit Windows starten (neben der Uhr)",
   "autostart.noteStore": "Kleaner erscheint nur als Symbol neben der Uhr und warnt dich, wenn ein Laufwerk fast voll ist: Es analysiert und bereinigt nichts von selbst. Du kannst das auch in den Windows-Einstellungen > Apps > Autostart ausschalten.",
+  "autostart.reminder": "Einmal im Monat sagen, wie viel Platz die gefahrlosen Bereinigungen freigeben würden",
   "home.quickClean": "Risikofrei bereinigen",
   "home.quickCleanNote": "Hakt die risikofreien Einträge an und zeigt dir die Liste: Nichts wird gelöscht, bevor du bestätigst.",
   "cleanup.freeSpace": "frei",

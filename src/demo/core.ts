@@ -31,6 +31,10 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
     case "is_installed":
     case "is_store":
       return ok(false);
+    case "monthly_reminder":
+      return ok(true);
+    case "set_monthly_reminder":
+      return ok(undefined);
     case "onedrive_roots":
     case "list_programs":
     case "find_duplicates":

@@ -3,7 +3,7 @@ import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { StatusPill } from "../components/StatusPill";
 import { LANGS, setLang, useT, type Lang } from "../i18n/useT";
-import { isElevated, removeKleanerData } from "../lib/api";
+import { isElevated, monthlyReminder, removeKleanerData, setMonthlyReminder } from "../lib/api";
 import { autostartEnabled, chooseAutostart } from "../lib/autostart";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
 import { useIsStore } from "../lib/store";
@@ -17,12 +17,21 @@ export function Settings({ onTour }: { onTour: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [autostart, setAutostartState] = useState<boolean | null>(null);
   const [elevated, setElevated] = useState(false);
+  const [reminder, setReminder] = useState<boolean | null>(null);
   const store = useIsStore();
 
   useEffect(() => {
     autostartEnabled().then(setAutostartState, () => setAutostartState(false));
     isElevated().then(setElevated, () => {});
+    monthlyReminder().then(setReminder, () => {});
   }, []);
+
+  function changeReminder(on: boolean) {
+    setMonthlyReminder(on).then(
+      () => setReminder(on),
+      (e) => setError(String(e)),
+    );
+  }
 
   function changeAutostart(on: boolean) {
     chooseAutostart(on, elevated).then(
@@ -92,6 +101,10 @@ export function Settings({ onTour }: { onTour: () => void }) {
           {t(store ? "autostart.labelStore" : "autostart.label")}
         </label>
         <p className="muted small">{t(store ? "autostart.noteStore" : "autostart.note")}</p>
+        <label className="check">
+          <input type="checkbox" disabled={reminder === null} checked={!!reminder} onChange={(e) => changeReminder(e.target.checked)} />
+          {t("autostart.reminder")}
+        </label>
       </Card>
 
       <Card title={t("settings.remove.title")}>

@@ -448,6 +448,7 @@
   "autostart.note": "Kleaner solo aparece como un icono junto al reloj y te avisa si un disco está casi lleno: no analiza ni limpia nada por sí solo. Cambiar esto pide permisos de administrador una vez.",
   "autostart.labelStore": "Iniciar Kleaner con Windows (junto al reloj)",
   "autostart.noteStore": "Kleaner solo aparece como un icono junto al reloj y te avisa si un disco está casi lleno: no analiza ni limpia nada por sí solo. También puedes desactivarlo en Configuración de Windows > Aplicaciones > Inicio.",
+  "autostart.reminder": "Una vez al mes, decirme cuánto espacio liberarían las limpiezas sin riesgo",
   "home.quickClean": "Limpiar sin riesgo",
   "home.quickCleanNote": "Marca los elementos sin riesgo y te muestra la lista: no se borra nada antes de que confirmes.",
   "cleanup.freeSpace": "libres",

@@ -164,7 +164,8 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
   const oldest = Date.now() / 1000 - minAge * 86400;
   const keep = (i: Item) =>
     (!q || i.path.toLowerCase().includes(q)) &&
-    (!verdictFilter || (explanations.get(i.path)?.verdict ?? "unknown") === verdictFilter) &&
+    // Verdict pas encore arrivé : la ligne attend, elle ne compte pas comme « inconnu ».
+    (!verdictFilter || explanations.get(i.path)?.verdict === verdictFilter) &&
     (!minAge || (i.modified > 0 && i.modified < oldest));
   const files = sortBy(r.top_files.filter(keep), fileSort, itemGetters);
   const dirs = sortBy(r.top_dirs.filter(keep), dirSort, itemGetters);
