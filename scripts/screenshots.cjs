@@ -19,7 +19,7 @@ if (!chrome) throw new Error("Chrome ou Edge introuvable : définis CHROME=<chem
 
 const shots = [
   { name: "home", page: "home" },
-  { name: "verdicts", page: "analyse", extra: "&autoscan=1&scroll=.items.grid-5" },
+  { name: "verdicts", page: "analyse", extra: "&autoscan=1&scroll=.search" },
   { name: "cleanup", page: "cleanup" },
   { name: "startup", page: "startup" },
   { name: "health", page: "health" },

@@ -34,12 +34,13 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `onedrive.rs` : « Libérer de l'espace » (attributs +Unpinned -Pinned).
 - `system.rs` : infos machine, Windows Update (COM, lecture), winget (tableau lu), fin de support Windows.
 - `elevation.rs` : admin, relance UAC (`--relaunch`), privilège de sauvegarde, verrou d'instance unique (`.Dev` en debug).
-- `tray.rs` : en mode `--minimized` (démarrage auto), fenêtre cachée, icône près de l'horloge (Ouvrir / Quitter), notification si un disque fixe a moins de 10 % libre (une fois par 24 h). Textes dans la langue de Windows.
+- `tray.rs` : en mode `--minimized` (démarrage auto), fenêtre cachée, icône près de l'horloge (Ouvrir / Quitter), notification si un disque fixe a moins de 10 % libre (une fois par 24 h) ; au plus une fois par mois, rappel des Go que libéreraient les nettoyages sûrs (≥ 1 Go, date dans `%LOCALAPPDATA%\Kleaner\reminder`). Textes dans la langue de Windows.
 - `autostart.rs` : démarrage avec Windows sur demande (tâche planifiée « Kleaner », à l'ouverture de session, admin, `--minimized`), journalisé ; changer le réglage demande l'admin. Version Store : `StartupTask` du paquet, sans admin.
 - `store.rs` : version Microsoft Store (même exe dans le paquet MSIX `packaging/msix`) : pas de mise à jour intégrée, relance admin par l'alias du paquet, lancement par la tâche de démarrage détecté.
 - `journal.rs` : journal JSON lignes.
 - `startup.rs` : programmes au démarrage (Run, dossiers, tâches ; services en lecture seule), activation par `StartupApproved`.
 - `shortcuts.rs` : raccourcis `.lnk` cassés.
+- `advice.rs` : page Conseils, règles simples sans IA : installeurs de Téléchargements de plus de 30 jours, archives à côté d'un dossier du même nom, jeux Steam pas lancés depuis 6 mois (`appmanifest_*.acf`, `LastPlayed`). Fichiers → Corbeille (`trash_advice`), jeux → `steam://uninstall/<id>`.
 - `health.rs` : santé et sécurité en lecture seule ; `PAGES` = liste fermée des écrans Windows ouvrables.
 - `programs.rs` gère aussi les entrées fantômes (`ghosts`, `remove_ghost`, `restore_ghost`).
 
@@ -90,7 +91,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 
 - **SignPath** : refusé pour l'instant (il faut plus d'étoiles et de visibilité) ; README sans mention de signature. À redemander plus tard. Une fois acceptée : projet `kleaner`, politique `release-signing`, configuration `portable-exe`, secret et variable dans GitHub (`docs/signing.md`).
 - **E2E en CI** : en lancement manuel. Sur les machines GitHub, WebView2 n'ouvre pas son port de débogage (« DevToolsActivePort file doesn't exist ») alors que l'exe démarre. En local, tout passe.
-- **Jamais testés en vrai** : nettoyages lourds (Windows.old, DISM, hibernation, points de restauration), recherche Windows Update, mise à jour d'une appli par winget, restauration et OneDrive dans l'exe.
+- **Jamais testés en vrai** : nettoyages lourds (Windows.old, DISM, hibernation, points de restauration, CompactOS), recherche Windows Update, mise à jour d'une appli par winget, restauration et OneDrive dans l'exe.
 - **Scan rapide NTFS** : vérifié sur le vrai C: (2 s contre 8 à 21 s, écart 3 % d'espace dû aux recouvrements MSIX). Pas vérifié : volumes avec secteurs de 4 Ko, MFT très fragmentée, exFAT/ReFS (retombent sur le classique).
 - **Feuille de route v0.3+ réalisée** (T18 à T22, `SPEC.md` révision 8) : démarrage, raccourcis cassés, santé et sécurité, entrées fantômes, Dropbox. Jamais testés dans l'exe : désactivation d'un élément de démarrage, suppression d'une entrée fantôme, durées de démarrage (admin). Pas de « nettoyage du registre » ni de « boosts ».
 - **Installateur et assistant** (issue #2) : setup NSIS, assistant au premier lancement (`Setup.tsx` : langue, thème, mises à jour, démarrage avec Windows). Jamais testés en vrai : installation/désinstallation, création de la tâche de démarrage, lancement réduit.

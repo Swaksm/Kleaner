@@ -522,5 +522,9 @@
   "No corruption found in the Windows component store.": "Windows 组件存储中未发现损坏。",
   "Corruption found, and it can be repaired. In an administrator terminal: DISM /Online /Cleanup-Image /RestoreHealth, then sfc /scannow.": "发现损坏，可以修复。在管理员终端中运行：DISM /Online /Cleanup-Image /RestoreHealth，然后 sfc /scannow。",
   "The component store cannot be repaired. A repair install of Windows may be needed.": "组件存储无法修复。可能需要对 Windows 进行修复安装。",
-  "Windows files integrity (DISM)": "Windows 文件完整性（DISM）"
+  "Windows files integrity (DISM)": "Windows 文件完整性（DISM）",
+  "Compress Windows (CompactOS)": "压缩 Windows（CompactOS）",
+  "Windows system files, compressed in place by Windows' own tool (compact /CompactOS:always).": "Windows 系统文件，由 Windows 官方工具就地压缩（compact /CompactOS:always）。",
+  "Frees about 2 to 5 GB without deleting anything. Size only known at the end. Can take 10 to 30 minutes.": "不删除任何内容即可释放约 2 到 5 GB。大小只有完成后才知道。可能需要 10 到 30 分钟。",
+  "Windows may be slightly slower on an old PC. Undo with compact /CompactOS:never.": "在旧电脑上 Windows 可能会稍慢一些。撤销：compact /CompactOS:never。"
 }

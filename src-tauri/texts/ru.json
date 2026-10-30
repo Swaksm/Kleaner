@@ -520,5 +520,9 @@
   "No corruption found in the Windows component store.": "В хранилище компонентов Windows повреждений не найдено.",
   "Corruption found, and it can be repaired. In an administrator terminal: DISM /Online /Cleanup-Image /RestoreHealth, then sfc /scannow.": "Найдены повреждения, их можно исправить. В терминале администратора: DISM /Online /Cleanup-Image /RestoreHealth, затем sfc /scannow.",
   "The component store cannot be repaired. A repair install of Windows may be needed.": "Хранилище компонентов не подлежит восстановлению. Может потребоваться переустановка Windows с восстановлением.",
-  "Windows files integrity (DISM)": "Целостность файлов Windows (DISM)"
+  "Windows files integrity (DISM)": "Целостность файлов Windows (DISM)",
+  "Compress Windows (CompactOS)": "Сжать Windows (CompactOS)",
+  "Windows system files, compressed in place by Windows' own tool (compact /CompactOS:always).": "Системные файлы Windows, сжатые на месте официальным средством Windows (compact /CompactOS:always).",
+  "Frees about 2 to 5 GB without deleting anything. Size only known at the end. Can take 10 to 30 minutes.": "Освобождает примерно 2–5 ГБ, ничего не удаляя. Размер известен только в конце. Может занять от 10 до 30 минут.",
+  "Windows may be slightly slower on an old PC. Undo with compact /CompactOS:never.": "На старом компьютере Windows может работать чуть медленнее. Отменить: compact /CompactOS:never."
 }

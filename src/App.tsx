@@ -24,12 +24,13 @@ import { Programs } from "./pages/Programs";
 import { Projects } from "./pages/Projects";
 import { Settings } from "./pages/Settings";
 import { Shortcuts } from "./pages/Shortcuts";
+import { Advice } from "./pages/Advice";
 import { Startup } from "./pages/Startup";
 import { Updates } from "./pages/Updates";
 
 // L'essentiel, toujours visible ; outils avancés repliables ; pages secondaires en bas.
 const MAIN = ["home", "analyse", "cleanup", "media", "programs", "startup", "health", "updates"] as const;
-const MORE = ["duplicates", "projects", "shortcuts", "onedrive", "journal"] as const;
+const MORE = ["advice", "duplicates", "projects", "shortcuts", "onedrive", "journal"] as const;
 type Page = (typeof MAIN)[number] | (typeof MORE)[number] | "settings" | "about";
 
 /** Mode « demo » : la page vient de l'adresse (?page=health), pour les captures d'écran. */
@@ -183,6 +184,7 @@ function App() {
           {page === "startup" && <Startup />}
           {page === "health" && <Health />}
           {page === "shortcuts" && <Shortcuts />}
+          {page === "advice" && <Advice />}
           {/* Analyse reste montée : le résultat du scan survit aux changements d'onglet. */}
           <div className="page" hidden={page !== "analyse"}>
             <Analyse onGoCleanup={() => setPage("cleanup")} scanRequest={scanRequest} />

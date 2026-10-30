@@ -858,6 +858,30 @@
     "command": "Get-CimInstance Win32_ShadowCopy | (all but the most recent) | Remove-CimInstance"
   },
   {
+    "id": "compact-os",
+    "group": "heavy",
+    "label": {
+      "fr": "Compresser Windows (CompactOS)",
+      "en": "Compress Windows (CompactOS)"
+    },
+    "what": {
+      "fr": "Les fichiers système de Windows, compressés sur place par l’outil officiel de Windows (compact /CompactOS:always).",
+      "en": "Windows system files, compressed in place by Windows' own tool (compact /CompactOS:always)."
+    },
+    "why": {
+      "fr": "Libère environ 2 à 5 Go sans rien supprimer. Taille connue seulement à la fin. Peut durer 10 à 30 minutes.",
+      "en": "Frees about 2 to 5 GB without deleting anything. Size only known at the end. Can take 10 to 30 minutes."
+    },
+    "effect": {
+      "fr": "Windows peut être un peu plus lent sur un vieux PC. Annulable avec compact /CompactOS:never.",
+      "en": "Windows may be slightly slower on an old PC. Undo with compact /CompactOS:never."
+    },
+    "admin": true,
+    "mode": "command",
+    "level": "heavy",
+    "command": "compact /CompactOS:always"
+  },
+  {
     "mode": "delete",
     "level": "safe",
     "id": "browser-vivaldi",

@@ -2,7 +2,7 @@
 
 [Français](catalog.fr.md) · [Back to the README](../README.md)
 
-Everything Kleaner's built-in catalog can permanently delete (45 items). Items for software you don't have are hidden. "Admin": requires the full scan.
+Everything Kleaner's built-in catalog can permanently delete (46 items). Items for software you don't have are hidden. "Admin": requires the full scan.
 
 | Item | Removes | What changes | Admin |
 |---|---|---|---|
@@ -37,6 +37,7 @@ Everything Kleaner's built-in catalog can permanently delete (45 items). Items f
 | Old Windows components (WinSxS) | Old component versions replaced by updates. | Already installed updates can no longer be uninstalled. | yes |
 | Hibernation | The hiberfil.sys file, sized like a large part of your RAM. | Hibernation and fast startup turned off. Turn back on with powercfg /hibernate on. | yes |
 | Old restore points | All system restore points except the most recent one. | You can no longer go back further than the latest point. | yes |
+| Compress Windows (CompactOS) | Windows system files, compressed in place by Windows' own tool (compact /CompactOS:always). | Windows may be slightly slower on an old PC. Undo with compact /CompactOS:never. | yes |
 | Vivaldi: cache | Local copies of pages, scripts and shaders already loaded. | You stay logged in. Sites load a little slower the first time. |  |
 | Chromium: cache | Local copies of pages, scripts and shaders already loaded. | You stay logged in. Sites load a little slower the first time. |  |
 | Steam: web and shader cache | Store pages already viewed and shaders compiled for your games. | Games may stutter a little the first time they start. |  |

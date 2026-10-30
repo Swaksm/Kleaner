@@ -2,7 +2,7 @@
 
 [English](catalog.md) · [Retour au README](../README.fr.md)
 
-Tout ce que le catalogue intégré de Kleaner peut supprimer définitivement (45 éléments). Les éléments de logiciels que tu n'as pas sont masqués. « Admin » : demande l'analyse complète.
+Tout ce que le catalogue intégré de Kleaner peut supprimer définitivement (46 éléments). Les éléments de logiciels que tu n'as pas sont masqués. « Admin » : demande l'analyse complète.
 
 | Élément | Supprime | Ce que ça change | Admin |
 |---|---|---|---|
@@ -37,6 +37,7 @@ Tout ce que le catalogue intégré de Kleaner peut supprimer définitivement (45
 | Anciens composants Windows (WinSxS) | Anciennes versions de composants remplacées par des mises à jour. | Les mises à jour déjà installées ne pourront plus être désinstallées. | oui |
 | Hibernation | Le fichier hiberfil.sys, de la taille d’une bonne partie de la RAM. | Hibernation et démarrage rapide désactivés. Réactivable avec powercfg /hibernate on. | oui |
 | Anciens points de restauration | Tous les points de restauration système sauf le plus récent. | Tu ne pourras plus revenir à un état plus ancien que le dernier point. | oui |
+| Compresser Windows (CompactOS) | Les fichiers système de Windows, compressés sur place par l’outil officiel de Windows (compact /CompactOS:always). | Windows peut être un peu plus lent sur un vieux PC. Annulable avec compact /CompactOS:never. | oui |
 | Vivaldi : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
 | Chromium : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
 | Steam : cache web et shaders | Pages de la boutique déjà vues et shaders compilés pour tes jeux. | Les jeux peuvent saccader un peu au premier lancement. |  |

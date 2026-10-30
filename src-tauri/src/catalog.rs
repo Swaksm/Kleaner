@@ -439,7 +439,7 @@ mod commands {
         SHERB_NOCONFIRMATION, SHERB_NOPROGRESSUI, SHERB_NOSOUND, SHEmptyRecycleBinW, SHQUERYRBINFO, SHQueryRecycleBinW,
     };
 
-    pub const IDS: [&str; 8] = [
+    pub const IDS: [&str; 9] = [
         "recycle-bin",
         "memory-dump",
         "delivery-optimization",
@@ -448,6 +448,7 @@ mod commands {
         "component-store",
         "hibernation",
         "restore-points",
+        "compact-os",
     ];
 
     fn env_path(var: &str, rest: &str) -> Option<PathBuf> {
@@ -505,8 +506,8 @@ mod commands {
                     r.bytes = if count > 1 { used / count * (count - 1) } else { 0 };
                 }
             }
-            // Taille connue seulement après DISM.
-            "component-store" => {}
+            // Taille connue seulement après DISM ou compact.
+            "component-store" | "compact-os" => {}
             _ => r = walk_paths(entry, true),
         }
         r
@@ -521,6 +522,8 @@ mod commands {
         // (succès, sortie) de chaque étape ; les étapes informatives sont marquées réussies.
         let mut steps: Vec<(bool, String)> = Vec::new();
         let mut check_result = true;
+        // compact ne supprime rien : le gain se lit dans l'espace libre du disque système.
+        let mut freed = None;
         match entry.id.as_str() {
             "recycle-bin" => {
                 if before.files > 0 {
@@ -566,13 +569,20 @@ mod commands {
                 steps.push(exec(&dism.display().to_string(), &["/Online", "/Cleanup-Image", "/StartComponentCleanup"]));
             }
             "hibernation" => steps.push(exec("powercfg", &["/hibernate", "off"])),
+            "compact-os" => {
+                let root = env_path("SystemDrive", "\\");
+                let free = || root.as_deref().and_then(crate::scan::drive_space).map(|s| s.free);
+                let start = free();
+                steps.push(exec("compact", &["/CompactOS:always"]));
+                freed = start.zip(free()).map(|(a, b)| b.saturating_sub(a));
+            }
             "restore-points" => steps.push(powershell(
                 "$s=@(Get-CimInstance Win32_ShadowCopy | Sort-Object InstallDate); if ($s.Count -gt 1) { $s | Select-Object -First ($s.Count-1) | Remove-CimInstance }; \"$($s.Count) point(s), most recent one kept\"",
             )),
             _ => {}
         }
         let after = measure(entry);
-        r.bytes = before.bytes.saturating_sub(after.bytes);
+        r.bytes = freed.unwrap_or(before.bytes.saturating_sub(after.bytes));
         r.files = before.files.saturating_sub(after.files);
         r.output = Some(steps.iter().map(|s| s.1.as_str()).collect::<Vec<_>>().join("\n\n"));
         if check_result && steps.iter().any(|s| !s.0) {

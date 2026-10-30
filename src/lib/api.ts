@@ -237,6 +237,11 @@ export type BrokenShortcut = { path: string; target: string; place: "desktop" | 
 export const findShortcuts = () => call<BrokenShortcut[]>("find_shortcuts");
 export const trashShortcuts = (paths: string[]) => call<ActionReport>("trash_shortcuts", { paths });
 
+export type Advice = { kind: "installer" | "archive" | "game"; path: string; name: string; size: number; modified: number; app_id: number | null };
+export const findAdvice = () => call<Advice[]>("find_advice");
+export const trashAdvice = (paths: string[]) => call<ActionReport>("trash_advice", { paths });
+export const uninstallSteamGame = (appId: number) => call<void>("uninstall_steam_game", { appId });
+
 export type HealthItem = {
   id: string;
   group: "system" | "disk" | "security";

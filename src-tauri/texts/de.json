@@ -518,5 +518,9 @@
   "No corruption found in the Windows component store.": "Keine Beschädigung im Windows-Komponentenspeicher gefunden.",
   "Corruption found, and it can be repaired. In an administrator terminal: DISM /Online /Cleanup-Image /RestoreHealth, then sfc /scannow.": "Beschädigung gefunden, sie lässt sich reparieren. In einem Administrator-Terminal: DISM /Online /Cleanup-Image /RestoreHealth, dann sfc /scannow.",
   "The component store cannot be repaired. A repair install of Windows may be needed.": "Der Komponentenspeicher lässt sich nicht reparieren. Eventuell ist eine Reparaturinstallation von Windows nötig.",
-  "Windows files integrity (DISM)": "Integrität der Windows-Dateien (DISM)"
+  "Windows files integrity (DISM)": "Integrität der Windows-Dateien (DISM)",
+  "Compress Windows (CompactOS)": "Windows komprimieren (CompactOS)",
+  "Windows system files, compressed in place by Windows' own tool (compact /CompactOS:always).": "Die Systemdateien von Windows, direkt vom Windows-eigenen Werkzeug komprimiert (compact /CompactOS:always).",
+  "Frees about 2 to 5 GB without deleting anything. Size only known at the end. Can take 10 to 30 minutes.": "Gibt etwa 2 bis 5 GB frei, ohne etwas zu löschen. Größe erst am Ende bekannt. Kann 10 bis 30 Minuten dauern.",
+  "Windows may be slightly slower on an old PC. Undo with compact /CompactOS:never.": "Windows kann auf einem alten PC etwas langsamer werden. Rückgängig mit compact /CompactOS:never."
 }

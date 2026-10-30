@@ -1,4 +1,5 @@
 pub mod actions;
+pub mod advice;
 pub mod autostart;
 pub mod catalog;
 pub mod duplicates;
@@ -169,6 +170,9 @@ struct ScanState {
     startup: Arc<Mutex<Vec<String>>>,
     shortcuts: Arc<Mutex<Vec<String>>>,
     ghosts: Arc<Mutex<Vec<String>>>,
+    /// Conseils : fichiers (installeurs, archives) envoyables à la Corbeille, et jeux Steam désinstallables.
+    advice_files: Arc<Mutex<Vec<String>>>,
+    advice_games: Arc<Mutex<Vec<u32>>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -247,12 +251,15 @@ fn cancel_scan(state: State<ScanState>) {
     state.cancel.store(true, Relaxed);
 }
 
+/// Hors du fil principal : des centaines de photos ou de doublons figeraient la fenêtre.
 #[tauri::command]
-fn move_to_trash(paths: Vec<String>, state: State<ScanState>) -> Result<actions::ActionReport, String> {
+async fn move_to_trash(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
     check_known(&paths, &state.trashable.lock().unwrap())?;
     keeps_a_copy(&paths, &state.dup_groups.lock().unwrap())?;
     let paths: Vec<_> = paths.into_iter().map(std::path::PathBuf::from).collect();
-    actions::trash_files(&paths, &guard::Protected::from_env(), &journal::data_dir())
+    tauri::async_runtime::spawn_blocking(move || actions::trash_files(&paths, &guard::Protected::from_env(), &journal::data_dir()))
+        .await
+        .map_err(|e| e.to_string())?
 }
 
 #[derive(Serialize)]
@@ -272,8 +279,10 @@ async fn estimate_cleaners() -> Result<Vec<catalog::CleanReport>, String> {
     tauri::async_runtime::spawn_blocking(|| {
         let elevated = elevation::is_elevated();
         let processes = catalog::process_list();
+        // En parallèle : plus de 1 000 entrées, environ 8 s une par une.
+        use rayon::prelude::*;
         catalog::all()
-            .iter()
+            .par_iter()
             .filter(|c| elevated || !c.admin)
             .map(|c| {
                 let mut r = catalog::estimate(c);
@@ -666,6 +675,38 @@ async fn set_startup(id: String, enabled: bool, state: State<'_, ScanState>) -> 
         .map_err(|e| e.to_string())?
 }
 
+/// Conseils sur des règles simples (installeurs, archives extraites, jeux Steam). Lecture seule.
+#[tauri::command]
+async fn find_advice(state: State<'_, ScanState>) -> Result<Vec<advice::Advice>, String> {
+    let list = tauri::async_runtime::spawn_blocking(advice::find).await.map_err(|e| e.to_string())?;
+    *state.advice_files.lock().unwrap() = list.iter().filter(|a| a.kind != "game").map(|a| a.path.clone()).collect();
+    *state.advice_games.lock().unwrap() = list.iter().filter_map(|a| a.app_id).collect();
+    Ok(list)
+}
+
+/// Envoie à la Corbeille des installeurs ou archives du dernier conseil (et seulement ceux-là).
+#[tauri::command]
+async fn trash_advice(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
+    check_known(&paths, &state.advice_files.lock().unwrap())?;
+    let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).filter(|p| p.symlink_metadata().is_ok()).collect();
+    if files.is_empty() {
+        return Ok(actions::ActionReport { files: 0, bytes: 0 });
+    }
+    let protected = guard::Protected::from_env();
+    tauri::async_runtime::spawn_blocking(move || actions::trash_files(&files, &protected, &journal::data_dir()))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Ouvre la désinstallation de Steam pour un jeu du dernier conseil : Steam demande confirmation et fait le travail.
+#[tauri::command]
+fn uninstall_steam_game(app_id: u32, state: State<'_, ScanState>) -> Result<(), String> {
+    if !state.advice_games.lock().unwrap().contains(&app_id) {
+        return Err(format!("Refused: game {app_id} was not in the last list"));
+    }
+    system::open_uri(&format!("steam://uninstall/{app_id}"))
+}
+
 /// Raccourcis dont la cible n'existe plus. Lecture seule.
 #[tauri::command]
 async fn find_shortcuts(state: State<'_, ScanState>) -> Result<Vec<shortcuts::BrokenShortcut>, String> {
@@ -850,6 +891,9 @@ pub fn run() {
             upgrade_apps,
             list_startup,
             set_startup,
+            find_advice,
+            trash_advice,
+            uninstall_steam_game,
             find_shortcuts,
             trash_shortcuts,
             health_report,

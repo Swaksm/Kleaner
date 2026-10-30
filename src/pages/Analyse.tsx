@@ -46,6 +46,14 @@ const VERDICT_ORDER: Verdict[] = ["system", "breaks", "uninstall", "personal", "
 
 type Message = { status: "danger"; text: string };
 
+// Filtre « plus ancien que » : jours.
+const AGES: [number, Key][] = [
+  [0, "filter.anyAge"],
+  [182, "filter.older6m"],
+  [365, "filter.older1y"],
+  [730, "filter.older2y"],
+];
+
 // Sous-dossier de Bureau, Documents, Téléchargements, Images, Musique ou Vidéos : seuls candidats au déplacement.
 const MOVABLE = /^[a-z]:\\Users\\[^\\]+\\(Desktop|Documents|Downloads|Pictures|Music|Videos)\\./i;
 
@@ -56,6 +64,9 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
   const [elevated, setElevated] = useState(true);
   const [report, setReport] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [query, setQuery] = useState("");
+  const [verdictFilter, setVerdictFilter] = useState<Verdict | "">("");
+  const [minAge, setMinAge] = useState(0);
   const [fileSort, setFileSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const [dirSort, setDirSort] = useState<SortState<ItemKey>>({ key: "size", dir: "desc" });
   const scan = useScanResult();
@@ -149,8 +160,14 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
     date: (i) => i.modified,
     verdict: (i) => VERDICT_ORDER.indexOf(explanations.get(i.path)?.verdict ?? "unknown"),
   };
-  const files = sortBy(r.top_files, fileSort, itemGetters);
-  const dirs = sortBy(r.top_dirs, dirSort, itemGetters);
+  const q = query.trim().toLowerCase();
+  const oldest = Date.now() / 1000 - minAge * 86400;
+  const keep = (i: Item) =>
+    (!q || i.path.toLowerCase().includes(q)) &&
+    (!verdictFilter || (explanations.get(i.path)?.verdict ?? "unknown") === verdictFilter) &&
+    (!minAge || (i.modified > 0 && i.modified < oldest));
+  const files = sortBy(r.top_files.filter(keep), fileSort, itemGetters);
+  const dirs = sortBy(r.top_dirs.filter(keep), dirSort, itemGetters);
   const free = r.drives.reduce((sum, d) => sum + d.free, 0);
   const headerCells = (first: string): HeaderCell<ItemKey>[] => [
     { sorts: [["name", first, false]] },
@@ -264,6 +281,33 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
         ))}
       </Card>
 
+      <Card>
+        <div className="row">
+          <input
+            className="search"
+            type="search"
+            placeholder={t("media.search")}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <select aria-label={t("verdict.col")} value={verdictFilter} onChange={(e) => setVerdictFilter(e.target.value as Verdict | "")}>
+            <option value="">{t("filter.allVerdicts")}</option>
+            {[...VERDICT_ORDER].reverse().map((v) => (
+              <option key={v} value={v}>
+                {t(`verdict.short.${v}` as Key)}
+              </option>
+            ))}
+          </select>
+          <select aria-label={t("sort.date")} value={minAge} onChange={(e) => setMinAge(Number(e.target.value))}>
+            {AGES.map(([days, key]) => (
+              <option key={days} value={days}>
+                {t(key)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </Card>
+
       <Card title={t("analyse.topFiles")}>
         <p className="muted">{t("analyse.topFilesHint")}</p>
         <ul className="items grid-5">
@@ -282,6 +326,7 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
             </li>
           ))}
         </ul>
+        {files.length === 0 && <p className="muted">{t("filter.none")}</p>}
         {showAllButton}
       </Card>
 
@@ -310,6 +355,7 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
             </li>
           ))}
         </ul>
+        {dirs.length === 0 && <p className="muted">{t("filter.none")}</p>}
         {showAllButton}
       </Card>
 

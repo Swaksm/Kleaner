@@ -35,6 +35,12 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
     case "list_programs":
     case "find_duplicates":
       return ok([]);
+    case "find_advice":
+      return ok([
+        { kind: "game", path: "D:\\Games\\SteamLibrary\\steamapps\\common\\Big Game", name: "Big Game", size: 38_400_000_000, modified: 1_745_000_000, app_id: 1 },
+        { kind: "archive", path: "C:\\Users\\alex\\Downloads\\photos-vacances.zip", name: "photos-vacances.zip", size: 2_150_000_000, modified: 1_758_000_000, app_id: null },
+        { kind: "installer", path: "C:\\Users\\alex\\Downloads\\VSCodeUserSetup-x64.exe", name: "VSCodeUserSetup-x64.exe", size: 98_000_000, modified: 1_752_000_000, app_id: null },
+      ]);
     case "freed_total":
       return ok([51_800_000_000, 1_790_000_000]);
     case "read_journal":

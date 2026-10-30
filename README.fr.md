@@ -16,7 +16,7 @@ Kleaner analyse tes disques, explique ce qui prend la place, et nettoie ce qui e
 
 ## Pourquoi Kleaner
 
-- **Il explique.** Chaque gros fichier et dossier a un verdict (supprimable, à nettoyer avec son outil, à désinstaller, casse quelque chose, tes fichiers, système, inconnu) avec ce que c'est, ce qui se passe si tu le supprimes et comment libérer la place proprement. 108 règles écrites à la main dans [`knowledge.json`](src-tauri/knowledge.json) ; sans règle, le verdict est « inconnu » : Kleaner ne devine jamais.
+- **Il explique.** Chaque gros fichier et dossier a un verdict (supprimable, à nettoyer avec son outil, à désinstaller, casse quelque chose, tes fichiers, système, inconnu) avec ce que c'est, ce qui se passe si tu le supprimes et comment libérer la place proprement. 109 règles écrites à la main dans [`knowledge.json`](src-tauri/knowledge.json) ; sans règle, le verdict est « inconnu » : Kleaner ne devine jamais.
 - **Il est prudent.** Tes fichiers vont seulement à la Corbeille, et le Journal peut les restaurer. La suppression définitive se limite à une liste publique de caches ([`cleaners.json`](src-tauri/cleaners.json) et le catalogue communautaire filtré [`winapp2.json`](src-tauri/winapp2.json)), vérifiée en Rust ([`guard.rs`](src-tauri/src/guard.rs)) et couverte par des tests. Rien n'est coché d'avance, et « Voir la liste exacte » montre chaque fichier avant toute suppression.
 - **Il est discret.** Aucun réseau (sauf une vérification de mise à jour facultative, désactivée par défaut), aucune télémétrie, aucun compte. Il ne touche jamais à tes mots de passe, cookies, sessions ou historique.
 - **Il connaît les PC de développeurs, de joueurs et d'IA.** `node_modules`, `.venv`, `target`, `.gradle` des projets pas touchés depuis des mois (avec la commande qui les recrée), disques Docker et WSL, émulateurs Android, modèles Ollama, LM Studio et Hugging Face, caches PyTorch et conda, launchers de jeux (Steam, Epic, Riot, EA, Ubisoft, GOG, Battle.net) et instances de modpacks Minecraft. Sur le PC de l'auteur : 25 Go de vieux projets et 8 Go laissés par un Arduino désinstallé.
@@ -28,8 +28,9 @@ Kleaner analyse tes disques, explique ce qui prend la place, et nettoie ce qui e
 
 ## Ce que fait Kleaner
 
-- **Analyse** les disques que tu choisis : espace libre, plus gros fichiers et dossiers, répartition par type, carte du disque. Tri par taille, nom ou date. En mode administrateur sur NTFS, Kleaner lit directement la table des fichiers (en lecture seule) : environ 4 à 10 fois plus vite (2 s au lieu de 8 à 21 s sur un disque système de 420 Go).
-- **Nettoyage** : 45 éléments intégrés et environ 1100 du catalogue communautaire, chacun disant ce qu'il supprime et ce que ça change. [Liste complète](docs/catalog.fr.md).
+- **Analyse** les disques que tu choisis : espace libre, plus gros fichiers et dossiers, répartition par type, carte du disque. Tri par taille, nom ou date, filtres par nom, verdict ou ancienneté. En mode administrateur sur NTFS, Kleaner lit directement la table des fichiers (en lecture seule) : environ 4 à 10 fois plus vite (2 s au lieu de 8 à 21 s sur un disque système de 420 Go).
+- **Nettoyage** : 46 éléments intégrés et environ 1100 du catalogue communautaire, chacun disant ce qu'il supprime et ce que ça change. [Liste complète](docs/catalog.fr.md).
+- **Conseils** (règles simples, sans IA) : installeurs téléchargés il y a plus de 30 jours, archives déjà extraites, jeux Steam pas lancés depuis 6 mois.
 - **Vieux projets**, **doublons**, **photos et vidéos** (avec visionneuse intégrée) : libère de la place là où toi seul peux juger, avec un filet de sécurité.
 - **Programmes** : désinstallation par le désinstalleur officiel, taille réelle, date du dernier lancement ; retrouve les restes de programmes désinstallés et les entrées mortes de la liste.
 - **Démarrage** : ce qui se lance avec Windows et la durée des derniers démarrages. Désactiver un élément ne supprime rien et se défait.

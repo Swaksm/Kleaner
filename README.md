@@ -16,7 +16,7 @@ Kleaner scans your drives, explains what takes up the space, and cleans what is 
 
 ## Why Kleaner
 
-- **It explains.** Every large file and folder gets a verdict (safe, clean with its tool, uninstall, breaks something, your files, system, unknown) with what it is, what happens if you delete it and how to free the space properly. 108 hand-written rules in [`knowledge.json`](src-tauri/knowledge.json); with no rule, the verdict is « unknown »: Kleaner never guesses.
+- **It explains.** Every large file and folder gets a verdict (safe, clean with its tool, uninstall, breaks something, your files, system, unknown) with what it is, what happens if you delete it and how to free the space properly. 109 hand-written rules in [`knowledge.json`](src-tauri/knowledge.json); with no rule, the verdict is « unknown »: Kleaner never guesses.
 - **It is careful.** Your files only go to the Recycle Bin, and the Log can restore them. Permanent deletion is limited to a public list of caches ([`cleaners.json`](src-tauri/cleaners.json) and the filtered community catalog [`winapp2.json`](src-tauri/winapp2.json)), enforced in Rust ([`guard.rs`](src-tauri/src/guard.rs)) and covered by tests. Nothing is ticked in advance, and « Preview the exact list » shows every file before anything is deleted.
 - **It is private.** No network (only an optional update check, off by default), no telemetry, no account. It never touches your passwords, cookies, sessions or history.
 - **It knows developer, gamer and AI machines.** `node_modules`, `.venv`, `target`, `.gradle` in projects untouched for months (with the command that rebuilds them), Docker and WSL disks, Android emulators, Ollama, LM Studio and Hugging Face models, PyTorch and conda caches, game launchers (Steam, Epic, Riot, EA, Ubisoft, GOG, Battle.net) and Minecraft modpack instances. On the author's own PC: 25 GB of old project folders and 8 GB left by an uninstalled Arduino.
@@ -28,8 +28,9 @@ Kleaner scans your drives, explains what takes up the space, and cleans what is 
 
 ## What it does
 
-- **Scan** the drives you choose: free space, largest files and folders, breakdown by type, a disk map. Sort by size, name or date. In administrator mode on NTFS, Kleaner reads the file table directly (read-only): about 4 to 10 times faster (2 s instead of 8 to 21 s on a 420 GB system disk).
-- **Cleanup**: 45 built-in items plus about 1100 from the community catalog, each saying what it removes and what changes for you. [Full list](docs/catalog.md).
+- **Scan** the drives you choose: free space, largest files and folders, breakdown by type, a disk map. Sort by size, name or date, filter by name, verdict or age. In administrator mode on NTFS, Kleaner reads the file table directly (read-only): about 4 to 10 times faster (2 s instead of 8 to 21 s on a 420 GB system disk).
+- **Cleanup**: 46 built-in items plus about 1100 from the community catalog, each saying what it removes and what changes for you. [Full list](docs/catalog.md).
+- **Tips** (simple rules, no AI): installers downloaded more than 30 days ago, archives already extracted, Steam games not played for 6 months.
 - **Old projects**, **duplicates**, **photos & videos** (with a built-in viewer): free space in the places only you can judge, with a safety net.
 - **Programs**: uninstall with the official uninstaller, real size on disk, last launch date; find leftovers of uninstalled programs and dead entries in the list.
 - **Startup**: what starts with Windows and how long the last boots took. Turning an item off deletes nothing and can be undone.
