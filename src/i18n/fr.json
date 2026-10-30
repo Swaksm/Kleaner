@@ -218,7 +218,7 @@
   "about.linksNote": "Les boutons ci-dessus ouvrent ton navigateur ; Kleaner lui-même n’envoie rien.",
   "nav.duplicates": "Doublons",
   "nav.projects": "Vieux projets",
-  "dups.intro": "Trouve les fichiers personnels identiques (photos, vidéos, musique, documents, archives, installeurs de 1 Mo ou plus) de la dernière analyse. La comparaison se fait octet par octet ; les fichiers des programmes ne sont jamais inclus.",
+  "dups.intro": "Trouve les fichiers personnels identiques (photos, vidéos, musique, documents, archives, installeurs de 1 Mo ou plus) de la dernière analyse. La comparaison se fait octet par octet ; les fichiers des programmes et des projets de code (dossier avec .git, package.json…) ne sont jamais inclus.",
   "dups.search": "Chercher les doublons",
   "dups.again": "Chercher à nouveau",
   "dups.comparing": "Comparaison des fichiers…",

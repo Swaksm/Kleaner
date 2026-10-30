@@ -428,8 +428,11 @@ async fn find_duplicates(app: tauri::AppHandle, state: State<'_, ScanState>) -> 
     }
     state.dup_cancel.store(false, Relaxed);
     let cancel = state.dup_cancel.clone();
+    let home = home()?;
+    let mut stop = mover::personal_roots(&home);
+    stop.push(home);
     let groups = tauri::async_runtime::spawn_blocking(move || {
-        duplicates::find(candidates, &cancel, &|done, total| {
+        duplicates::find(duplicates::outside_projects(candidates, &stop), &cancel, &|done, total| {
             let _ = app.emit("dup-progress", DupProgress { done, total });
         })
     })

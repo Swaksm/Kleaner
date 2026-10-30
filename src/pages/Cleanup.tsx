@@ -22,12 +22,13 @@ import {
   type CleanersView,
 } from "../lib/api";
 import { formatBytes } from "../lib/format";
+import { forgetRecoverable } from "../lib/useRecoverable";
 
 const GROUPS = ["windows", "browsers", "apps", "dev", "community", "system"] as const;
 // Ordre fixe = ordre des couleurs du graphique.
 const CHART_GROUPS = ["windows", "browsers", "apps", "dev", "system", "heavy"] as const;
 
-/** `quick` : venu du bouton « Nettoyer sans risque » de l'Accueil, coche les éléments sans risque et ouvre la confirmation. */
+/** `quick` : venu du bouton « Nettoyer sans risque » de l'Accueil, coche les éléments sans risque ; l'utilisateur les voit et clique lui-même sur « Nettoyer la sélection ». */
 export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQuickDone?: () => void }) {
   const { t, lang, tx } = useT();
   const [view, setView] = useState<CleanersView | null>(null);
@@ -88,7 +89,6 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
     if (!quick || !view || !estimates) return;
     const ids = view.cleaners.filter((c) => selectable(c, estimates)).map((c) => c.id);
     setSelected(new Set(ids));
-    if (ids.length > 0) setConfirm(true);
     onQuickDone?.();
   }, [quick, view, estimates]);
 
@@ -116,6 +116,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
       const fixed = () => listDrives().then((d) => d.filter((x) => x.kind === "fixed"), () => [] as DriveInfo[]);
       const before = await fixed();
       setResults(await runCleaners(ids));
+      forgetRecoverable();
       setDrives({ before, after: await fixed() });
       setSelected(new Set());
       requestAnimationFrame(() => doneRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));

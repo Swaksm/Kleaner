@@ -102,7 +102,7 @@ const PROJECT_MARKERS: [&str; 12] = [
     "build.gradle.kts", "pubspec.yaml", "composer.json", "cmakelists.txt",
 ];
 
-fn project_marker(name: &std::ffi::OsStr) -> bool {
+pub(crate) fn project_marker(name: &std::ffi::OsStr) -> bool {
     let n = name.to_string_lossy().to_lowercase();
     PROJECT_MARKERS.contains(&n.as_str()) || n.ends_with(".sln") || n.ends_with(".csproj")
 }

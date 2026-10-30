@@ -275,9 +275,12 @@ html.mica .sidebar {
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 20px;
 }
-/* Même hauteur : le contenu de la carte la plus courte se répartit au lieu de laisser un vide en bas. */
-.duo > .card {
-  justify-content: space-between;
+/* Même hauteur : le contenu de la carte la plus courte est centré sous son titre, sans grand vide d'un seul côté. */
+.duo > .card > h2 + * {
+  margin-top: auto;
+}
+.duo > .card > :last-child {
+  margin-bottom: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

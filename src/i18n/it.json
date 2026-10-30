@@ -218,7 +218,7 @@
   "about.linksNote": "I pulsanti qui sopra aprono il tuo browser; Kleaner di per sé non invia nulla.",
   "nav.duplicates": "Duplicati",
   "nav.projects": "Vecchi progetti",
-  "dups.intro": "Trova i file personali identici (foto, video, musica, documenti, archivi, programmi di installazione da 1 MB in su) dell’ultima analisi. Il confronto è byte per byte; i file dei programmi non sono mai inclusi.",
+  "dups.intro": "Trova i file personali identici (foto, video, musica, documenti, archivi, programmi di installazione da 1 MB in su) dell’ultima analisi. Il confronto è byte per byte; i file dei programmi e dei progetti di codice (cartelle con .git, package.json…) non sono mai inclusi.",
   "dups.search": "Cerca duplicati",
   "dups.again": "Cerca di nuovo",
   "dups.comparing": "Confronto dei file…",

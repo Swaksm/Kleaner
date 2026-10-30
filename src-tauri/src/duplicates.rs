@@ -7,7 +7,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read, Seek, SeekFrom};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering::Relaxed};
 
 const SAMPLE: u64 = 64 * 1024;
@@ -64,6 +64,28 @@ fn full_hash(path: &Path, cancel: &AtomicBool, done: &AtomicU64) -> io::Result<[
         done.fetch_add(n as u64, Relaxed);
     }
     Ok(*h.finalize().as_bytes())
+}
+
+/// Sans les fichiers d'un projet de code (un dossier parent contient `.git`, `package.json`…) : ses copies
+/// (assets, build, dist) servent chacune à leur place et se recréent ou cassent le projet. On ne remonte pas
+/// au-delà de `stop` (dossier personnel, Bureau, Documents…) ni jusqu'à la racine du disque.
+pub fn outside_projects(candidates: Vec<DupCandidate>, stop: &[PathBuf]) -> Vec<DupCandidate> {
+    let stop: Vec<String> = stop.iter().map(|s| s.to_string_lossy().to_lowercase()).collect();
+    let mut is_project: HashMap<PathBuf, bool> = HashMap::new();
+    candidates
+        .into_iter()
+        .filter(|c| {
+            !c.path
+                .ancestors()
+                .skip(1)
+                .take_while(|a| a.parent().is_some() && !stop.contains(&a.to_string_lossy().to_lowercase()))
+                .any(|a| {
+                    *is_project.entry(a.to_path_buf()).or_insert_with(|| {
+                        std::fs::read_dir(a).is_ok_and(|rd| rd.flatten().any(|e| crate::mover::project_marker(&e.file_name())))
+                    })
+                })
+        })
+        .collect()
 }
 
 /// Groupes de fichiers identiques, du plus de place récupérable au moins.
@@ -129,6 +151,25 @@ mod tests {
         assert_eq!(groups[0].files.len(), 2);
         assert_eq!(groups[0].wasted, 300_000);
         assert!(!groups[0].files.iter().any(|f| f.path.ends_with("c.bin")));
+        fs::remove_dir_all(&d).unwrap();
+    }
+
+    #[test]
+    fn files_of_code_projects_left_out() {
+        let d = temp("projects");
+        for (p, marker) in [("game/assets/sky.png", Some("game/.git")), ("app/dist/x/sky.png", Some("app/package.json")), ("photos/sky.png", None)] {
+            fs::create_dir_all(d.join(p).parent().unwrap()).unwrap();
+            fs::write(d.join(p), b"x").unwrap();
+            if let Some(m) = marker {
+                fs::create_dir_all(d.join(m).parent().unwrap()).unwrap();
+                fs::write(d.join(m), b"").unwrap();
+            }
+        }
+        // Un `.git` dans le dossier d'arrêt (dossier personnel) n'écarte rien.
+        fs::write(d.join(".git"), b"").unwrap();
+        let files = ["game/assets/sky.png", "app/dist/x/sky.png", "photos/sky.png"].iter().map(|p| cand(&d.join(p))).collect();
+        let kept = outside_projects(files, std::slice::from_ref(&d));
+        assert_eq!(kept.iter().map(|c| c.path.clone()).collect::<Vec<_>>(), vec![d.join("photos/sky.png")]);
         fs::remove_dir_all(&d).unwrap();
     }
 }
