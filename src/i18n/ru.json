@@ -171,6 +171,7 @@
   "verdict.what": "Что это",
   "verdict.consequence": "Если удалить",
   "verdict.howto": "Как освободить место",
+  "verdict.link": "Официальный источник:",
   "verdict.source.rule": "Источник: база знаний Kleaner (knowledge.json на GitHub).",
   "verdict.source.cleaner": "Источник: каталог очистки Kleaner.",
   "verdict.source.program": "Источник: список программ (эта папка принадлежит установленной программе).",

@@ -121,6 +121,7 @@ type Rule = {
   what: { en: string; fr: string };
   consequence: { en: string; fr: string };
   howto: { en: string; fr: string };
+  source?: string;
 };
 
 const ENV: Record<string, string> = {
@@ -177,6 +178,7 @@ export function explain(path: string): Explanation {
             source: "rule" as const,
             rule: r.id,
             cleaner: null,
+            link: r.source ?? null,
           };
           if (r.whole && prefix.length < path.length) {
             return {

@@ -171,6 +171,7 @@
   "verdict.what": "Qué es",
   "verdict.consequence": "Si lo borras",
   "verdict.howto": "Cómo liberar el espacio",
+  "verdict.link": "Fuente oficial:",
   "verdict.source.rule": "Fuente: base de conocimiento de Kleaner (knowledge.json en GitHub).",
   "verdict.source.cleaner": "Fuente: catálogo de limpieza de Kleaner.",
   "verdict.source.program": "Fuente: la lista de programas (esta carpeta pertenece a un programa instalado).",

@@ -55,6 +55,9 @@ pub struct Rule {
     pub what: Text,
     pub consequence: Text,
     pub howto: Text,
+    /// Page officielle (éditeur, Microsoft) qui confirme la règle. Affichée telle quelle, jamais ouverte toute seule.
+    #[serde(default)]
+    pub source: Option<String>,
 }
 
 #[derive(Serialize, Clone, Copy, Debug, PartialEq, Eq)]
@@ -78,6 +81,8 @@ pub struct Explanation {
     pub howto: Text,
     /// Mettre cet élément seul à la Corbeille casserait le dossier qui le contient.
     pub locked: bool,
+    /// Source officielle de la règle appliquée, s'il y en a une.
+    pub link: Option<String>,
 }
 
 pub fn rules() -> &'static [Rule] {
@@ -158,6 +163,7 @@ fn from_rule(path: &str, r: &Rule, caps: &[String], dir: &str) -> Explanation {
                 .with(&[("dir", dir)])
                 .join(&howto, |a, b| format!("{a} {b}")),
             locked: true,
+            link: r.source.clone(),
         };
     }
     Explanation {
@@ -170,6 +176,7 @@ fn from_rule(path: &str, r: &Rule, caps: &[String], dir: &str) -> Explanation {
         consequence: fill(&r.consequence, caps),
         howto,
         locked: false,
+        link: r.source.clone(),
     }
 }
 
@@ -218,6 +225,7 @@ impl Context {
                 verdict: Verdict::Cleanup,
                 source: Source::Cleaner,
                 locked: false,
+                link: None,
                 rule: None,
                 cleaner: Some(c.id.clone()),
                 what: c.what.clone(),
@@ -233,6 +241,7 @@ impl Context {
                 verdict: Verdict::Uninstall,
                 source: Source::Program,
                 locked: false,
+                link: None,
                 rule: None,
                 cleaner: None,
                 what: Text::new("Part of the program {who}.", "Fait partie du programme {who}.").with(&[("who", &who)]),
@@ -256,6 +265,7 @@ impl Context {
             verdict: Verdict::Unknown,
             source: Source::Unknown,
             locked: false,
+            link: None,
             rule: None,
             cleaner: None,
             what: Text::new("Kleaner doesn’t know this item.", "Kleaner ne connaît pas cet élément."),
@@ -441,6 +451,174 @@ mod tests {
         let progress = crate::scan::Progress::default();
         let r = crate::scan::scan(&[std::path::PathBuf::from("C:\\")], &std::sync::atomic::AtomicBool::new(false), &progress);
         let paths: Vec<String> = r.top_files.iter().chain(&r.top_dirs).take(120).map(|i| i.path.clone()).collect();
+        for e in explain_all(&paths) {
+            println!("{:<9?} {:<22} {}", e.verdict, e.rule.as_deref().or(e.cleaner.as_deref()).unwrap_or("-"), e.path);
+        }
+    }
+
+    /// Verdicts de gros dossiers courants chez d'autres utilisateurs, avec les seules règles (sans catalogue ni programmes).
+    /// Une nouvelle règle ne peut pas changer l'un d'eux sans que ce test casse (ex. `C:\Windows\Installer` en « safe »).
+    /// Pour régénérer la liste après un changement voulu : `explain_list` avec `KLEANER_PATHS`.
+    #[test]
+    fn common_paths_keep_their_verdict() {
+        const EXPECTED: &[(&str, Verdict)] = &[
+        (r"C:\Windows\Installer", Verdict::System),
+        (r"C:\ProgramData\Package Cache", Verdict::Breaks),
+        (r"C:\Windows\SoftwareDistribution\Download", Verdict::System),
+        (r"C:\$WinREAgent", Verdict::System),
+        (r"C:\Windows\LiveKernelReports", Verdict::System),
+        (r"C:\Windows\Logs\CBS", Verdict::System),
+        (r"C:\Windows\Prefetch", Verdict::System),
+        (r"C:\Windows\Temp", Verdict::System),
+        (r"C:\Windows\System32\DriverStore\FileRepository", Verdict::System),
+        (r"C:\Windows\assembly", Verdict::System),
+        (r"C:\Windows\Microsoft.NET", Verdict::System),
+        (r"C:\Windows\Downloaded Program Files", Verdict::System),
+        (r"C:\ProgramData\Microsoft\Windows\WER", Verdict::Breaks),
+        (r"C:\ProgramData\NVIDIA Corporation\Downloader", Verdict::Breaks),
+        (r"C:\Program Files\NVIDIA Corporation\Installer2", Verdict::Uninstall),
+        (r"C:\Program Files\WindowsApps", Verdict::System),
+        (r"C:\Program Files\ModifiableWindowsApps", Verdict::Uninstall),
+        (r"C:\XboxGames", Verdict::Uninstall),
+        (r"C:\Riot Games", Verdict::Uninstall),
+        (r"C:\Program Files\Epic Games\Fortnite", Verdict::Uninstall),
+        (r"C:\Program Files (x86)\Steam\steamapps\shadercache", Verdict::Safe),
+        (r"C:\Program Files (x86)\Steam\steamapps\workshop", Verdict::Breaks),
+        (r"C:\Program Files (x86)\Steam\steamapps\downloading", Verdict::Cleanup),
+        (r"C:\hiberfil.sys", Verdict::Cleanup),
+        (r"C:\pagefile.sys", Verdict::System),
+        (r"C:\swapfile.sys", Verdict::System),
+        (r"C:\DumpStack.log.tmp", Verdict::Safe),
+        (r"C:\Windows.old", Verdict::Cleanup),
+        (r"C:\$Windows.~BT", Verdict::Cleanup),
+        (r"C:\$Windows.~WS", Verdict::Cleanup),
+        (r"C:\ESD", Verdict::Unknown),
+        (r"C:\Intel", Verdict::Unknown),
+        (r"C:\AMD", Verdict::Safe),
+        (r"C:\SWSetup", Verdict::Unknown),
+        (r"C:\Drivers", Verdict::Unknown),
+        (r"C:\Recovery", Verdict::System),
+        (r"C:\System Volume Information", Verdict::System),
+        (r"C:\$Recycle.Bin", Verdict::Cleanup),
+        (r"%LOCALAPPDATA%\NVIDIA\DXCache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\NVIDIA\GLCache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\AMD\DxCache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\D3DSCache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\CrashDumps", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Temp", Verdict::Safe),
+        (r"%LOCALAPPDATA%\Microsoft\Windows\INetCache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Microsoft\Windows\Explorer", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Microsoft\Outlook\mail.ost", Verdict::Cleanup),
+        (r"%USERPROFILE%\Documents\Outlook Files\archive.pst", Verdict::Personal),
+        (r"%LOCALAPPDATA%\Microsoft\OneDrive\logs", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Packages\MSTeams_8wekyb3d8bbwe", Verdict::Breaks),
+        (r"%APPDATA%\Microsoft\Teams", Verdict::Safe),
+        (r"%APPDATA%\Zoom", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Packages\5319275A.WhatsAppDesktop_cv1g1gvanyjgm", Verdict::Personal),
+        (r"%APPDATA%\Telegram Desktop\tdata", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Spotify\Data", Verdict::Cleanup),
+        (r"%APPDATA%\discord\Cache", Verdict::Breaks),
+        (r"%APPDATA%\Apple Computer\MobileSync\Backup", Verdict::Personal),
+        (r"%USERPROFILE%\Apple\MobileSync\Backup", Verdict::Personal),
+        (r"%USERPROFILE%\iCloudDrive", Verdict::Personal),
+        (r"%USERPROFILE%\Pictures\iCloud Photos", Verdict::Personal),
+        (r"%LOCALAPPDATA%\Google\Chrome\User Data\Default\Service Worker\CacheStorage", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Microsoft\Edge\User Data\Default\Cache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Mozilla\Firefox\Profiles\abc.default\cache2", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data\Default\Cache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\JetBrains", Verdict::Cleanup),
+        (r"%USERPROFILE%\.m2\repository", Verdict::Breaks),
+        (r"%USERPROFILE%\.gradle\caches", Verdict::Breaks),
+        (r"%USERPROFILE%\.nuget\packages", Verdict::Cleanup),
+        (r"%LOCALAPPDATA%\pip\cache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\npm-cache", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Yarn\Cache", Verdict::Cleanup),
+        (r"%LOCALAPPDATA%\pnpm\store", Verdict::Cleanup),
+        (r"%USERPROFILE%\.cargo\registry", Verdict::Safe),
+        (r"%USERPROFILE%\go\pkg\mod", Verdict::Cleanup),
+        (r"%LOCALAPPDATA%\Docker", Verdict::Breaks),
+        (r"%USERPROFILE%\.docker", Verdict::Breaks),
+        (r"%USERPROFILE%\Videos\Captures", Verdict::Personal),
+        (r"%USERPROFILE%\Videos\NVIDIA", Verdict::Personal),
+        (r"%USERPROFILE%\Videos\Radeon ReLive", Verdict::Personal),
+        (r"%APPDATA%\Adobe\Common\Media Cache Files", Verdict::Safe),
+        (r"%APPDATA%\Adobe\Common\Peak Files", Verdict::Safe),
+        (r"%LOCALAPPDATA%\Adobe", Verdict::Breaks),
+        (r"%APPDATA%\Blackmagic Design\DaVinci Resolve", Verdict::Breaks),
+        (r"%USERPROFILE%\Documents\My Games", Verdict::Personal),
+        (r"%USERPROFILE%\Saved Games", Verdict::Personal),
+        (r"%LOCALAPPDATA%\EpicGamesLauncher\Saved\webcache", Verdict::Safe),
+        (r"%LOCALAPPDATA%\Battle.net", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\FortniteGame\Saved", Verdict::Breaks),
+        (r"%APPDATA%\.minecraft", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Roblox", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Microsoft\Windows\Temporary Internet Files", Verdict::Breaks),
+        (r"%USERPROFILE%\OneDrive", Verdict::Personal),
+        (r"%USERPROFILE%\Dropbox", Verdict::Personal),
+        (r"%USERPROFILE%\Google Drive", Verdict::Personal),
+        (r"%LOCALAPPDATA%\Google\DriveFS", Verdict::Breaks),
+        (r"%USERPROFILE%\VirtualBox VMs", Verdict::Personal),
+        (r"%USERPROFILE%\.android\avd", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Android\Sdk", Verdict::Cleanup),
+        (r"%USERPROFILE%\.ollama\models", Verdict::Cleanup),
+        (r"%USERPROFILE%\.cache\huggingface", Verdict::Cleanup),
+        (r"%USERPROFILE%\.lmstudio\models", Verdict::Cleanup),
+        (r"%USERPROFILE%\anaconda3", Verdict::Uninstall),
+        (r"%USERPROFILE%\miniconda3\pkgs", Verdict::Cleanup),
+        (r"%LOCALAPPDATA%\Unity\cache", Verdict::Safe),
+        (r"%LOCALAPPDATA%\UnrealEngine", Verdict::Breaks),
+        (r"%USERPROFILE%\Documents\Unreal Projects\Game\DerivedDataCache", Verdict::Safe),
+        (r"%LOCALAPPDATA%\Microsoft\VisualStudio", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Temp\WinGet", Verdict::Safe),
+        (r"%LOCALAPPDATA%\Packages\Microsoft.Windows.Photos_8wekyb3d8bbwe", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\Packages\Microsoft.ZuneVideo_8wekyb3d8bbwe", Verdict::Breaks),
+        (r"%PROGRAMDATA%\Microsoft\Windows Defender\Scans", Verdict::Breaks),
+        (r"%PROGRAMDATA%\Microsoft\Search\Data", Verdict::Cleanup),
+        (r"%PROGRAMDATA%\Microsoft\Windows\DeliveryOptimization", Verdict::Breaks),
+        (r"C:\Windows\SysWOW64", Verdict::System),
+        (r"C:\Windows\WinSxS", Verdict::System),
+        (r"C:\Windows\Fonts", Verdict::System),
+        (r"C:\Windows\Panther", Verdict::System),
+        (r"C:\Windows\memory.dmp", Verdict::Safe),
+        (r"C:\Windows\Minidump", Verdict::Safe),
+        (r"%USERPROFILE%\anaconda3\pkgs", Verdict::Cleanup),
+        (r"%LOCALAPPDATA%\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams", Verdict::Safe),
+        (r"%USERPROFILE%\.cargo\bin", Verdict::Breaks),
+        (r"%LOCALAPPDATA%\go-build", Verdict::Cleanup),
+        (r"%LOCALAPPDATA%\Spotify\Storage", Verdict::Cleanup),
+        (r"D:\XboxGames", Verdict::Uninstall),
+        (r"%LOCALAPPDATA%\EpicGamesLauncher\Saved\webcache_4430", Verdict::Safe),
+        ];
+        let expand = |s: &str| ["USERPROFILE", "LOCALAPPDATA", "APPDATA", "PROGRAMDATA"]
+            .iter()
+            .fold(s.to_string(), |acc, v| acc.replace(&format!("%{v}%"), &std::env::var(v).unwrap()));
+        let wrong: Vec<String> = EXPECTED
+            .iter()
+            .filter_map(|(p, want)| {
+                let got = ctx().explain(&expand(p)).verdict;
+                (got != *want).then(|| format!("{p} : {got:?} au lieu de {want:?}"))
+            })
+            .collect();
+        assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+    }
+
+    /// Verdicts d'une liste de chemins (un par ligne, `%VAR%` développés) : `KLEANER_PATHS=<fichier> cargo test --release
+    /// knowledge::tests::explain_list -- --ignored --nocapture`. Pour trouver les « inconnus » avant d'écrire des règles.
+    #[test]
+    #[ignore]
+    fn explain_list() {
+        let text = std::fs::read_to_string(std::env::var("KLEANER_PATHS").expect("KLEANER_PATHS")).unwrap();
+        let expand = |l: &str| {
+            let mut s = l.trim().to_string();
+            while let Some(a) = s.find('%') {
+                let Some(b) = s[a + 1..].find('%') else { break };
+                let v = std::env::var(&s[a + 1..a + 1 + b]).unwrap_or_default();
+                s.replace_range(a..a + 2 + b, &v);
+            }
+            s
+        };
+        let paths: Vec<String> = text.lines().filter(|l| !l.trim().is_empty()).map(expand).collect();
         for e in explain_all(&paths) {
             println!("{:<9?} {:<22} {}", e.verdict, e.rule.as_deref().or(e.cleaner.as_deref()).unwrap_or("-"), e.path);
         }

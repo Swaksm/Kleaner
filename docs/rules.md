@@ -20,6 +20,7 @@ You do not need to write code. In Kleaner, click the verdict of an unknown item,
 - **`match`**: paths that start with `%LOCALAPPDATA%`, `%APPDATA%`, `%USERPROFILE%`, `%ProgramFiles%`… or `**\` or `?:\`. Wildcards: `*` (one folder level), `**` (any depth), `?`. A rule applies to the folder and everything inside it. `{1}` in the texts is replaced by what the first `*` matched.
 - **`verdict`**: `safe` (regenerated cache, temp, logs), `cleanup` (Kleaner cleans it with its own tool), `uninstall`, `breaks`, `personal`, `system`.
 - **`whole: true`** if the folder can only be deleted as a whole (a single file inside breaks it), like `node_modules` or a Python `.venv`.
+- **`source`**: the official page (vendor, Microsoft) that confirms what the rule says. Shown as text in the verdict card, never opened by Kleaner. New rules need one; without an official source, the item stays « unknown ».
 - Order of precedence: precise rules, then Kleaner's catalog, then the owner program, then generic rules (`"generic": true`), then unknown. A precise rule wins.
 
 ## Checks
@@ -28,7 +29,7 @@ You do not need to write code. In Kleaner, click the verdict of an unknown item,
 cargo test --manifest-path src-tauri/Cargo.toml knowledge
 ```
 
-The tests reject control characters, rules without text, and unknown cleaners. Write the French text if you can; otherwise the English text is enough.
+The tests reject control characters, rules without text, and unknown cleaners. `common_paths_keep_their_verdict` pins the verdict of about 130 common folders: if your rule changes one of them, the test fails and shows which. Write the French text if you can; otherwise the English text is enough.
 
 ## Cleaning rules (what Kleaner deletes)
 

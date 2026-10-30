@@ -171,6 +171,7 @@
   "verdict.what": "它是什么",
   "verdict.consequence": "如果删除它",
   "verdict.howto": "如何释放这部分空间",
+  "verdict.link": "官方来源：",
   "verdict.source.rule": "来源：Kleaner 知识库（GitHub 上的 knowledge.json）。",
   "verdict.source.cleaner": "来源：Kleaner 的清理目录。",
   "verdict.source.program": "来源：程序列表（此文件夹属于一个已安装的程序）。",

@@ -62,6 +62,11 @@ export function ExplainDialog({ e, onClose }: { e: Explanation; onClose: () => v
           <dd>{tx(e.howto)}</dd>
         </dl>
         <p className="muted small">{t(`verdict.source.${e.source}` as Key)}</p>
+        {e.link && (
+          <p className="muted small">
+            {t("verdict.link")} <span className="path">{e.link}</span>
+          </p>
+        )}
         {e.verdict === "unknown" && <p className="muted small">{t("rule.hint")}</p>}
       </div>
       <div className="dialog-actions">

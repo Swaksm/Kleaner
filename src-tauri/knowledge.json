@@ -1809,6 +1809,332 @@
     }
   },
   {
+    "id": "xbox-games",
+    "match": [
+      "?:\\XboxGames"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Games installed by the Xbox app (PC Game Pass, Microsoft Store).",
+      "fr": "Jeux installés par l’appli Xbox (PC Game Pass, Microsoft Store)."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks the games and the Xbox app keeps listing them.",
+      "fr": "Supprimer à la main casse les jeux et l’appli Xbox continue de les afficher."
+    },
+    "howto": {
+      "en": "Xbox app → My Library → … on the game → Uninstall.",
+      "fr": "Appli Xbox → Ma bibliothèque → … sur le jeu → Désinstaller."
+    },
+    "source": "https://support.xbox.com/help/games-apps/my-games-apps/how-to-uninstall-reinstall-game-windows-10"
+  },
+  {
+    "id": "riot-games",
+    "match": [
+      "?:\\Riot Games"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Riot Client and Riot games (League of Legends, VALORANT…).",
+      "fr": "Riot Client et jeux Riot (League of Legends, VALORANT…)."
+    },
+    "consequence": {
+      "en": "Deleting by hand leaves the games half-installed and Riot Vanguard behind.",
+      "fr": "Supprimer à la main laisse les jeux à moitié installés, et Riot Vanguard en place."
+    },
+    "howto": {
+      "en": "Close the Riot Client, then Windows Settings → Apps → Installed apps → uninstall each Riot game.",
+      "fr": "Ferme le Riot Client, puis Paramètres Windows → Applications → Applications installées → désinstalle chaque jeu Riot."
+    },
+    "source": "https://support.riotgames.com/en-us/riot/performance/uninstall-and-reinstall-games"
+  },
+  {
+    "id": "amd-installer",
+    "match": [
+      "?:\\AMD"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Setup files extracted by AMD driver installers.",
+      "fr": "Fichiers d’installation extraits par les installateurs de pilotes AMD."
+    },
+    "consequence": {
+      "en": "The installed drivers keep working. Repairing them needs the installer downloaded again; installer logs are lost.",
+      "fr": "Les pilotes installés continuent de marcher. Pour les réparer, il faudra retélécharger l’installateur ; les journaux d’installation sont perdus."
+    },
+    "howto": {
+      "en": "Delete it once the driver is installed and works. Never touch the AMD folders in Program Files.",
+      "fr": "Supprime-le une fois le pilote installé et fonctionnel. Ne touche jamais aux dossiers AMD de Program Files."
+    },
+    "source": "https://www.amd.com/en/resources/support-articles/faqs/CHIPSET-INSTALL.html"
+  },
+  {
+    "id": "go-modcache",
+    "match": [
+      "%USERPROFILE%\\go\\pkg\\mod"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Go module cache (downloaded dependencies).",
+      "fr": "Cache des modules Go (dépendances téléchargées)."
+    },
+    "consequence": {
+      "en": "Its files are read-only, so deleting by hand often fails halfway. Go downloads modules again when needed.",
+      "fr": "Ses fichiers sont en lecture seule : supprimer à la main échoue souvent à moitié. Go retélécharge les modules quand il en a besoin."
+    },
+    "howto": {
+      "en": "go clean -modcache",
+      "fr": "go clean -modcache"
+    },
+    "source": "https://go.dev/ref/mod"
+  },
+  {
+    "id": "go-build-cache",
+    "match": [
+      "%LOCALAPPDATA%\\go-build"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Go build cache (compiled packages).",
+      "fr": "Cache de compilation de Go (paquets compilés)."
+    },
+    "consequence": {
+      "en": "The next builds are slower once.",
+      "fr": "Les prochaines compilations sont plus lentes une fois."
+    },
+    "howto": {
+      "en": "go clean -cache",
+      "fr": "go clean -cache"
+    },
+    "source": "https://pkg.go.dev/cmd/go"
+  },
+  {
+    "id": "virtualbox-vms",
+    "match": [
+      "%USERPROFILE%\\VirtualBox VMs"
+    ],
+    "verdict": "personal",
+    "what": {
+      "en": "Your VirtualBox virtual machines (virtual disks and settings).",
+      "fr": "Tes machines virtuelles VirtualBox (disques virtuels et réglages)."
+    },
+    "consequence": {
+      "en": "Deleting loses each machine and everything installed or saved inside it.",
+      "fr": "Supprimer fait perdre chaque machine et tout ce qui est installé ou enregistré dedans."
+    },
+    "howto": {
+      "en": "In VirtualBox: right-click a machine you no longer need → Remove → Delete all files.",
+      "fr": "Dans VirtualBox : clic droit sur une machine inutile → Supprimer → Supprimer tous les fichiers."
+    },
+    "source": "https://www.virtualbox.org/manual/ch01.html"
+  },
+  {
+    "id": "anaconda",
+    "match": [
+      "%USERPROFILE%\\anaconda3",
+      "%USERPROFILE%\\miniconda3"
+    ],
+    "verdict": "uninstall",
+    "what": {
+      "en": "Anaconda or Miniconda Python distribution, with its environments.",
+      "fr": "Distribution Python Anaconda ou Miniconda, avec ses environnements."
+    },
+    "consequence": {
+      "en": "Deleting by hand breaks every conda environment and leaves shortcuts and PATH entries behind.",
+      "fr": "Supprimer à la main casse tous les environnements conda et laisse raccourcis et entrées du PATH."
+    },
+    "howto": {
+      "en": "To free space: conda clean --all. To remove it: Windows Settings → Apps → uninstall Anaconda / Miniconda.",
+      "fr": "Pour gagner de la place : conda clean --all. Pour l’enlever : Paramètres Windows → Applications → désinstalle Anaconda / Miniconda."
+    },
+    "source": "https://www.anaconda.com/docs/getting-started/anaconda/uninstall"
+  },
+  {
+    "id": "adobe-media-cache",
+    "match": [
+      "%APPDATA%\\Adobe\\Common\\Media Cache Files",
+      "%APPDATA%\\Adobe\\Common\\Media Cache",
+      "%APPDATA%\\Adobe\\Common\\Peak Files"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Adobe media cache (Premiere Pro, After Effects, Media Encoder): audio waveforms and decoded media.",
+      "fr": "Cache média d’Adobe (Premiere Pro, After Effects, Media Encoder) : formes d’onde audio et médias décodés."
+    },
+    "consequence": {
+      "en": "Projects open slower once while it rebuilds. Your projects and media are not touched.",
+      "fr": "Les projets s’ouvrent plus lentement une fois, le temps de le recréer. Tes projets et médias ne sont pas touchés."
+    },
+    "howto": {
+      "en": "Premiere Pro → Settings → Media Cache → Delete, or delete it with Adobe apps closed.",
+      "fr": "Premiere Pro → Préférences → Cache des médias → Supprimer, ou supprime-le, applis Adobe fermées."
+    },
+    "source": "https://helpx.adobe.com/premiere/desktop/troubleshooting/media-issues/delete-media-cache-files-manually.html"
+  },
+  {
+    "id": "yarn-cache",
+    "match": [
+      "%LOCALAPPDATA%\\Yarn\\Cache"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Yarn package cache.",
+      "fr": "Cache de paquets Yarn."
+    },
+    "consequence": {
+      "en": "Yarn downloads packages again at the next install.",
+      "fr": "Yarn retélécharge les paquets à la prochaine installation."
+    },
+    "howto": {
+      "en": "yarn cache clean",
+      "fr": "yarn cache clean"
+    },
+    "source": "https://classic.yarnpkg.com/en/docs/cli/cache"
+  },
+  {
+    "id": "nuget-packages",
+    "match": [
+      "%USERPROFILE%\\.nuget\\packages"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "NuGet global packages folder (.NET dependencies).",
+      "fr": "Dossier global des paquets NuGet (dépendances .NET)."
+    },
+    "consequence": {
+      "en": "Projects restore their packages again at the next build.",
+      "fr": "Les projets restaurent leurs paquets à la prochaine compilation."
+    },
+    "howto": {
+      "en": "dotnet nuget locals all --clear, with Visual Studio closed.",
+      "fr": "dotnet nuget locals all --clear, Visual Studio fermé."
+    },
+    "source": "https://learn.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders"
+  },
+  {
+    "id": "cargo-registry",
+    "match": [
+      "%USERPROFILE%\\.cargo\\registry",
+      "%USERPROFILE%\\.cargo\\git"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Cargo download cache (Rust crates and git dependencies).",
+      "fr": "Cache de téléchargement de Cargo (crates Rust et dépendances git)."
+    },
+    "consequence": {
+      "en": "Cargo downloads what it needs again at the next build.",
+      "fr": "Cargo retélécharge ce qu’il lui faut à la prochaine compilation."
+    },
+    "howto": {
+      "en": "Delete it when no build is running. Never delete .cargo\\bin: it holds your installed Rust tools.",
+      "fr": "Supprime-le quand aucune compilation ne tourne. Ne supprime jamais .cargo\\bin : il contient tes outils Rust installés."
+    },
+    "source": "https://doc.rust-lang.org/cargo/guide/cargo-home.html"
+  },
+  {
+    "id": "unity-cache",
+    "match": [
+      "%LOCALAPPDATA%\\Unity\\cache"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Unity Package Manager global cache.",
+      "fr": "Cache global du gestionnaire de paquets de Unity."
+    },
+    "consequence": {
+      "en": "Unity downloads packages again when a project opens.",
+      "fr": "Unity retélécharge les paquets à l’ouverture d’un projet."
+    },
+    "howto": {
+      "en": "Delete it with Unity and Unity Hub closed.",
+      "fr": "Supprime-le, Unity et Unity Hub fermés."
+    },
+    "source": "https://docs.unity.com/en-us/engine/6000.6/manual/packages-list/package-manager-caches/upm-cache"
+  },
+  {
+    "id": "epic-webcache",
+    "match": [
+      "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache*"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Epic Games Launcher web cache.",
+      "fr": "Cache web d’Epic Games Launcher."
+    },
+    "consequence": {
+      "en": "The launcher rebuilds it; Epic recommends clearing it to fix display problems.",
+      "fr": "Le launcher le recrée ; Epic conseille de le vider pour corriger les problèmes d’affichage."
+    },
+    "howto": {
+      "en": "Quit the launcher from the notification area, then delete it.",
+      "fr": "Quitte le launcher depuis la zone de notification, puis supprime-le."
+    },
+    "source": "https://www.epicgames.com/help/en-US/epic-games-store-c-202300000001639/launcher-support-c-202300000001735/how-do-i-clear-the-launcher-cache-on-pc-a202300000013316"
+  },
+  {
+    "id": "teams-cache",
+    "match": [
+      "%LOCALAPPDATA%\\Packages\\MSTeams_8wekyb3d8bbwe\\LocalCache\\Microsoft\\MSTeams",
+      "%APPDATA%\\Microsoft\\Teams"
+    ],
+    "verdict": "safe",
+    "what": {
+      "en": "Microsoft Teams client cache.",
+      "fr": "Cache de l’appli Microsoft Teams."
+    },
+    "consequence": {
+      "en": "Teams rebuilds it; you may need to sign in again. Chats and files stay online.",
+      "fr": "Teams le recrée ; il faudra peut-être te reconnecter. Les discussions et fichiers restent en ligne."
+    },
+    "howto": {
+      "en": "Quit Teams completely (notification area → Quit), then delete it.",
+      "fr": "Quitte complètement Teams (zone de notification → Quitter), puis supprime-le."
+    },
+    "source": "https://learn.microsoft.com/en-us/troubleshoot/microsoftteams/teams-administration/clear-teams-cache"
+  },
+  {
+    "id": "jetbrains-system",
+    "match": [
+      "%LOCALAPPDATA%\\JetBrains"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Caches, indexes, logs and local history of JetBrains IDEs, one folder per version.",
+      "fr": "Caches, index, journaux et historique local des IDE JetBrains, un dossier par version."
+    },
+    "consequence": {
+      "en": "Deleting by hand loses Local History, and the IDE re-indexes your projects.",
+      "fr": "Supprimer à la main fait perdre l’historique local, et l’IDE réindexe tes projets."
+    },
+    "howto": {
+      "en": "In the IDE: Help → Delete Leftover IDE Directories for old versions; File → Invalidate Caches for the current one.",
+      "fr": "Dans l’IDE : Aide → Delete Leftover IDE Directories pour les anciennes versions ; Fichier → Invalidate Caches pour la version actuelle."
+    },
+    "source": "https://www.jetbrains.com/help/idea/directories-used-by-the-ide-to-store-settings-caches-plugins-and-logs.html"
+  },
+  {
+    "id": "spotify-data",
+    "match": [
+      "%LOCALAPPDATA%\\Spotify\\Data",
+      "%LOCALAPPDATA%\\Spotify\\Storage"
+    ],
+    "verdict": "cleanup",
+    "what": {
+      "en": "Spotify data on this PC: cache, and songs downloaded for offline listening.",
+      "fr": "Données de Spotify sur ce PC : cache, et titres téléchargés pour l’écoute hors ligne."
+    },
+    "consequence": {
+      "en": "Deleting by hand also removes offline downloads.",
+      "fr": "Supprimer à la main enlève aussi les téléchargements hors ligne."
+    },
+    "howto": {
+      "en": "Spotify → Settings → Storage → Clear cache.",
+      "fr": "Spotify → Paramètres → Stockage → Vider le cache."
+    },
+    "source": "https://support.spotify.com/us/article/storage-information/"
+  },
+  {
     "id": "ai-model-file",
     "match": [
       "**\\*.gguf",

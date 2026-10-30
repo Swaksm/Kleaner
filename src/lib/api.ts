@@ -132,6 +132,8 @@ export type Explanation = {
   howto: Text;
   /** Mettre cet élément seul à la Corbeille casserait le dossier qui le contient. */
   locked: boolean;
+  /** Page officielle qui confirme la règle (affichée, jamais ouverte toute seule). */
+  link?: string | null;
 };
 /** Supprimer à la main est dangereux : confirmation renforcée. */
 export const isCritical = (v: Verdict) => v === "breaks" || v === "system" || v === "uninstall";
