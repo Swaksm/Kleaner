@@ -24,6 +24,11 @@ export function Shortcuts() {
   const usable = (s: BrokenShortcut) => !s.machine || elevated;
   const chosen = list?.filter((s) => selected.has(s.path) && usable(s)) ?? [];
 
+  // Lancée dès l'ouverture de la page (lecture seule) : pas besoin de cliquer.
+  useEffect(() => {
+    search();
+  }, []);
+
   async function search() {
     setRunning(true);
     setMessage(null);

@@ -158,16 +158,14 @@ try {
     // Le bouton du groupe se termine par une flèche (▸) : correspondance partielle.
     if (!(await link.isExisting())) await (await (await b.$(".sidebar")).$("button*=More tools")).click();
     await nav("Broken shortcuts");
-    await (await inContent("button=Find broken shortcuts")).click();
+    // Recherches lancées à l'ouverture de la page.
     await b.waitUntil(async () => !(await (await b.$(".loading")).isExisting()), { timeout: 120_000, timeoutMsg: "recherche trop longue" });
     await nav("Programs");
-    await (await inContent("button=Find ghost entries")).click();
     await (await b.$("p=No ghost entry found.")).waitForExist({ timeout: 60_000 }).catch(() => {});
   });
 
   await step("applis préinstallées : liste en lecture seule", async () => {
     await nav("Programs");
-    await (await inContent("button=Find preinstalled apps")).click();
     await b.waitUntil(
       async () => (await b.$$(".grid-preinstalled li")).length > 0 || (await (await b.$("p=No app from the list is installed.")).isExisting()),
       { timeout: 60_000, timeoutMsg: "ni liste ni message « aucune appli »" },
@@ -176,9 +174,8 @@ try {
 
   await step("conseils : recherche en lecture seule", async () => {
     await nav("Tips");
-    await (await inContent("button=Find tips")).click();
     await b.waitUntil(async () => !(await (await b.$(".loading")).isExisting()), { timeout: 60_000, timeoutMsg: "recherche trop longue" });
-    await b.waitUntil(async () => (await b.$$(".content .card")).length > 1 || (await (await b.$("p=Nothing to report.")).isExisting()), {
+    await b.waitUntil(async () => (await b.$$(".page:not([hidden]) .card")).length > 1 || (await (await b.$("p=Nothing to report.")).isExisting()), {
       timeout: 10_000,
       timeoutMsg: "ni conseil ni message « rien à signaler »",
     });

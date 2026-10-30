@@ -32,6 +32,11 @@ import { Updates } from "./pages/Updates";
 const MAIN = ["home", "analyse", "cleanup", "media", "programs", "startup", "health", "updates"] as const;
 const MORE = ["advice", "duplicates", "projects", "shortcuts", "onedrive", "journal"] as const;
 type Page = (typeof MAIN)[number] | (typeof MORE)[number] | "settings" | "about";
+// Pages lentes gardées montées après leur première visite : leurs résultats survivent aux changements de page.
+const KEEP: Page[] = ["programs", "startup", "health", "updates", "advice", "duplicates", "shortcuts"];
+// Préchargées peu après l'ouverture de la fenêtre : lecture seule, rien sur Internet (Windows Update et winget restent sur clic).
+// Doublons : non, la recherche relit les fichiers de la dernière analyse.
+const PRELOAD: Page[] = ["programs", "startup", "health", "updates", "advice", "shortcuts"];
 
 /** Mode « demo » : la page vient de l'adresse (?page=health), pour les captures d'écran. */
 function demoPage(): Page {
@@ -58,6 +63,7 @@ function App() {
   const [elevated, setElevated] = useState(false);
   const [moreOpen, setMoreOpen] = useState(savedMoreOpen);
   const [quickClean, setQuickClean] = useState(false);
+  const [kept, setKept] = useState<Set<Page>>(new Set());
   // Visite guidée : après l'assistant du premier lancement, ou depuis les Paramètres (demo : ?tour).
   const [tour, setTour] = useState(import.meta.env.MODE === "demo" ? new URLSearchParams(location.search).has("tour") : isTourPending());
   const scan = useScanResult();
@@ -83,8 +89,28 @@ function App() {
     );
   };
 
-  // Raccourcis : Ctrl+1…8 pour les pages principales, F5 relance l'analyse (au lieu de recharger la fenêtre).
+  useEffect(() => {
+    setKept((k) => (k.has(page) || !KEEP.includes(page) ? k : new Set(k).add(page)));
+  }, [page]);
+
   const ready = accepted && setupDone;
+  // Pas en démarrage réduit (fenêtre cachée près de l'horloge) : on attend que la fenêtre soit visible.
+  useEffect(() => {
+    if (!ready) return;
+    let timer = 0;
+    const start = () => {
+      if (document.visibilityState !== "visible" || timer) return;
+      timer = window.setTimeout(() => setKept((k) => new Set([...k, ...PRELOAD])), 2000);
+    };
+    start();
+    document.addEventListener("visibilitychange", start);
+    return () => {
+      document.removeEventListener("visibilitychange", start);
+      clearTimeout(timer);
+    };
+  }, [ready]);
+
+  // Raccourcis : Ctrl+1…8 pour les pages principales, F5 relance l'analyse (au lieu de recharger la fenêtre).
   useEffect(() => {
     if (!ready || tour) return;
     const onKey = (e: KeyboardEvent) => {
@@ -180,17 +206,11 @@ function App() {
             />
           )}
           {page === "onedrive" && <OneDrive />}
-          {page === "updates" && <Updates />}
-          {page === "startup" && <Startup />}
-          {page === "health" && <Health />}
-          {page === "shortcuts" && <Shortcuts />}
-          {page === "advice" && <Advice />}
           {/* Analyse reste montée : le résultat du scan survit aux changements d'onglet. */}
           <div className="page" hidden={page !== "analyse"}>
             <Analyse onGoCleanup={() => setPage("cleanup")} scanRequest={scanRequest} />
           </div>
           {page === "media" && <Media />}
-          {page === "duplicates" && <Duplicates />}
           {page === "projects" && <Projects />}
           {page === "journal" && <Journal />}
           {page === "settings" && (
@@ -203,8 +223,20 @@ function App() {
           )}
           {page === "about" && <About />}
           {page === "cleanup" && <Cleanup quick={quickClean} onQuickDone={() => setQuickClean(false)} />}
-          {page === "programs" && <Programs />}
         </ErrorBoundary>
+        {KEEP.filter((p) => kept.has(p)).map((p) => (
+          <div key={p} className="page" hidden={page !== p}>
+            <ErrorBoundary resetKey={page}>
+              {p === "programs" && <Programs />}
+              {p === "startup" && <Startup />}
+              {p === "health" && <Health />}
+              {p === "updates" && <Updates />}
+              {p === "advice" && <Advice />}
+              {p === "duplicates" && <Duplicates />}
+              {p === "shortcuts" && <Shortcuts />}
+            </ErrorBoundary>
+          </div>
+        ))}
       </main>
     </div>
     {tour && <Tour onClose={() => setTour(false)} />}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "../i18n/useT";
 import { findGhosts, removeGhosts, type Ghost } from "../lib/api";
 import { Card } from "./Card";
@@ -15,6 +15,11 @@ export function Ghosts({ onChange }: { onChange: () => void }) {
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string } | null>(null);
 
   const chosen = list?.filter((g) => selected.has(g.id)) ?? [];
+
+  // Lancée dès l'ouverture de la page (lecture seule) : pas besoin de cliquer.
+  useEffect(() => {
+    search();
+  }, []);
 
   async function search() {
     setRunning(true);

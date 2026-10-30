@@ -1,5 +1,5 @@
 import { EmptyBin } from "./EmptyBin";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useT, type Key } from "../i18n/useT";
 import { findLeftovers, revealInExplorer, trashLeftovers, type Leftover } from "../lib/api";
 import { formatBytes, formatDay } from "../lib/format";
@@ -20,6 +20,11 @@ export function Leftovers({ program }: { program?: { name: string; list: Leftove
   );
   const [confirming, setConfirming] = useState<Leftover[]>([]);
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string; bin?: boolean } | null>(null);
+
+  // Lancée dès l'ouverture de la page (lecture seule) : pas besoin de cliquer.
+  useEffect(() => {
+    if (!program) search();
+  }, []);
 
   async function search() {
     setRunning(true);

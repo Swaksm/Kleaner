@@ -206,9 +206,10 @@ pub fn remove(ids: &[String], journal_dir: &Path) -> Vec<Removed> {
         .collect()
 }
 
-/// Page du Store pour réinstaller une appli retirée.
+/// Page du Store pour réinstaller une appli de `KNOWN` (famille `<nom>_<éditeur>`), même retirée depuis la dernière recherche.
 pub fn store_uri(family: &str) -> Option<String> {
-    safe_id(family).then(|| format!("ms-windows-store://pdp/?PFN={family}"))
+    let (name, _) = family.rsplit_once('_')?;
+    (safe_id(family) && known(name).is_some()).then(|| format!("ms-windows-store://pdp/?PFN={family}"))
 }
 
 #[cfg(test)]
@@ -238,6 +239,8 @@ mod tests {
         assert!(!safe_id("x'; Remove-Item C:\\ -Recurse; '"));
         assert!(!safe_id(""));
         assert_eq!(store_uri("Microsoft.BingWeather_8wekyb3d8bbwe").unwrap(), "ms-windows-store://pdp/?PFN=Microsoft.BingWeather_8wekyb3d8bbwe");
+        assert!(store_uri("Microsoft.WindowsStore_8wekyb3d8bbwe").is_none(), "hors de KNOWN");
+        assert!(store_uri("Microsoft.BingWeather").is_none());
     }
 
     /// Sur la vraie machine : `cargo test --release debloat::tests::real -- --ignored --nocapture`.

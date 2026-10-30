@@ -175,8 +175,8 @@ struct ScanState {
     /// Conseils : fichiers (installeurs, archives) envoyables à la Corbeille, et jeux Steam désinstallables.
     advice_files: Arc<Mutex<Vec<String>>>,
     advice_games: Arc<Mutex<Vec<u32>>>,
-    /// Applis préinstallées de la dernière liste : (nom complet du paquet, famille pour le Store).
-    preinstalled: Arc<Mutex<Vec<(String, String)>>>,
+    /// Applis préinstallées de la dernière liste (nom complet du paquet).
+    preinstalled: Arc<Mutex<Vec<String>>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -805,23 +805,20 @@ async fn remove_ghosts(ids: Vec<String>, state: State<'_, ScanState>) -> Result<
 #[tauri::command]
 async fn find_preinstalled(state: State<'_, ScanState>) -> Result<Vec<debloat::App>, String> {
     let list = tauri::async_runtime::spawn_blocking(debloat::list).await.map_err(|e| e.to_string())??;
-    *state.preinstalled.lock().unwrap() = list.iter().map(|a| (a.id.clone(), a.family.clone())).collect();
+    *state.preinstalled.lock().unwrap() = list.iter().map(|a| a.id.clone()).collect();
     Ok(list)
 }
 
 /// Retire pour l'utilisateur courant des applis de la dernière liste (et seulement celles-là).
 #[tauri::command]
 async fn remove_preinstalled(ids: Vec<String>, state: State<'_, ScanState>) -> Result<Vec<debloat::Removed>, String> {
-    let known: Vec<String> = state.preinstalled.lock().unwrap().iter().map(|(id, _)| id.clone()).collect();
-    check_known(&ids, &known)?;
+    check_known(&ids, &state.preinstalled.lock().unwrap())?;
     tauri::async_runtime::spawn_blocking(move || debloat::remove(&ids, &journal::data_dir())).await.map_err(|e| e.to_string())
 }
 
-/// Page du Store d'une appli de la dernière liste, pour la réinstaller.
+/// Page du Store d'une appli de la liste fermée, pour la réinstaller (elle n'est plus dans la dernière recherche une fois retirée).
 #[tauri::command]
-fn open_store_page(family: String, state: State<ScanState>) -> Result<(), String> {
-    let known: Vec<String> = state.preinstalled.lock().unwrap().iter().map(|(_, f)| f.clone()).collect();
-    check_known(std::slice::from_ref(&family), &known)?;
+fn open_store_page(family: String) -> Result<(), String> {
     system::open_uri(&debloat::store_uri(&family).ok_or("Refused: not a package family")?)
 }
 

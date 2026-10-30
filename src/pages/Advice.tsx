@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "../components/Card";
 import { EmptyBin } from "../components/EmptyBin";
 import { StatusPill } from "../components/StatusPill";
@@ -19,6 +19,11 @@ export function Advice() {
   const [message, setMessage] = useState<{ status: "ok" | "danger"; text: string; bin?: boolean } | null>(null);
 
   const chosen = list?.filter((a) => a.kind !== "game" && selected.has(a.path)) ?? [];
+
+  // Lancée dès l'ouverture de la page (lecture seule) : pas besoin de cliquer.
+  useEffect(() => {
+    search();
+  }, []);
 
   async function search() {
     setRunning(true);

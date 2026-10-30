@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useT, type Key } from "../i18n/useT";
 import { findPreinstalled, openStorePage, removePreinstalled, type PreinstalledApp } from "../lib/api";
 import { formatBytes } from "../lib/format";
@@ -18,6 +18,11 @@ export function Preinstalled() {
   const [removed, setRemoved] = useState<PreinstalledApp[]>([]);
 
   const chosen = list?.filter((a) => selected.has(a.id)) ?? [];
+
+  // Lancée dès l'ouverture de la page (lecture seule) : pas besoin de cliquer.
+  useEffect(() => {
+    search();
+  }, []);
 
   async function search() {
     setRunning(true);
