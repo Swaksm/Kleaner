@@ -2,6 +2,7 @@ pub mod actions;
 pub mod advice;
 pub mod autostart;
 pub mod catalog;
+pub mod debloat;
 pub mod duplicates;
 pub mod elevation;
 pub mod guard;
@@ -13,6 +14,7 @@ pub mod mft;
 pub mod mover;
 pub mod onedrive;
 pub mod programs;
+pub mod restore;
 pub mod scan;
 pub mod shortcuts;
 pub mod startup;
@@ -173,6 +175,8 @@ struct ScanState {
     /// Conseils : fichiers (installeurs, archives) envoyables à la Corbeille, et jeux Steam désinstallables.
     advice_files: Arc<Mutex<Vec<String>>>,
     advice_games: Arc<Mutex<Vec<u32>>>,
+    /// Applis préinstallées de la dernière liste : (nom complet du paquet, famille pour le Store).
+    preinstalled: Arc<Mutex<Vec<(String, String)>>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -342,6 +346,12 @@ async fn autostart_enabled() -> Result<bool, String> {
 #[tauri::command]
 async fn set_autostart(on: bool) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || autostart::set(on, &journal::data_dir())).await.map_err(|e| e.to_string())?
+}
+
+/// Avant un nettoyage lourd (case cochée par défaut). Sans admin, Windows refuse : l'interface demande quoi faire.
+#[tauri::command]
+async fn create_restore_point() -> Result<restore::Outcome, String> {
+    tauri::async_runtime::spawn_blocking(|| restore::create(&journal::data_dir())).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -791,6 +801,30 @@ async fn remove_ghosts(ids: Vec<String>, state: State<'_, ScanState>) -> Result<
     .map_err(|e| e.to_string())?
 }
 
+/// Applis préinstallées retirables (liste fermée). Lecture seule.
+#[tauri::command]
+async fn find_preinstalled(state: State<'_, ScanState>) -> Result<Vec<debloat::App>, String> {
+    let list = tauri::async_runtime::spawn_blocking(debloat::list).await.map_err(|e| e.to_string())??;
+    *state.preinstalled.lock().unwrap() = list.iter().map(|a| (a.id.clone(), a.family.clone())).collect();
+    Ok(list)
+}
+
+/// Retire pour l'utilisateur courant des applis de la dernière liste (et seulement celles-là).
+#[tauri::command]
+async fn remove_preinstalled(ids: Vec<String>, state: State<'_, ScanState>) -> Result<Vec<debloat::Removed>, String> {
+    let known: Vec<String> = state.preinstalled.lock().unwrap().iter().map(|(id, _)| id.clone()).collect();
+    check_known(&ids, &known)?;
+    tauri::async_runtime::spawn_blocking(move || debloat::remove(&ids, &journal::data_dir())).await.map_err(|e| e.to_string())
+}
+
+/// Page du Store d'une appli de la dernière liste, pour la réinstaller.
+#[tauri::command]
+fn open_store_page(family: String, state: State<ScanState>) -> Result<(), String> {
+    let known: Vec<String> = state.preinstalled.lock().unwrap().iter().map(|(_, f)| f.clone()).collect();
+    check_known(std::slice::from_ref(&family), &known)?;
+    system::open_uri(&debloat::store_uri(&family).ok_or("Refused: not a package family")?)
+}
+
 /// Remet une entrée supprimée par Kleaner, depuis sa sauvegarde `.reg`.
 #[tauri::command]
 async fn restore_ghost(file: String) -> Result<(), String> {
@@ -871,6 +905,7 @@ pub fn run() {
             set_autostart,
             monthly_reminder,
             set_monthly_reminder,
+            create_restore_point,
             list_programs,
             uninstall_program,
             save_report,
@@ -913,6 +948,9 @@ pub fn run() {
             open_system_page,
             find_ghosts,
             remove_ghosts,
+            find_preinstalled,
+            remove_preinstalled,
+            open_store_page,
             restore_ghost
         ])
         .run(tauri::generate_context!())

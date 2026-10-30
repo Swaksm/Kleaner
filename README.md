@@ -29,10 +29,10 @@ Kleaner scans your drives, explains what takes up the space, and cleans what is 
 ## What it does
 
 - **Scan** the drives you choose: free space, largest files and folders, breakdown by type, a disk map. Sort by size, name or date, filter by name, verdict or age. In administrator mode on NTFS, Kleaner reads the file table directly (read-only): about 4 to 10 times faster (2 s instead of 8 to 21 s on a 420 GB system disk).
-- **Cleanup**: 46 built-in items plus about 1100 from the community catalog, each saying what it removes and what changes for you. [Full list](docs/catalog.md).
+- **Cleanup**: 46 built-in items plus about 1100 from the community catalog, each saying what it removes and what changes for you. Heavy cleanups (Windows.old, DISM, CompactOS…) create a Windows restore point first. [Full list](docs/catalog.md).
 - **Tips** (simple rules, no AI): installers downloaded more than 30 days ago, archives already extracted, Steam games not played for 6 months.
 - **Old projects**, **duplicates**, **photos & videos** (with a built-in viewer): free space in the places only you can judge, with a safety net.
-- **Programs**: uninstall with the official uninstaller, real size on disk, last launch date; find leftovers of uninstalled programs and dead entries in the list.
+- **Programs**: uninstall with the official uninstaller, real size on disk, last launch date; find leftovers of uninstalled programs and dead entries in the list; remove preinstalled apps (Candy Crush, News, Xbox…) from a closed list, for your account only, reinstallable from the Store.
 - **Startup**: what starts with Windows and how long the last boots took. Turning an item off deletes nothing and can be undone.
 - **Health & security** (read-only): disks, battery, crashes, pending restart, antivirus, firewall, Secure Boot, BitLocker… Each alert opens the Windows screen that fixes it. Not an antivirus.
 - **Broken shortcuts**, **Cloud** (OneDrive and Dropbox: keep large files online only), **Updates & drivers** (Windows Update and winget, on click).

@@ -430,7 +430,7 @@ pub fn execute(entry: &Cleaner, journal_dir: &Path) -> Result<CleanReport, Strin
 }
 
 /// Entrées `mode: command`, une fonction par `id`. Uniquement des outils Windows officiels.
-mod commands {
+pub(crate) mod commands {
     use super::{CleanReport, Cleaner, resolve, walk_paths};
     use crate::guard;
     use std::os::windows::process::CommandExt;
@@ -466,7 +466,7 @@ mod commands {
         }
     }
 
-    fn powershell(script: &str) -> (bool, String) {
+    pub(crate) fn powershell(script: &str) -> (bool, String) {
         let script = format!("[Console]::OutputEncoding=[Text.Encoding]::UTF8; {script}");
         exec("powershell.exe", &["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", &script])
     }

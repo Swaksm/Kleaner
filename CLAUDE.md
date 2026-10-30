@@ -11,9 +11,10 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - **Fichiers personnels et restes de programmes** : Corbeille uniquement (`guard::check_trash`, restaurable depuis le Journal).
 - **Déplacer vers un autre disque** (`mover.rs`) : seulement un gros dossier de la dernière analyse, strictement dans Bureau, Documents, Téléchargements, Images, Musique ou Vidéos (`guard::check_move`), sans lien, fichier système, fichier en ligne seulement, programme installé ni projet de code (dedans ou autour : `.git`, `Cargo.toml`, `package.json`…). Original renommé (refus s'il est ouvert), copie relue et comparée (blake3), original retiré seulement après ; destination jamais écrasée. Annulable depuis le Journal (`move_back`, seulement un déplacement du journal).
 - **Registre** : aucun nettoyage ni « réparation ». Seulement, sur demande et réversible : `StartupApproved` (démarrage) et la suppression d'une entrée fantôme de la liste des programmes, après sauvegarde `.reg` (SPEC, révision 8).
+- **Applis préinstallées** (`debloat.rs`) : liste fermée `KNOWN` seulement (test `NEVER` : Store, Edge, Photos, Calculatrice, Terminal, Bloc-notes, Paint, Caméra, identité Xbox, extensions, pilotes jamais proposés), compte courant seulement (`Remove-AppxPackage`, jamais les paquets provisionnés), rien de coché d'office, réinstallation par la page du Store.
 - **Liens et jonctions jamais suivis.** Fichiers verrouillés ignorés et comptés.
 - **Chaque action qui modifie le disque** écrit une ligne dans `%LOCALAPPDATA%\Kleaner\journal.log`.
-- **Les commandes qui suppriment** n'acceptent que des éléments trouvés par la dernière liste côté Rust (`ScanState` : trashable = photos, vidéos et candidats doublons, artifacts, leftovers, cloud, apps, startup, shortcuts, ghosts), jamais un chemin libre envoyé par l'interface : passer par `check_known`. Doublons : `keeps_a_copy` refuse d'enlever la dernière copie.
+- **Les commandes qui suppriment** n'acceptent que des éléments trouvés par la dernière liste côté Rust (`ScanState` : trashable = photos, vidéos et candidats doublons, artifacts, leftovers, cloud, apps, startup, shortcuts, ghosts, advice, preinstalled), jamais un chemin libre envoyé par l'interface : passer par `check_known`. Doublons : `keeps_a_copy` refuse d'enlever la dernière copie.
 - **Kleaner ne devine jamais** : sans règle, le verdict est « inconnu ».
 
 ## Architecture
@@ -41,6 +42,8 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `startup.rs` : programmes au démarrage (Run, dossiers, tâches ; services en lecture seule), activation par `StartupApproved`.
 - `shortcuts.rs` : raccourcis `.lnk` cassés.
 - `advice.rs` : page Conseils, règles simples sans IA : installeurs de Téléchargements de plus de 30 jours, archives à côté d'un dossier du même nom, jeux Steam pas lancés depuis 6 mois (`appmanifest_*.acf`, `LastPlayed`). Fichiers → Corbeille (`trash_advice`), jeux → `steam://uninstall/<id>`.
+- `restore.rs` : point de restauration avant un nettoyage lourd (case cochée par défaut ; point de moins de 24 h réutilisé, Windows n'en crée pas plus d'un par jour ; échec → l'interface demande avant de continuer). Journalisé.
+- `debloat.rs` : applis préinstallées du Store (liste fermée, avertissements `debloat.warn.*`), retrait pour le compte courant, journalisé (`remove-app`).
 - `health.rs` : santé et sécurité en lecture seule ; `PAGES` = liste fermée des écrans Windows ouvrables.
 - `programs.rs` gère aussi les entrées fantômes (`ghosts`, `remove_ghost`, `restore_ghost`).
 
@@ -91,7 +94,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 
 - **SignPath** : refusé pour l'instant (il faut plus d'étoiles et de visibilité) ; README sans mention de signature. À redemander plus tard. Une fois acceptée : projet `kleaner`, politique `release-signing`, configuration `portable-exe`, secret et variable dans GitHub (`docs/signing.md`).
 - **E2E en CI** : en lancement manuel. Sur les machines GitHub, WebView2 n'ouvre pas son port de débogage (« DevToolsActivePort file doesn't exist ») alors que l'exe démarre. En local, tout passe.
-- **Jamais testés en vrai** : nettoyages lourds (Windows.old, DISM, hibernation, points de restauration, CompactOS), recherche Windows Update, mise à jour d'une appli par winget, restauration et OneDrive dans l'exe.
+- **Jamais testés en vrai** : nettoyages lourds (Windows.old, DISM, hibernation, points de restauration, CompactOS), création d'un point de restauration avant nettoyage lourd, retrait d'une appli préinstallée, recherche Windows Update, mise à jour d'une appli par winget, restauration et OneDrive dans l'exe.
 - **Scan rapide NTFS** : vérifié sur le vrai C: (2 s contre 8 à 21 s, écart 3 % d'espace dû aux recouvrements MSIX). Pas vérifié : volumes avec secteurs de 4 Ko, MFT très fragmentée, exFAT/ReFS (retombent sur le classique).
 - **Feuille de route v0.3+ réalisée** (T18 à T22, `SPEC.md` révision 8) : démarrage, raccourcis cassés, santé et sécurité, entrées fantômes, Dropbox. Jamais testés dans l'exe : désactivation d'un élément de démarrage, suppression d'une entrée fantôme, durées de démarrage (admin). Pas de « nettoyage du registre » ni de « boosts ».
 - **Installateur et assistant** (issue #2) : setup NSIS, assistant au premier lancement (`Setup.tsx` : langue, thème, mises à jour, démarrage avec Windows). Jamais testés en vrai : installation/désinstallation, création de la tâche de démarrage, lancement réduit.

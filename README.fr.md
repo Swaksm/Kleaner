@@ -29,10 +29,10 @@ Kleaner analyse tes disques, explique ce qui prend la place, et nettoie ce qui e
 ## Ce que fait Kleaner
 
 - **Analyse** les disques que tu choisis : espace libre, plus gros fichiers et dossiers, répartition par type, carte du disque. Tri par taille, nom ou date, filtres par nom, verdict ou ancienneté. En mode administrateur sur NTFS, Kleaner lit directement la table des fichiers (en lecture seule) : environ 4 à 10 fois plus vite (2 s au lieu de 8 à 21 s sur un disque système de 420 Go).
-- **Nettoyage** : 46 éléments intégrés et environ 1100 du catalogue communautaire, chacun disant ce qu'il supprime et ce que ça change. [Liste complète](docs/catalog.fr.md).
+- **Nettoyage** : 46 éléments intégrés et environ 1100 du catalogue communautaire, chacun disant ce qu'il supprime et ce que ça change. Les nettoyages lourds (Windows.old, DISM, CompactOS…) créent d'abord un point de restauration Windows. [Liste complète](docs/catalog.fr.md).
 - **Conseils** (règles simples, sans IA) : installeurs téléchargés il y a plus de 30 jours, archives déjà extraites, jeux Steam pas lancés depuis 6 mois.
 - **Vieux projets**, **doublons**, **photos et vidéos** (avec visionneuse intégrée) : libère de la place là où toi seul peux juger, avec un filet de sécurité.
-- **Programmes** : désinstallation par le désinstalleur officiel, taille réelle, date du dernier lancement ; retrouve les restes de programmes désinstallés et les entrées mortes de la liste.
+- **Programmes** : désinstallation par le désinstalleur officiel, taille réelle, date du dernier lancement ; retrouve les restes de programmes désinstallés et les entrées mortes de la liste ; retire les applis préinstallées (Candy Crush, Actualités, Xbox…) d'une liste fermée, pour ton compte seulement, réinstallables depuis le Store.
 - **Démarrage** : ce qui se lance avec Windows et la durée des derniers démarrages. Désactiver un élément ne supprime rien et se défait.
 - **Santé et sécurité** (lecture seule) : disques, batterie, plantages, redémarrage en attente, antivirus, pare-feu, Secure Boot, BitLocker… Chaque alerte ouvre l'écran de Windows qui la règle. Pas un antivirus.
 - **Raccourcis cassés**, **Cloud** (OneDrive et Dropbox : garder les gros fichiers en ligne uniquement), **Mises à jour et pilotes** (Windows Update et winget, sur clic).

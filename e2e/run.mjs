@@ -165,6 +165,15 @@ try {
     await (await b.$("p=No ghost entry found.")).waitForExist({ timeout: 60_000 }).catch(() => {});
   });
 
+  await step("applis préinstallées : liste en lecture seule", async () => {
+    await nav("Programs");
+    await (await inContent("button=Find preinstalled apps")).click();
+    await b.waitUntil(
+      async () => (await b.$$(".grid-preinstalled li")).length > 0 || (await (await b.$("p=No app from the list is installed.")).isExisting()),
+      { timeout: 60_000, timeoutMsg: "ni liste ni message « aucune appli »" },
+    );
+  });
+
   await step("conseils : recherche en lecture seule", async () => {
     await nav("Tips");
     await (await inContent("button=Find tips")).click();

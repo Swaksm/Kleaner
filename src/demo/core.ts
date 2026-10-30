@@ -45,6 +45,16 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
         { kind: "archive", path: "C:\\Users\\alex\\Downloads\\photos-vacances.zip", name: "photos-vacances.zip", size: 2_150_000_000, modified: 1_758_000_000, app_id: null },
         { kind: "installer", path: "C:\\Users\\alex\\Downloads\\VSCodeUserSetup-x64.exe", name: "VSCodeUserSetup-x64.exe", size: 98_000_000, modified: 1_752_000_000, app_id: null },
       ]);
+    case "find_preinstalled":
+      return ok([
+        { id: "king.com.CandyCrushSaga_1.0_x86__kgqvnymyfvs32", name: "Candy Crush (King)", package: "king.com.CandyCrushSaga", family: "king.com.CandyCrushSaga_kgqvnymyfvs32", size: 210_000_000, warn: null },
+        { id: "Microsoft.BingNews_4.0_x64__8wekyb3d8bbwe", name: "Microsoft News", package: "Microsoft.BingNews", family: "Microsoft.BingNews_8wekyb3d8bbwe", size: 30_000_000, warn: null },
+        { id: "Microsoft.GamingApp_2.0_x64__8wekyb3d8bbwe", name: "Xbox", package: "Microsoft.GamingApp", family: "Microsoft.GamingApp_8wekyb3d8bbwe", size: 320_000_000, warn: "xbox" },
+      ]);
+    case "remove_preinstalled":
+      return ok((args.ids as string[]).map((id) => ({ id, error: null })));
+    case "open_store_page":
+      return ok(undefined);
     case "freed_total":
       return ok([51_800_000_000, 1_790_000_000]);
     case "read_journal":

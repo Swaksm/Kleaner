@@ -1443,6 +1443,10 @@ select {
   grid-template-columns: minmax(0, 1fr) 160px 110px;
 }
 
+.items.grid-preinstalled li {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 /* Sortie d'une commande (winget…) */
 pre.log {
   margin: 0;

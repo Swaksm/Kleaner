@@ -93,6 +93,8 @@ export type CleanersView = { elevated: boolean; cleaners: Cleaner[] };
 export const listCleaners = () => call<CleanersView>("list_cleaners");
 export const estimateCleaners = () => call<CleanReport[]>("estimate_cleaners");
 export const runCleaners = (ids: string[]) => call<CleanReport[]>("run_cleaners", { ids });
+export type RestorePoint = { status: "created" } | { status: "recent"; ts: number } | { status: "failed"; detail: string };
+export const createRestorePoint = () => call<RestorePoint>("create_restore_point");
 export const relaunchAdmin = () => call<void>("relaunch_admin");
 export const isElevated = () => call<boolean>("is_elevated");
 export const isInstalled = () => call<boolean>("is_installed");
@@ -243,6 +245,11 @@ export type Advice = { kind: "installer" | "archive" | "game"; path: string; nam
 export const findAdvice = () => call<Advice[]>("find_advice");
 export const trashAdvice = (paths: string[]) => call<ActionReport>("trash_advice", { paths });
 export const uninstallSteamGame = (appId: number) => call<void>("uninstall_steam_game", { appId });
+
+export type PreinstalledApp = { id: string; name: string; package: string; family: string; size: number; warn: string | null };
+export const findPreinstalled = () => call<PreinstalledApp[]>("find_preinstalled");
+export const removePreinstalled = (ids: string[]) => call<{ id: string; error: string | null }[]>("remove_preinstalled", { ids });
+export const openStorePage = (family: string) => call<void>("open_store_page", { family });
 
 export type HealthItem = {
   id: string;

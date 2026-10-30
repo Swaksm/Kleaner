@@ -10,6 +10,8 @@ import { Skeleton } from "../components/Skeleton";
 import { StatusPill } from "../components/StatusPill";
 import { useT, type Key } from "../i18n/useT";
 import {
+  createRestorePoint,
+  type RestorePoint,
   estimateCleaners,
   listCleaners,
   listDrives,
@@ -35,6 +37,12 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
   const [preview, setPreview] = useState(false);
   const [heavy, setHeavy] = useState<Cleaner | null>(null);
   const [heavyAck, setHeavyAck] = useState(false);
+  // Point de restauration avant un nettoyage lourd : coché par défaut.
+  const [restoreFirst, setRestoreFirst] = useState(true);
+  const [restoring, setRestoring] = useState(false);
+  const [restore, setRestore] = useState<RestorePoint | null>(null);
+  // Point impossible : on demande avant de lancer le nettoyage lourd.
+  const [noRestore, setNoRestore] = useState<{ id: string; detail: string } | null>(null);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<CleanReport[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -117,6 +125,19 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
     } finally {
       setRunning(false);
     }
+  }
+
+  async function runHeavy(id: string) {
+    setRestore(null);
+    if (!restoreFirst) return run([id]);
+    setHeavy(null);
+    setHeavyAck(false);
+    setRestoring(true);
+    const point = await createRestorePoint().catch((e): RestorePoint => ({ status: "failed", detail: String(e) }));
+    setRestoring(false);
+    setRestore(point);
+    if (point.status === "failed") setNoRestore({ id, detail: point.detail });
+    else await run([id]);
   }
 
   if (!view) return error ? <StatusPill status="danger">{error}</StatusPill> : <Skeleton lines={6} />;
@@ -236,6 +257,13 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
             ))}
           </ul>
           {results.some((r) => r.skipped > 0) && <p className="muted">{t("cleanup.skippedWhy")}</p>}
+          {restore && restore.status !== "failed" && (
+            <StatusPill status="ok">
+              {restore.status === "created"
+                ? t("cleanup.restoreCreated")
+                : `${t("cleanup.restoreRecent")} ${new Date(restore.ts * 1000).toLocaleString(lang)}`}
+            </StatusPill>
+          )}
         </Card>
       )}
 
@@ -274,11 +302,16 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
 
       <Card title={t("group.heavy")}>
         <p className="muted">{t("cleanup.heavyIntro")}</p>
+        {restoring && (
+          <span className="loading" role="status">
+            <span className="spinner" aria-hidden /> {t("cleanup.restoring")}
+          </span>
+        )}
         {view.cleaners
           .filter((c) => c.level === "heavy")
           .map((c) => (
             <CleanerCard key={c.id} cleaner={c} report={estimates?.get(c.id)} locked={lockReason(c)}>
-              <button className="btn btn-danger" disabled={!!lockReason(c) || running} onClick={() => setHeavy(c)}>
+              <button className="btn btn-danger" disabled={!!lockReason(c) || running || restoring} onClick={() => setHeavy(c)}>
                 {t("cleanup.heavyRun")}
               </button>
             </CleanerCard>
@@ -325,7 +358,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
         cancelLabel={t("common.cancel")}
         danger
         confirmDisabled={!heavyAck}
-        onConfirm={() => heavy && run([heavy.id])}
+        onConfirm={() => heavy && runHeavy(heavy.id)}
         onCancel={() => {
           setHeavy(null);
           setHeavyAck(false);
@@ -341,8 +374,30 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
               {t("cleanup.heavyAck")}
             </label>
             {!heavyAck && <p className="muted">{t("cleanup.heavyAckHint")}</p>}
+            <label className="check">
+              <input type="checkbox" checked={restoreFirst} onChange={(e) => setRestoreFirst(e.target.checked)} />
+              {t("cleanup.restoreFirst")}
+            </label>
+            <p className="muted small">{t("cleanup.restoreHint")}</p>
           </>
         )}
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={noRestore !== null}
+        title={t("cleanup.noRestoreTitle")}
+        confirmLabel={t("cleanup.noRestoreContinue")}
+        cancelLabel={t("common.cancel")}
+        danger
+        onConfirm={() => {
+          const id = noRestore!.id;
+          setNoRestore(null);
+          run([id]);
+        }}
+        onCancel={() => setNoRestore(null)}
+      >
+        <p>{t("cleanup.noRestore")}</p>
+        {noRestore && <code>{noRestore.detail.split("\n").filter(Boolean).pop()}</code>}
       </ConfirmDialog>
     </>
   );

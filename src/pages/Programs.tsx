@@ -4,6 +4,7 @@ import { Card } from "../components/Card";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Ghosts } from "../components/Ghosts";
 import { Leftovers } from "../components/Leftovers";
+import { Preinstalled } from "../components/Preinstalled";
 import { SortHeader, type HeaderCell } from "../components/SortHeader";
 import { StatusPill } from "../components/StatusPill";
 import { useT } from "../i18n/useT";
@@ -183,6 +184,7 @@ export function Programs() {
       {/* Avant la longue liste : sinon on ne la voit pas. */}
       <Leftovers />
       <Ghosts onChange={load} />
+      <Preinstalled />
 
       <Card>
         {real === null && (
