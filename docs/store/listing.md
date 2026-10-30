@@ -37,6 +37,7 @@ WHAT IT DOES
 • Old projects (node_modules, .venv, target…), duplicates, photos and videos.
 • Programs: uninstall with the official uninstaller, real size, last launch, leftovers of uninstalled programs.
 • Startup: what starts with Windows; turning an item off can be undone.
+• Tips (old installers, archives already extracted, forgotten games), preinstalled apps removed for your account only, a restore point before heavy cleanups.
 • Health and security check-up (read-only): disks, battery, antivirus, firewall, BitLocker, pending restart.
 • Broken shortcuts, OneDrive and Dropbox files kept online only, Windows Update and app updates on click.
 • 8 languages, light and dark themes.
@@ -97,6 +98,7 @@ CE QU'IL FAIT
 • Vieux projets (node_modules, .venv, target…), doublons, photos et vidéos.
 • Programmes : désinstallation avec le désinstalleur officiel, taille réelle, dernier lancement, restes de programmes désinstallés.
 • Démarrage : ce qui se lance avec Windows ; désactiver un élément est réversible.
+• Conseils (vieux installeurs, archives déjà extraites, jeux oubliés), applis préinstallées retirées pour ton compte seulement, point de restauration avant les nettoyages lourds.
 • Bilan santé et sécurité (lecture seule) : disques, batterie, antivirus, pare-feu, BitLocker, redémarrage en attente.
 • Raccourcis cassés, fichiers OneDrive et Dropbox gardés en ligne seulement, Windows Update et mises à jour des applis sur clic.
 • 8 langues, thèmes clair et sombre.
