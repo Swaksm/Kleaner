@@ -10,7 +10,7 @@
 
 **[Download Kleaner for Windows 10 and 11](https://swaks.org/kleaner/)** (installer or portable version, free).
 
-![Every big file and folder gets a verdict](docs/img/verdicts.png)
+![Kleaner in 30 seconds: scan, a verdict on every big file, a risk-free cleanup](docs/img/demo.gif)
 
 Kleaner scans your drives, explains what takes up the space, and cleans what is safe: caches, temporary files, leftovers of uninstalled programs, old project folders. You stay logged in everywhere and lose no files or settings. Free, open source (MIT), no account, no ads, no telemetry.
 

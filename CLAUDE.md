@@ -59,6 +59,7 @@ npm run tauri build -- --no-bundle            # exe release
 npm run tauri build -- --debug --no-bundle    # exe debug pour l'E2E
 node e2e/run.mjs <kleaner.exe> <msedgedriver.exe>   # E2E sur le vrai exe (tauri-driver installé)
 npm run demo:build && npm run demo:shots   # captures du README (mode demo, fausses données, Chrome sans fenêtre)
+npm run demo:build && npm run demo:gif     # GIF du README (docs/img/demo.gif, ffmpeg requis : FFMPEG=<chemin> sinon)
 ```
 
 Mode demo (`src/demo/`, `vite --mode demo`) : remplace Tauri par des données fictives (vraies règles de `knowledge.json` pour les verdicts). Jamais dans l'exe. Paramètres d'adresse : `page`, `lang`, `theme`, `autoscan`, `scroll`. Modifier l'interface ou les règles : relancer les captures.

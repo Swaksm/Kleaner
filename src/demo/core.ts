@@ -19,6 +19,8 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
       return ok({ elevated: false, cleaners: cleaners() });
     case "estimate_cleaners":
       return ok(estimates());
+    case "run_cleaners":
+      return ok(estimates().filter((r) => (args.ids as string[]).includes(r.id)));
     case "find_leftovers":
       return ok(leftovers());
     case "list_startup":
