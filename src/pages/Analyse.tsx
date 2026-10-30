@@ -246,40 +246,42 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
         </div>
       )}
 
-      <Card title={t("analyse.categories")}>
-        <Donut
-          centerLabel={t("analyse.total")}
-          centerValue={formatBytes(r.bytes + free, lang)}
-          slices={[
-            ...[...r.categories]
-              .sort((a, b) => b.bytes - a.bytes)
-              .map((c) => ({
-                key: c.category,
-                label: t(`cat.${c.category}` as Key),
-                value: c.bytes,
-                display: formatBytes(c.bytes, lang),
-                // Couleur fixée par catégorie, pas par rang.
-                slot: CATEGORY_ORDER.indexOf(c.category) + 1,
-              })),
-            // Espace libre en dernier, en gris neutre.
-            { key: "free", label: t("analyse.free"), value: free, display: formatBytes(free, lang), slot: 7 },
-          ]}
-        />
-      </Card>
+      {/* Côte à côte quand la fenêtre est assez large. */}
+      <div className="duo">
+        <Card title={t("analyse.categories")}>
+          <Donut
+            centerLabel={t("analyse.total")}
+            centerValue={formatBytes(r.bytes + free, lang)}
+            slices={[
+              ...[...r.categories]
+                .sort((a, b) => b.bytes - a.bytes)
+                .map((c) => ({
+                  key: c.category,
+                  label: t(`cat.${c.category}` as Key),
+                  value: c.bytes,
+                  display: formatBytes(c.bytes, lang),
+                  // Couleur fixée par catégorie, pas par rang.
+                  slot: CATEGORY_ORDER.indexOf(c.category) + 1,
+                })),
+              // Espace libre en dernier, en gris neutre.
+              { key: "free", label: t("analyse.free"), value: free, display: formatBytes(free, lang), slot: 7 },
+            ]}
+          />
+        </Card>
+        <Card title={t("analyse.topDirsChart")}>
+          {r.top_dirs.slice(0, 10).map((d) => (
+            <SizeBar
+              key={d.path}
+              label={d.path}
+              value={formatBytes(d.size, lang)}
+              ratio={d.size / Math.max(1, r.top_dirs[0]?.size ?? 1)}
+            />
+          ))}
+        </Card>
+      </div>
 
       <Card title={t("map.title")}>
         <DiskMap scan={r} />
-      </Card>
-
-      <Card title={t("analyse.topDirsChart")}>
-        {r.top_dirs.slice(0, 10).map((d) => (
-          <SizeBar
-            key={d.path}
-            label={d.path}
-            value={formatBytes(d.size, lang)}
-            ratio={d.size / Math.max(1, r.top_dirs[0]?.size ?? 1)}
-          />
-        ))}
       </Card>
 
       <Card>

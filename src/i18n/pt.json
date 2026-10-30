@@ -490,6 +490,8 @@
   "error.admin": "São necessários direitos de administrador: use «Análise completa (admin)».",
   "updates.wingetFailed": "O winget não atualizou tudo. Detalhes:",
   "cleanup.ticked": "marcados",
+  "fold.found": "{n} encontrado(s)",
+  "fold.searching": "A procurar…",
   "home.gained": "O Kleaner liberou {size} desde {date}.",
   "update.install": "Instalar a atualização",
   "update.installing": "Baixando e verificando a atualização…",

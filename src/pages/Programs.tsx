@@ -115,8 +115,8 @@ export function Programs() {
     }
   }
 
-  // Colonnes : nom, éditeur, installé, dernier lancement, [mesurée], [déclarée], action.
-  const cols = ["minmax(140px, 1fr)", "120px", "80px", "84px", ...(showMeasured ? ["78px"] : []), ...(showDeclared ? ["78px"] : []), "100px"].join(" ");
+  // Colonnes : nom et éditeur, installé, dernier lancement, [mesurée], [déclarée], action.
+  const cols = ["minmax(110px, 1fr)", "72px", "76px", ...(showMeasured ? ["72px"] : []), ...(showDeclared ? ["72px"] : []), "104px"].join(" ");
   const q = query.trim().toLowerCase();
   const shown =
     programs &&
@@ -198,8 +198,7 @@ export function Programs() {
           <ul className="items programs" style={{ ["--cols" as string]: cols }}>
             <SortHeader
               cells={[
-                { sorts: [["name", t("sort.name"), false]] },
-                { sorts: [["publisher", t("sort.publisher"), false]] },
+                { sorts: [["name", t("sort.name"), false], ["publisher", t("sort.publisher"), false]] },
                 { sorts: [["date", t("programs.installed"), true]] },
                 { sorts: [["used", t("programs.lastUsed"), true]] },
                 ...(showMeasured ? [{ sorts: [["measured", t("programs.measured"), true]], end: true } as HeaderCell<SortKey>] : []),
@@ -213,16 +212,16 @@ export function Programs() {
               <li key={p.id}>
                 <div className="program">
                   <strong>{p.name}</strong>
+                  {/* Éditeur et version sous le nom : une colonne de moins, pas de défilement horizontal. */}
+                  <span className="muted small cell-clip" title={p.publisher}>
+                    {[p.publisher, p.version].filter(Boolean).join(" · ") || "—"}
+                  </span>
                   {p.location && (
                     <span className="muted path small" title={p.location}>
                       {p.location}
                     </span>
                   )}
                 </div>
-                <span className="muted small cell-clip" title={p.publisher}>
-                  {p.publisher || "—"}
-                  {p.version && <span className="block">{p.version}</span>}
-                </span>
                 <span className="muted small">{formatInstallDate(p.install_date, lang) || "—"}</span>
                 <span className="muted small" title={elevated ? "" : t("programs.lastUsedAdmin")}>
                   {lastUsed.has(p.id) ? formatDay(lastUsed.get(p.id)!, lang) : "—"}

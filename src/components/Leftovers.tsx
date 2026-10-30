@@ -64,7 +64,10 @@ export function Leftovers({ program }: { program?: { name: string; list: Leftove
   const total = (l: Leftover[]) => l.reduce((s, x) => s + x.size, 0);
 
   return (
-    <Card title={program ? t("leftovers.forTitle").replace("{name}", program.name) : t("leftovers.title")}>
+    <Card
+      title={program ? t("leftovers.forTitle").replace("{name}", program.name) : t("leftovers.title")}
+      fold={program ? undefined : { id: "leftovers", summary: running && !list ? t("fold.searching") : list && `${t("fold.found").replace("{n}", String(list.length))} · ${formatBytes(total(list), lang)}` }}
+    >
       <p>{program ? t("leftovers.forIntro").replace("{name}", program.name) : t("leftovers.intro")}</p>
       <div className="row">
         {!program && (

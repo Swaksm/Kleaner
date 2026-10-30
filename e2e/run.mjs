@@ -80,7 +80,8 @@ try {
   });
 
   await step("restes de programmes : recherche", async () => {
-    await (await b.$("button=Find leftovers")).click();
+    // Lancée à l'ouverture de la page, dans une carte repliable.
+    await b.waitUntil(async () => /found|Searching/.test(await (await b.$("details.fold summary")).getText()), { timeout: 60_000, timeoutMsg: "pas de résumé" });
     await b.waitUntil(async () => !(await (await b.$(".loading")).isExisting()), { timeout: 60_000 });
   });
 

@@ -490,6 +490,8 @@
   "error.admin": "Les droits administrateur sont nécessaires : utilise « Analyse complète (admin) ».",
   "updates.wingetFailed": "winget n'a pas tout mis à jour. Détail :",
   "cleanup.ticked": "cochés",
+  "fold.found": "{n} trouvé(s)",
+  "fold.searching": "Recherche…",
   "home.gained": "Kleaner t’a fait gagner {size} depuis le {date}.",
   "update.install": "Installer la mise à jour",
   "update.installing": "Téléchargement et vérification de la mise à jour…",

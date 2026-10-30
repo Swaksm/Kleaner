@@ -490,6 +490,8 @@
   "error.admin": "Administrator rights are needed: use “Full scan (admin)”.",
   "updates.wingetFailed": "winget did not update everything. Details:",
   "cleanup.ticked": "ticked",
+  "fold.found": "{n} found",
+  "fold.searching": "Searching…",
   "home.gained": "Kleaner has freed {size} since {date}.",
   "update.install": "Install the update",
   "update.installing": "Downloading and checking the update…",

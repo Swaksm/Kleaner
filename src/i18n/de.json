@@ -490,6 +490,8 @@
   "error.admin": "Administratorrechte sind nötig: Nutze „Vollständige Analyse (Admin)“.",
   "updates.wingetFailed": "winget hat nicht alles aktualisiert. Details:",
   "cleanup.ticked": "angehakt",
+  "fold.found": "{n} gefunden",
+  "fold.searching": "Suche…",
   "home.gained": "Kleaner hat seit dem {date} {size} freigegeben.",
   "update.install": "Update installieren",
   "update.installing": "Update wird heruntergeladen und geprüft…",

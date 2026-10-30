@@ -490,6 +490,8 @@
   "error.admin": "需要管理员权限：请使用“完整扫描（管理员）”。",
   "updates.wingetFailed": "winget 没有完成全部更新。详情：",
   "cleanup.ticked": "项已勾选",
+  "fold.found": "找到 {n} 个",
+  "fold.searching": "正在查找…",
   "home.gained": "自 {date} 起，Kleaner 已为你释放 {size}。",
   "update.install": "安装更新",
   "update.installing": "正在下载并校验更新…",

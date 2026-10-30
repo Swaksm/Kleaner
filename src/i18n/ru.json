@@ -490,6 +490,8 @@
   "error.admin": "Нужны права администратора: используйте «Полный анализ (администратор)».",
   "updates.wingetFailed": "winget обновил не всё. Подробности:",
   "cleanup.ticked": "отмечено",
+  "fold.found": "Найдено: {n}",
+  "fold.searching": "Поиск…",
   "home.gained": "Kleaner освободил {size} с {date}.",
   "update.install": "Установить обновление",
   "update.installing": "Загружаем и проверяем обновление…",

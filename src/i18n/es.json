@@ -490,6 +490,8 @@
   "error.admin": "Se necesitan permisos de administrador: usa «Análisis completo (admin)».",
   "updates.wingetFailed": "winget no actualizó todo. Detalle:",
   "cleanup.ticked": "marcados",
+  "fold.found": "{n} encontrado(s)",
+  "fold.searching": "Buscando…",
   "home.gained": "Kleaner ha liberado {size} desde el {date}.",
   "update.install": "Instalar la actualización",
   "update.installing": "Descargando y comprobando la actualización…",

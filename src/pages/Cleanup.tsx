@@ -281,8 +281,11 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
         const empty = (c: Cleaner) => !!estimates && !(c.admin && !view.elevated) && (estimates.get(c.id)?.bytes ?? 0) === 0;
         const items = showEmpty ? all : all.filter((c) => !empty(c));
         if (all.length === 0) return null;
+        const bytes = items.reduce((n, c) => n + (estimates?.get(c.id)?.bytes ?? 0), 0);
+        const ticked = items.filter((c) => selected.has(c.id)).length;
+        const summary = [estimates && formatBytes(bytes, lang), ticked > 0 && `${ticked} ${t("cleanup.ticked")}`].filter(Boolean).join(" · ");
         return (
-          <Card key={g} title={t(`group.${g}` as Key)}>
+          <Card key={g} title={t(`group.${g}` as Key)} fold={{ id: `cleanup-${g}`, summary }}>
             {g === "community" && <p className="muted">{t("cleanup.communityIntro")}</p>}
             {items.length === 0 && <p className="muted">{t("cleanup.nothing")}</p>}
             {items.map((c) => (
@@ -300,7 +303,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
         );
       })}
 
-      <Card title={t("group.heavy")}>
+      <Card title={t("group.heavy")} fold={{ id: "cleanup-heavy" }}>
         <p className="muted">{t("cleanup.heavyIntro")}</p>
         {restoring && (
           <span className="loading" role="status">

@@ -68,7 +68,7 @@ export function Preinstalled() {
   }
 
   return (
-    <Card title={t("debloat.title")}>
+    <Card title={t("debloat.title")} fold={{ id: "preinstalled", summary: running && !list ? t("fold.searching") : list ? t("fold.found").replace("{n}", String(list.length)) : null }}>
       <p>{t("debloat.intro")}</p>
       <div className="row">
         <button className="btn btn-primary" disabled={running} onClick={search}>

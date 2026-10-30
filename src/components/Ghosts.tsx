@@ -57,7 +57,7 @@ export function Ghosts({ onChange }: { onChange: () => void }) {
   }
 
   return (
-    <Card title={t("ghosts.title")}>
+    <Card title={t("ghosts.title")} fold={{ id: "ghosts", summary: running && !list ? t("fold.searching") : list ? t("fold.found").replace("{n}", String(list.length)) : null }}>
       <p>{t("ghosts.intro")}</p>
       <div className="row">
         <button className="btn btn-primary" disabled={running} onClick={search}>
