@@ -283,7 +283,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
         if (all.length === 0) return null;
         const bytes = items.reduce((n, c) => n + (estimates?.get(c.id)?.bytes ?? 0), 0);
         const ticked = items.filter((c) => selected.has(c.id)).length;
-        const summary = [estimates && formatBytes(bytes, lang), ticked > 0 && `${ticked} ${t("cleanup.ticked")}`].filter(Boolean).join(" · ");
+        const summary = [bytes > 0 && formatBytes(bytes, lang), ticked > 0 && `${ticked} ${t("cleanup.ticked")}`].filter(Boolean).join(" · ");
         return (
           <Card key={g} title={t(`group.${g}` as Key)} fold={{ id: `cleanup-${g}`, summary }}>
             {g === "community" && <p className="muted">{t("cleanup.communityIntro")}</p>}

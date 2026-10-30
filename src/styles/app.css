@@ -214,7 +214,16 @@ html.mica .sidebar {
   gap: 10px;
 }
 
-/* Carte repliable : titre + résumé sur une ligne, flèche qui tourne */
+/* Carte repliable : titre + résumé sur une ligne, flèche qui tourne. Fermée : rien que la ligne de titre. */
+.fold {
+  padding: 0 24px;
+}
+.fold:not([open]) {
+  gap: 0;
+}
+.fold[open] {
+  padding-bottom: 20px;
+}
 .fold > summary {
   display: flex;
   align-items: baseline;
@@ -222,8 +231,8 @@ html.mica .sidebar {
   gap: 4px 12px;
   cursor: pointer;
   list-style: none;
-  margin: -20px -24px;
-  padding: 20px 24px 20px 46px;
+  margin: 0 -24px;
+  padding: 18px 24px 18px 46px;
   border-radius: var(--radius-card);
   position: relative;
 }
@@ -234,7 +243,7 @@ html.mica .sidebar {
   content: "";
   position: absolute;
   left: 24px;
-  top: 25px;
+  top: 23px;
   width: 7px;
   height: 7px;
   border-right: 2px solid var(--muted);
@@ -253,7 +262,6 @@ html.mica .sidebar {
   outline-offset: -2px;
 }
 .fold[open] > summary {
-  margin-bottom: 0;
   padding-bottom: 8px;
 }
 .fold-summary {
