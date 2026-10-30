@@ -47,11 +47,27 @@
 - [ ] Hibernation : `hiberfil.sys` disparu, `powercfg /hibernate on` le rétablit.
 - [ ] Points de restauration : il en reste exactement un (le plus récent).
 - [ ] Corbeille : vidée après la double confirmation.
+- [ ] Case « Créer d'abord un point de restauration » cochée : un point « Kleaner » apparaît dans `rstrui` (ou le message « point de moins de 24 h déjà présent ») ; ligne `restore-point` dans le Journal.
+- [ ] Protection du système coupée sur C: : la question « Continuer sans ? » s'affiche ; Annuler ne lance rien.
+- [ ] CompactOS : se termine (10 à 30 min), l'espace gagné est affiché, Windows démarre ; `compact /CompactOS:never` l'annule.
 
 ## Programmes
 
 - [ ] Liste triée par taille, recherche fonctionnelle.
 - [ ] Désinstaller un petit programme (ex. 7-Zip) : le désinstalleur officiel s'ouvre, le programme disparaît après rafraîchissement.
+- [ ] Applis préinstallées : la liste ne contient ni Store, ni Edge, ni Photos, ni Calculatrice ; rien n'est coché.
+- [ ] Retirer Solitaire : il disparaît du menu Démarrer, ligne `remove-app` dans le Journal ; « Ouvrir dans le Store » ouvre sa page et la réinstallation marche.
+
+## Conseils
+
+- [ ] Placer un vieil installeur dans Téléchargements (date > 30 jours) et un `photos.zip` à côté d'un dossier `photos` : tous deux listés.
+- [ ] Les envoyer à la Corbeille, puis les restaurer depuis le Journal.
+- [ ] Steam installé avec un jeu pas lancé depuis 6 mois : « Désinstaller avec Steam » ouvre la confirmation de Steam.
+
+## Paramètres et rappel
+
+- [ ] La case du rappel mensuel se coche et se décoche, et reste après une relance.
+- [ ] Démarrage avec Windows activé, fichier `%LOCALAPPDATA%\Kleaner\reminder` supprimé : 30 min après l'ouverture de session, la notification « Place à libérer » s'affiche (si plus de 1 Go), pas avant.
 
 ## Fin
 
