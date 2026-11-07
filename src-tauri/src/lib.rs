@@ -299,12 +299,30 @@ async fn estimate_cleaners() -> Result<Vec<catalog::CleanReport>, String> {
     .map_err(|e| e.to_string())
 }
 
+/// Arrêt demandé depuis la fenêtre d'attente : les nettoyages pas encore commencés ne sont pas lancés.
+static CLEAN_STOP: AtomicBool = AtomicBool::new(false);
+
+#[derive(Serialize, Clone)]
+struct ActionProgress {
+    done: usize,
+    total: usize,
+    label: String,
+}
+
+/// Événement `action-progress` avant chaque nettoyage. Rend seulement les rapports des nettoyages lancés.
 #[tauri::command]
-async fn run_cleaners(ids: Vec<String>) -> Result<Vec<catalog::CleanReport>, String> {
+async fn run_cleaners(app: tauri::AppHandle, ids: Vec<String>) -> Result<Vec<catalog::CleanReport>, String> {
+    CLEAN_STOP.store(false, Relaxed);
     tauri::async_runtime::spawn_blocking(move || {
         let dir = journal::data_dir();
+        let total = ids.len();
         ids.iter()
-            .map(|id| match catalog::get(id) {
+            .enumerate()
+            .take_while(|_| !CLEAN_STOP.load(Relaxed))
+            .inspect(|(done, id)| {
+                let _ = app.emit("action-progress", ActionProgress { done: *done, total, label: id.to_string() });
+            })
+            .map(|(_, id)| match catalog::get(id) {
                 None => catalog::CleanReport { id: id.clone(), error: Some("Unknown item".into()), ..Default::default() },
                 Some(c) => catalog::execute(c, &dir).unwrap_or_else(|e| catalog::CleanReport {
                     id: id.clone(),
@@ -316,6 +334,11 @@ async fn run_cleaners(ids: Vec<String>) -> Result<Vec<catalog::CleanReport>, Str
     })
     .await
     .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn cancel_action() {
+    CLEAN_STOP.store(true, Relaxed);
 }
 
 /// Relance Kleaner en admin puis ferme cette instance. Si l'UAC est refusé, on reste ouvert.
@@ -899,6 +922,7 @@ pub fn run() {
             list_cleaners,
             estimate_cleaners,
             run_cleaners,
+            cancel_action,
             relaunch_admin,
             mica,
             autostart_enabled,

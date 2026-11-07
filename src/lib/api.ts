@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { friendlyError } from "./errors";
 import { listen } from "@tauri-apps/api/event";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
+import { withBusy } from "./busy";
 
 /** `invoke` avec les erreurs connues traduites dans la langue de l'interface. */
 function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
@@ -10,6 +11,9 @@ function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
     throw friendlyError(String(e));
   });
 }
+
+/** Action qui modifie le disque : la fenêtre d'attente fige l'appli jusqu'à la fin. */
+const busy = <T>(cmd: string, args?: Record<string, unknown>) => withBusy(() => call<T>(cmd, args));
 
 export type JournalEntry = {
   ts: number;
@@ -56,7 +60,7 @@ export const cancelScan = () => call<void>("cancel_scan");
 export const onScanProgress = (fn: (p: ScanProgress) => void) => listen<ScanProgress>("scan-progress", (e) => fn(e.payload));
 export const onScanDone = (fn: (r: ScanResult) => void) => listen<ScanResult>("scan-done", (e) => fn(e.payload));
 
-export const moveToTrash = (paths: string[]) => call<ActionReport>("move_to_trash", { paths });
+export const moveToTrash = (paths: string[]) => busy<ActionReport>("move_to_trash", { paths });
 export const saveReport = (content: string) => call<string>("save_report", { content });
 export const previewMedia = (path: string) => call<string>("preview_media", { path });
 export const openMedia = (path: string) => call<void>("open_media", { path });
@@ -92,9 +96,13 @@ export type CleanersView = { elevated: boolean; cleaners: Cleaner[] };
 
 export const listCleaners = () => call<CleanersView>("list_cleaners");
 export const estimateCleaners = () => call<CleanReport[]>("estimate_cleaners");
-export const runCleaners = (ids: string[]) => call<CleanReport[]>("run_cleaners", { ids });
+/** `name` : nom affiché d'un nettoyage pendant la progression. Arrêter : ceux pas encore commencés ne sont pas lancés. */
+export const runCleaners = (ids: string[], name?: (id: string) => string) =>
+  withBusy(() => call<CleanReport[]>("run_cleaners", { ids }), { name, onStop: () => void call("cancel_action").catch(() => {}) });
+export const onActionProgress = (fn: (p: { done: number; total: number; label: string }) => void) =>
+  listen<{ done: number; total: number; label: string }>("action-progress", (e) => fn(e.payload));
 export type RestorePoint = { status: "created" } | { status: "recent"; ts: number } | { status: "failed"; detail: string };
-export const createRestorePoint = () => call<RestorePoint>("create_restore_point");
+export const createRestorePoint = () => busy<RestorePoint>("create_restore_point");
 export const relaunchAdmin = () => call<void>("relaunch_admin");
 export const isElevated = () => call<boolean>("is_elevated");
 export const isInstalled = () => call<boolean>("is_installed");
@@ -149,7 +157,7 @@ export type Artifact = {
   project: string;
   project_modified: number;
 };
-export const deleteArtifacts = (paths: string[]) => call<CleanReport>("delete_artifacts", { paths });
+export const deleteArtifacts = (paths: string[]) => busy<CleanReport>("delete_artifacts", { paths });
 
 export type DupGroup = { size: number; wasted: number; files: Item[] };
 export const findDuplicates = () => call<DupGroup[]>("find_duplicates");
@@ -176,16 +184,16 @@ export type Leftover = {
 export const findLeftovers = () => call<Leftover[]>("find_leftovers");
 /** Restes d'un programme que Kleaner vient de désinstaller (il doit avoir disparu de la liste). */
 export const findLeftoversFor = (id: string) => call<Leftover[]>("find_leftovers_for", { id });
-export const trashLeftovers = (paths: string[]) => call<ActionReport>("trash_leftovers", { paths });
+export const trashLeftovers = (paths: string[]) => busy<ActionReport>("trash_leftovers", { paths });
 
-export const restoreTrashed = (paths: string[]) => call<ActionReport>("restore_trashed", { paths });
+export const restoreTrashed = (paths: string[]) => busy<ActionReport>("restore_trashed", { paths });
 
 export type MovePlan = { source: string; files: number; bytes: number; targets: { root: string; dest: string; free: number }[] };
 export const planMove = (path: string) => call<MovePlan>("plan_move", { path });
 /** Renvoie le rapport et le dossier d'arrivée. */
 export const moveFolder = (path: string, root: string) => call<[ActionReport, string]>("move_folder", { path, root });
 export const cancelMove = () => call<void>("cancel_move");
-export const moveBack = (original: string, moved: string) => call<ActionReport>("move_back", { original, moved });
+export const moveBack = (original: string, moved: string) => busy<ActionReport>("move_back", { original, moved });
 export const onMoveProgress = (fn: (p: { done: number; total: number }) => void) =>
   listen<{ done: number; total: number }>("move-progress", (e) => fn(e.payload));
 export const bugReport = () => call<string>("bug_report");
@@ -193,7 +201,7 @@ export const bugReport = () => call<string>("bug_report");
 export type CloudFile = { path: string; size: number; modified: number; pinned: boolean; provider: "OneDrive" | "Dropbox" };
 export const onedriveRoots = () => call<string[]>("onedrive_roots");
 export const onedriveFiles = () => call<CloudFile[]>("onedrive_files");
-export const onedriveFree = (paths: string[]) => call<ActionReport>("onedrive_free", { paths });
+export const onedriveFree = (paths: string[]) => busy<ActionReport>("onedrive_free", { paths });
 
 export type Gpu = { name: string; vendor: string; driver_version: string; driver_date: string };
 export type Disk = { name: string; media: string; health: string; size: number };
@@ -221,7 +229,7 @@ export const systemInfo = () => call<SystemInfo>("system_info");
 export const windowsUpdates = () => call<WinUpdateStatus>("windows_updates");
 export const openWindowsUpdate = () => call<void>("open_windows_update");
 export const appUpdates = () => call<AppUpdate[]>("app_updates");
-export const upgradeApps = (ids: string[]) => call<[number, string]>("upgrade_apps", { ids });
+export const upgradeApps = (ids: string[]) => busy<[number, string]>("upgrade_apps", { ids });
 
 export type StartupItem = {
   id: string;
@@ -241,16 +249,16 @@ export const setStartup = (id: string, enabled: boolean) => call<void>("set_star
 
 export type BrokenShortcut = { path: string; target: string; place: "desktop" | "startmenu" | "taskbar"; modified: number; machine: boolean };
 export const findShortcuts = () => call<BrokenShortcut[]>("find_shortcuts");
-export const trashShortcuts = (paths: string[]) => call<ActionReport>("trash_shortcuts", { paths });
+export const trashShortcuts = (paths: string[]) => busy<ActionReport>("trash_shortcuts", { paths });
 
 export type Advice = { kind: "installer" | "archive" | "game"; path: string; name: string; size: number; modified: number; app_id: number | null };
 export const findAdvice = () => call<Advice[]>("find_advice");
-export const trashAdvice = (paths: string[]) => call<ActionReport>("trash_advice", { paths });
+export const trashAdvice = (paths: string[]) => busy<ActionReport>("trash_advice", { paths });
 export const uninstallSteamGame = (appId: number) => call<void>("uninstall_steam_game", { appId });
 
 export type PreinstalledApp = { id: string; name: string; package: string; family: string; size: number; warn: string | null };
 export const findPreinstalled = () => call<PreinstalledApp[]>("find_preinstalled");
-export const removePreinstalled = (ids: string[]) => call<{ id: string; error: string | null }[]>("remove_preinstalled", { ids });
+export const removePreinstalled = (ids: string[]) => busy<{ id: string; error: string | null }[]>("remove_preinstalled", { ids });
 export const openStorePage = (family: string) => call<void>("open_store_page", { family });
 
 export type HealthItem = {
@@ -267,5 +275,5 @@ export const openSystemPage = (uri: string) => call<void>("open_system_page", { 
 
 export type Ghost = { id: string; name: string; version: string; publisher: string; command: string };
 export const findGhosts = () => call<Ghost[]>("find_ghosts");
-export const removeGhosts = (ids: string[]) => call<number>("remove_ghosts", { ids });
+export const removeGhosts = (ids: string[]) => busy<number>("remove_ghosts", { ids });
 export const restoreGhost = (file: string) => call<void>("restore_ghost", { file });

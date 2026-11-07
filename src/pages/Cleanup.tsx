@@ -115,7 +115,10 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
     try {
       const fixed = () => listDrives().then((d) => d.filter((x) => x.kind === "fixed"), () => [] as DriveInfo[]);
       const before = await fixed();
-      setResults(await runCleaners(ids));
+      setResults(await runCleaners(ids, (id) => {
+        const c = view?.cleaners.find((x) => x.id === id);
+        return c ? tx(c.label) : id;
+      }));
       forgetRecoverable();
       setDrives({ before, after: await fixed() });
       setSelected(new Set());

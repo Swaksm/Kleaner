@@ -538,5 +538,10 @@
   "tour.care": "Les programmes lancés au démarrage, un bilan de santé et de sécurité, et les mises à jour de Windows et des applis.",
   "tour.more": "Doublons, raccourcis cassés, vieux projets de code, et le Journal : tout ce que Kleaner a fait, restaurable.",
   "tour.settings": "Change ici la langue et le thème. Cette visite se relance depuis les Paramètres.",
-  "tour.end": "Tes fichiers personnels ne vont qu’à la Corbeille, et le Journal peut les remettre en place. Lance une analyse pour commencer."
+  "tour.end": "Tes fichiers personnels ne vont qu’à la Corbeille, et le Journal peut les remettre en place. Lance une analyse pour commencer.",
+  "busy.title": "Action en cours…",
+  "busy.stopping": "Arrêt après l'étape en cours…",
+  "busy.hint": "Patientez : Kleaner reste sur cette fenêtre jusqu'à la fin.",
+  "busy.hintStop": "Arrêter saute les étapes pas encore commencées. Celle en cours se termine.",
+  "busy.stop": "Arrêter"
 }

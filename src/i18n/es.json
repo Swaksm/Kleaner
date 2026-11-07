@@ -538,5 +538,10 @@
   "tour.care": "Los programas que arrancan al iniciar, una revisión de salud y seguridad, y las actualizaciones de Windows y de las aplicaciones.",
   "tour.more": "Duplicados, accesos directos rotos, proyectos de código antiguos y el Registro: todo lo que Kleaner hizo, restaurable.",
   "tour.settings": "Cambia aquí el idioma y el tema. Puedes volver a ver esta visita desde Ajustes.",
-  "tour.end": "Tus archivos personales solo van a la Papelera, y el Registro puede devolverlos a su sitio. Lanza un análisis para empezar."
+  "tour.end": "Tus archivos personales solo van a la Papelera, y el Registro puede devolverlos a su sitio. Lanza un análisis para empezar.",
+  "busy.title": "En curso…",
+  "busy.stopping": "Deteniendo tras el paso actual…",
+  "busy.hint": "Espera: Kleaner permanece en esta ventana hasta el final.",
+  "busy.hintStop": "Detener omite los pasos aún no iniciados. El actual termina.",
+  "busy.stop": "Detener"
 }

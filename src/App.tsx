@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { StatusPill } from "./components/StatusPill";
+import { BusyOverlay } from "./components/BusyOverlay";
+import { useBusy } from "./lib/busy";
 import { Disclaimer, isDisclaimerAccepted } from "./components/Disclaimer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { LangMenu } from "./components/LangMenu";
@@ -67,6 +69,7 @@ function App() {
   // Visite guidée : après l'assistant du premier lancement, ou depuis les Paramètres (demo : ?tour).
   const [tour, setTour] = useState(import.meta.env.MODE === "demo" ? new URLSearchParams(location.search).has("tour") : isTourPending());
   const scan = useScanResult();
+  const busy = useBusy() !== null;
   // « Vieux projets » n'apparaît que si l'analyse a trouvé des projets de code.
   const more = MORE.filter(
     (p) => (p !== "projects" || (scan?.artifacts.length ?? 0) > 0) && (p !== "onedrive" || hasOneDrive),
@@ -112,7 +115,8 @@ function App() {
 
   // Raccourcis : Ctrl+1…8 pour les pages principales, F5 relance l'analyse (au lieu de recharger la fenêtre).
   useEffect(() => {
-    if (!ready || tour) return;
+    // Pas pendant une action : changer de page ne doit rien interrompre.
+    if (!ready || tour || busy) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey && !e.altKey && !e.shiftKey && /^[1-8]$/.test(e.key)) {
         e.preventDefault();
@@ -125,7 +129,7 @@ function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [ready, tour]);
+  }, [ready, tour, busy]);
 
   useEffect(() => {
     isElevated().then((e) => {
@@ -240,6 +244,7 @@ function App() {
       </main>
     </div>
     {tour && <Tour onClose={() => setTour(false)} />}
+    <BusyOverlay />
     </>
   );
 }

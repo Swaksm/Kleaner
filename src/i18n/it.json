@@ -538,5 +538,10 @@
   "tour.care": "I programmi avviati all’accensione, un controllo di salute e sicurezza, e gli aggiornamenti di Windows e delle app.",
   "tour.more": "Duplicati, collegamenti interrotti, vecchi progetti di codice e il Registro: tutto ciò che Kleaner ha fatto, ripristinabile.",
   "tour.settings": "Qui cambi lingua e tema. Puoi rivedere questa visita dalle Impostazioni.",
-  "tour.end": "I tuoi file personali finiscono solo nel Cestino, e il Registro può rimetterli al loro posto. Avvia un’analisi per cominciare."
+  "tour.end": "I tuoi file personali finiscono solo nel Cestino, e il Registro può rimetterli al loro posto. Avvia un’analisi per cominciare.",
+  "busy.title": "Operazione in corso…",
+  "busy.stopping": "Arresto dopo il passaggio in corso…",
+  "busy.hint": "Attendi: Kleaner resta su questa finestra fino alla fine.",
+  "busy.hintStop": "Interrompi salta i passaggi non ancora iniziati. Quello in corso termina.",
+  "busy.stop": "Interrompi"
 }

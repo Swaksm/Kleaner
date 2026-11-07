@@ -538,5 +538,10 @@
   "tour.care": "Programme beim Systemstart, ein Zustands- und Sicherheitscheck sowie Updates für Windows und Apps.",
   "tour.more": "Duplikate, defekte Verknüpfungen, alte Code-Projekte und das Protokoll: alles, was Kleaner getan hat, wiederherstellbar.",
   "tour.settings": "Hier änderst du Sprache und Design. Diese Tour lässt sich in den Einstellungen erneut starten.",
-  "tour.end": "Deine persönlichen Dateien landen immer nur im Papierkorb, und das Protokoll kann sie zurücklegen. Starte eine Analyse, um loszulegen."
+  "tour.end": "Deine persönlichen Dateien landen immer nur im Papierkorb, und das Protokoll kann sie zurücklegen. Starte eine Analyse, um loszulegen.",
+  "busy.title": "Wird ausgeführt…",
+  "busy.stopping": "Stopp nach dem aktuellen Schritt…",
+  "busy.hint": "Bitte warten: Kleaner bleibt bis zum Ende in diesem Fenster.",
+  "busy.hintStop": "Stoppen überspringt noch nicht begonnene Schritte. Der aktuelle wird beendet.",
+  "busy.stop": "Stoppen"
 }

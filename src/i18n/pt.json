@@ -538,5 +538,10 @@
   "tour.care": "Os programas que abrem na inicialização, uma verificação de saúde e segurança, e as atualizações do Windows e dos aplicativos.",
   "tour.more": "Duplicados, atalhos quebrados, projetos de código antigos e o Registro: tudo o que o Kleaner fez, restaurável.",
   "tour.settings": "Mude aqui o idioma e o tema. Este tour pode ser revisto nas Configurações.",
-  "tour.end": "Seus arquivos pessoais só vão para a Lixeira, e o Registro pode colocá-los de volta. Inicie uma análise para começar."
+  "tour.end": "Seus arquivos pessoais só vão para a Lixeira, e o Registro pode colocá-los de volta. Inicie uma análise para começar.",
+  "busy.title": "Em andamento…",
+  "busy.stopping": "Parando após a etapa atual…",
+  "busy.hint": "Aguarde: o Kleaner fica nesta janela até o fim.",
+  "busy.hintStop": "Parar pula as etapas ainda não iniciadas. A atual termina.",
+  "busy.stop": "Parar"
 }

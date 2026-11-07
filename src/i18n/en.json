@@ -538,5 +538,10 @@
   "tour.care": "Programs launched at startup, a health and security check-up, and Windows and app updates.",
   "tour.more": "Duplicates, broken shortcuts, old code projects, and the Log: everything Kleaner did, restorable.",
   "tour.settings": "Change the language and theme here. You can replay this tour from Settings.",
-  "tour.end": "Your personal files only ever go to the Recycle Bin, and the Log can put them back. Run a scan to get started."
+  "tour.end": "Your personal files only ever go to the Recycle Bin, and the Log can put them back. Run a scan to get started.",
+  "busy.title": "Working…",
+  "busy.stopping": "Stopping after the current step…",
+  "busy.hint": "Please wait: Kleaner stays on this window until the end.",
+  "busy.hintStop": "Stop skips the steps not started yet. The current one finishes.",
+  "busy.stop": "Stop"
 }

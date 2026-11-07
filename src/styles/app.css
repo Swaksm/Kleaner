@@ -614,6 +614,16 @@ code {
   gap: 10px;
 }
 
+/* Fenêtre d'attente pendant une action (BusyOverlay) */
+.busy {
+  width: min(420px, calc(100% - 32px));
+}
+
+.busy progress {
+  width: 100%;
+  height: 8px;
+}
+
 /* Disclaimer */
 .disclaimer {
   min-height: 100%;
