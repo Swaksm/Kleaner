@@ -349,6 +349,7 @@
   "updates.updateSelected": "Atualizar a seleção",
   "updates.appsUpToDate": "Todos os seus apps conhecidos pelo winget estão atualizados.",
   "updates.appsDone": "apps atualizados",
+  "updates.selfUpdate": "Atualiza sozinho: abra o app",
   "updates.confirmTitle": "Atualizar estes apps?",
   "updates.confirmText": "O winget baixa e instala as novas versões dos editores. Feche esses apps antes. Os instaladores podem abrir ou pedir direitos de administrador.",
   "updates.drivers": "Drivers gráficos",

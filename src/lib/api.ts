@@ -216,6 +216,7 @@ export type SystemInfo = {
   bios_date: string;
   uptime: number;
   support_end: string | null;
+  ltsc: boolean;
   gpus: Gpu[];
   disks: Disk[];
 };
@@ -224,7 +225,7 @@ export type WinUpdateStatus = {
   reboot_required: boolean;
   last_check: string;
 };
-export type AppUpdate = { name: string; id: string; version: string; available: string };
+export type AppUpdate = { name: string; id: string; version: string; available: string; self_update: boolean };
 export const systemInfo = () => call<SystemInfo>("system_info");
 export const windowsUpdates = () => call<WinUpdateStatus>("windows_updates");
 export const openWindowsUpdate = () => call<void>("open_windows_update");

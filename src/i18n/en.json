@@ -349,6 +349,7 @@
   "updates.updateSelected": "Update selected",
   "updates.appsUpToDate": "All your apps known to winget are up to date.",
   "updates.appsDone": "apps updated",
+  "updates.selfUpdate": "Updates itself: open the app",
   "updates.confirmTitle": "Update these apps?",
   "updates.confirmText": "winget downloads and installs the new versions from their publishers. Close these apps first. Installers may open or ask for admin rights.",
   "updates.drivers": "Graphics drivers",

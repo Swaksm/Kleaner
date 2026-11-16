@@ -349,6 +349,7 @@
   "updates.updateSelected": "更新所选项目",
   "updates.appsUpToDate": "winget 能识别的应用都已是最新。",
   "updates.appsDone": "个应用已更新",
+  "updates.selfUpdate": "会自行更新：打开该应用即可",
   "updates.confirmTitle": "更新这些应用？",
   "updates.confirmText": "winget 会从发布者处下载并安装新版本。请先关闭这些应用。安装程序可能会弹出窗口或请求管理员权限。",
   "updates.drivers": "显卡驱动",

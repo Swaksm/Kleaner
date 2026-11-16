@@ -349,6 +349,7 @@
   "updates.updateSelected": "Aggiorna la selezione",
   "updates.appsUpToDate": "Tutte le app note a winget sono aggiornate.",
   "updates.appsDone": "app aggiornate",
+  "updates.selfUpdate": "Si aggiorna da sola: apri l’app",
   "updates.confirmTitle": "Aggiornare queste app?",
   "updates.confirmText": "winget scarica e installa le nuove versioni dai loro editori. Chiudi prima queste app. Gli installer possono aprirsi o chiedere i diritti di amministratore.",
   "updates.drivers": "Driver grafici",

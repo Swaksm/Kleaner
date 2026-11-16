@@ -355,8 +355,7 @@ fn power_plan() -> Option<HealthItem> {
 }
 
 fn support() -> Option<HealthItem> {
-    let build: u32 = hklm_string(r"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "CurrentBuildNumber")?.parse().ok()?;
-    let end = system::support_end(build)?;
+    let end = system::support_end(system::windows_build(), &system::windows_edition())?;
     let left = iso_days(end)? - today_days();
     let status = if left < 0 { "bad" } else if left < 180 { "warn" } else { "ok" };
     Some(item(

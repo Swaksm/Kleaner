@@ -349,6 +349,7 @@
   "updates.updateSelected": "Auswahl aktualisieren",
   "updates.appsUpToDate": "Alle Apps, die winget kennt, sind aktuell.",
   "updates.appsDone": "Apps aktualisiert",
+  "updates.selfUpdate": "Aktualisiert sich selbst: App öffnen",
   "updates.confirmTitle": "Diese Apps aktualisieren?",
   "updates.confirmText": "winget lädt die neuen Versionen von ihren Herausgebern herunter und installiert sie. Schließe diese Apps vorher. Installationsprogramme können sich öffnen oder Administratorrechte verlangen.",
   "updates.drivers": "Grafiktreiber",

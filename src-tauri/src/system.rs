@@ -85,32 +85,72 @@ pub struct SystemInfo {
     #[serde(skip_deserializing)]
     pub support_end: Option<String>,
     #[serde(skip_deserializing)]
+    pub ltsc: bool,
+    #[serde(skip_deserializing)]
     pub gpus: Vec<Gpu>,
     #[serde(skip_deserializing)]
     pub disks: Vec<Disk>,
 }
 
-/// Fin du support des éditions Famille et Pro, par numéro de build (dates publiées par Microsoft).
-// shortcut: table à compléter à chaque nouvelle version de Windows.
-/// Numéro de build de Windows (22000 et plus : Windows 11), 0 si illisible.
-pub fn windows_build() -> u32 {
+fn current_version(name: &str) -> Option<String> {
     winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE)
         .open_subkey(r"SOFTWARE\Microsoft\Windows NT\CurrentVersion")
-        .and_then(|k| k.get_value::<String, _>("CurrentBuildNumber"))
+        .and_then(|k| k.get_value::<String, _>(name))
         .ok()
-        .and_then(|b| b.parse().ok())
-        .unwrap_or(0)
 }
 
-pub fn support_end(build: u32) -> Option<&'static str> {
-    Some(match build {
-        19045 => "2025-10-14", // Windows 10 22H2 (dernière version de Windows 10)
-        10240..19045 => "2025-10-14",
-        22000 => "2023-10-10", // Windows 11 21H2
-        22621 => "2024-10-08", // 22H2
-        22631 => "2025-11-11", // 23H2
-        26100 => "2026-10-13", // 24H2
-        26200 => "2027-10-12", // 25H2
+/// Numéro de build de Windows (22000 et plus : Windows 11), 0 si illisible.
+pub fn windows_build() -> u32 {
+    current_version("CurrentBuildNumber").and_then(|b| b.parse().ok()).unwrap_or(0)
+}
+
+/// Édition de Windows (`EditionID` : Core, Professional, Enterprise, EnterpriseS…), vide si illisible.
+pub fn windows_edition() -> String {
+    current_version("EditionID").unwrap_or_default()
+}
+
+/// Édition LTSC (Enterprise LTSC, IoT Enterprise LTSC) : Windows Update n'y installe jamais de nouvelle version.
+pub fn is_ltsc(edition: &str) -> bool {
+    matches!(edition.strip_suffix('N').unwrap_or(edition), "EnterpriseS" | "IoTEnterpriseS")
+}
+
+/// Fin du support par build et édition, dates de learn.microsoft.com/lifecycle (dernier Patch Tuesday).
+/// Édition ou build absents de la table : `None`, Kleaner ne devine pas.
+// shortcut: table à compléter à chaque nouvelle version de Windows (les builds inconnues n'affichent rien).
+pub fn support_end(build: u32, edition: &str) -> Option<&'static str> {
+    // Les éditions « N » (sans lecteur multimédia) ont le même cycle de vie.
+    let e = edition.strip_suffix('N').unwrap_or(edition);
+    let home_pro = matches!(
+        e,
+        "Core" | "CoreSingleLanguage" | "CoreCountrySpecific" | "Professional" | "ProfessionalEducation" | "ProfessionalWorkstation" | "CloudEdition"
+    );
+    let enterprise = matches!(e, "Enterprise" | "Education" | "ServerRdsh" | "IoTEnterprise");
+    Some(match (e, build) {
+        // LTSC : cycle fixe de 5 ans (10 ans pour IoT).
+        ("IoTEnterpriseS", 26100) => "2034-10-10", // Windows 11 IoT Enterprise LTSC 2024
+        ("EnterpriseS", 26100) => "2029-10-09",    // Windows 11 Enterprise LTSC 2024
+        ("IoTEnterpriseS", 19044) => "2032-01-13", // Windows 10 IoT Enterprise LTSC 2021
+        ("EnterpriseS", 19044) => "2027-01-12",    // Windows 10 Enterprise LTSC 2021
+        ("IoTEnterpriseS" | "EnterpriseS", 17763) => "2029-01-09", // LTSC 2019
+        ("EnterpriseS", 14393) => "2026-10-13",    // LTSB 2016
+        // Windows 10 : fin pour toutes les versions classiques le 14 octobre 2025.
+        (_, 10240..=19045) if home_pro || enterprise => "2025-10-14",
+        // Windows 11 Famille et Pro : 24 mois par version.
+        (_, 22000) if home_pro => "2023-10-10", // 21H2
+        (_, 22621) if home_pro => "2024-10-08", // 22H2
+        (_, 22631) if home_pro => "2025-11-11", // 23H2
+        (_, 26100) if home_pro => "2026-10-13", // 24H2
+        (_, 26200) if home_pro => "2027-10-12", // 25H2
+        (_, 28000) if home_pro => "2028-03-14", // 26H1
+        (_, 26300) if home_pro => "2028-10-09", // 26H2
+        // Windows 11 Entreprise et Éducation : 36 mois pour les versions de l'automne.
+        (_, 22000) if enterprise => "2024-10-08",
+        (_, 22621) if enterprise => "2025-10-14",
+        (_, 22631) if enterprise => "2026-11-10",
+        (_, 26100) if enterprise => "2027-10-12",
+        (_, 26200) if enterprise => "2028-10-10",
+        (_, 28000) if enterprise => "2029-03-13",
+        (_, 26300) if enterprise => "2029-10-09",
         _ => return None,
     })
 }
@@ -124,7 +164,9 @@ pub fn info() -> Result<SystemInfo, String> {
           BiosVersion = $b.SMBIOSBIOSVersion; BiosDate = $b.ReleaseDate.ToString('yyyyMMdd');
           Uptime = [int64]((Get-Date) - $os.LastBootUpTime).TotalSeconds } | ConvertTo-Json -Compress"#,
     )?;
-    s.support_end = support_end(s.os_build).map(String::from);
+    let edition = windows_edition();
+    s.support_end = support_end(s.os_build, &edition).map(String::from);
+    s.ltsc = is_ltsc(&edition);
     s.gpus = ps_json::<OneOrMany<Gpu>>(
         r#"@(Get-CimInstance Win32_VideoController | Where-Object { $_.DriverVersion } | ForEach-Object {
           [pscustomobject]@{ Name = $_.Name; Vendor = "$($_.AdapterCompatibility)"; DriverVersion = $_.DriverVersion;
@@ -203,7 +245,15 @@ pub struct AppUpdate {
     pub id: String,
     pub version: String,
     pub available: String,
+    /// L'appli se met à jour toute seule : winget n'est pas proposé (voir `SELF_UPDATING`).
+    pub self_update: bool,
 }
+
+/// Lanceurs qui se mettent à jour eux-mêmes à l'ouverture sans changer la version lue par winget :
+/// winget croit qu'une mise à jour existe pour toujours, et son installeur échoue ou ne change rien.
+/// Exemple : Epic Games Launcher reste en 1.3.150.0 dans la liste des programmes alors que l'exe est à jour.
+pub const SELF_UPDATING: &[&str] =
+    &["EpicGames.EpicGamesLauncher", "Valve.Steam", "Blizzard.BattleNet", "ElectronicArts.EADesktop", "Ubisoft.Connect", "GOG.Galaxy"];
 
 /// Lit le tableau de `winget upgrade` (colonnes à largeur fixe, en-têtes traduits selon la langue).
 /// Les positions des colonnes viennent de la ligne d'en-tête, juste au-dessus de la ligne de tirets.
@@ -235,7 +285,8 @@ pub fn parse_winget_table(text: &str) -> Vec<AppUpdate> {
         if id.is_empty() || available.is_empty() || id.contains(' ') || id.ends_with('…') {
             continue;
         }
-        out.push(AppUpdate { name, id, version, available });
+        let self_update = SELF_UPDATING.contains(&id.as_str());
+        out.push(AppUpdate { name, id, version, available, self_update });
     }
     out
 }
@@ -250,8 +301,9 @@ fn winget(args: &[&str]) -> Result<String, String> {
 }
 
 /// Applications qui ont une version plus récente (via winget). Lecture seule.
+/// Sans `--include-unknown` : une appli à version inconnue n'a pas de mise à jour certaine.
 pub fn app_updates() -> Result<Vec<AppUpdate>, String> {
-    winget(&["upgrade", "--include-unknown", "--accept-source-agreements", "--disable-interactivity"]).map(|t| parse_winget_table(&t))
+    winget(&["upgrade", "--accept-source-agreements", "--disable-interactivity"]).map(|t| parse_winget_table(&t))
 }
 
 /// Met à jour les applications choisies avec winget. Les identifiants viennent de la dernière liste.
@@ -304,7 +356,7 @@ mod tests {
                  2 upgrades available.\n";
         let apps = parse_winget_table(t);
         assert_eq!(apps.len(), 2, "{apps:?}");
-        assert_eq!(apps[0], AppUpdate { name: "7-Zip 24.08 (x64)".into(), id: "7zip.7zip".into(), version: "24.08".into(), available: "25.01".into() });
+        assert_eq!(apps[0], AppUpdate { name: "7-Zip 24.08 (x64)".into(), id: "7zip.7zip".into(), version: "24.08".into(), available: "25.01".into(), self_update: false });
         assert_eq!(apps[1].id, "Microsoft.Edge");
     }
 
@@ -321,13 +373,30 @@ mod tests {
         let apps = parse_winget_table(t);
         assert_eq!(apps.len(), 1, "{apps:?}");
         assert_eq!(apps[0].id, "Git.Git");
+        assert!(!apps[0].self_update);
+    }
+
+    #[test]
+    fn winget_self_updating_launcher() {
+        let t = "Name                 Id                          Version   Available Source\n---------------------------------------------------------------------------\nEpic Games Launcher  EpicGames.EpicGamesLauncher 1.3.150.0 1.3.210.0 winget\n";
+        assert!(parse_winget_table(t)[0].self_update);
     }
 
     #[test]
     fn support_dates() {
-        assert_eq!(support_end(19045), Some("2025-10-14"));
-        assert_eq!(support_end(26200), Some("2027-10-12"));
-        assert_eq!(support_end(99999), None);
+        assert_eq!(support_end(19045, "Professional"), Some("2025-10-14"));
+        assert_eq!(support_end(26200, "Core"), Some("2027-10-12"));
+        assert_eq!(support_end(26100, "ProfessionalN"), Some("2026-10-13"));
+        // Même build 26100 : la LTSC n'a pas la date de Famille et Pro.
+        assert_eq!(support_end(26100, "IoTEnterpriseS"), Some("2034-10-10"));
+        assert_eq!(support_end(26100, "EnterpriseS"), Some("2029-10-09"));
+        assert_eq!(support_end(26100, "Enterprise"), Some("2027-10-12"));
+        assert_eq!(support_end(19044, "EnterpriseSN"), Some("2027-01-12"));
+        assert_eq!(support_end(26300, "Education"), Some("2029-10-09"));
+        assert_eq!(support_end(99999, "Professional"), None);
+        assert_eq!(support_end(26100, "EnterpriseG"), None);
+        assert_eq!(support_end(26100, ""), None);
+        assert!(is_ltsc("IoTEnterpriseS") && is_ltsc("EnterpriseSN") && !is_ltsc("Enterprise"));
     }
 
     /// Sur la vraie machine : `cargo test --release system::tests::real -- --ignored --nocapture`.

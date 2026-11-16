@@ -691,7 +691,8 @@ fn open_windows_update() -> Result<(), String> {
 #[tauri::command]
 async fn app_updates(state: State<'_, ScanState>) -> Result<Vec<system::AppUpdate>, String> {
     let list = tauri::async_runtime::spawn_blocking(system::app_updates).await.map_err(|e| e.to_string())??;
-    *state.apps.lock().unwrap() = list.iter().map(|a| a.id.clone()).collect();
+    // Les applis qui se mettent à jour toutes seules ne passent jamais par winget.
+    *state.apps.lock().unwrap() = list.iter().filter(|a| !a.self_update).map(|a| a.id.clone()).collect();
     Ok(list)
 }
 

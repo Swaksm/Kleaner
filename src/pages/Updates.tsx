@@ -126,7 +126,8 @@ export function Updates() {
             )}
           </div>
         )}
-        {ended && <p className="danger">{t("updates.supportEndedHelp")}</p>}
+        {/* LTSC : Windows Update n'installe jamais de nouvelle version, le conseil serait faux. */}
+        {ended && !info?.ltsc && <p className="danger">{t("updates.supportEndedHelp")}</p>}
         <div className="row">
           <button className="btn btn-primary" disabled={winBusy} onClick={checkWindows}>
             {t("updates.checkWindows")}
@@ -172,7 +173,7 @@ export function Updates() {
           </button>
           {apps && apps.length > 0 && (
             <>
-              <button className="btn" onClick={() => setSelected(new Set(apps.map((a) => a.id)))}>
+              <button className="btn" onClick={() => setSelected(new Set(apps.filter((a) => !a.self_update).map((a) => a.id)))}>
                 {t("media.selectVisible")}
               </button>
               <button className="btn" disabled={selected.size === 0 || appsBusy} onClick={() => setConfirm(true)}>
@@ -192,11 +193,17 @@ export function Updates() {
             {apps.map((a) => (
               <li key={a.id}>
                 <label className="check path" title={a.id}>
-                  <input type="checkbox" checked={selected.has(a.id)} onChange={() => toggle(a.id)} />
+                  <input type="checkbox" disabled={a.self_update} checked={selected.has(a.id)} onChange={() => toggle(a.id)} />
                   <span>{a.name}</span>
                 </label>
-                <span className="muted small">{a.version}</span>
-                <span className="small">→ {a.available}</span>
+                {a.self_update ? (
+                  <span className="muted small">{t("updates.selfUpdate")}</span>
+                ) : (
+                  <>
+                    <span className="muted small">{a.version}</span>
+                    <span className="small">→ {a.available}</span>
+                  </>
+                )}
               </li>
             ))}
           </ul>
