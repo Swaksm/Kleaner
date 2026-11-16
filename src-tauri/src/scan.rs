@@ -240,14 +240,25 @@ impl Ctx<'_> {
 }
 
 /// Une entrée de dossier, quelle que soit la façon dont elle a été lue.
-struct Entry {
-    path: PathBuf,
-    is_dir: bool,
-    attrs: u32,
-    len: u64,
+/// `attrs` : l'attribut « point d'analyse » (0x400) n'y reste que pour un lien (jonction, lien symbolique, point de montage).
+/// Les dossiers et fichiers OneDrive ou Dropbox en portent un aussi, mais ce ne sont pas des liens : leur contenu est sur ce disque.
+pub(crate) struct Entry {
+    pub(crate) path: PathBuf,
+    pub(crate) is_dir: bool,
+    pub(crate) attrs: u32,
+    pub(crate) len: u64,
     modified: u64,
     /// Numéro d'enregistrement MFT (scan rapide) ; 0 sinon.
     frn: u32,
+}
+
+const FILE_ATTRIBUTE_DIRECTORY: u32 = 0x10;
+/// Bit « substitut de nom » d'une étiquette de point d'analyse : le point renvoie ailleurs (lien), contrairement au cloud.
+pub(crate) const NAME_SURROGATE: u32 = 0x2000_0000;
+
+/// Retire l'attribut « point d'analyse » si ce n'est pas un lien.
+pub(crate) fn links_only(attrs: u32, is_link: bool) -> u32 {
+    if is_link { attrs } else { attrs & !FILE_ATTRIBUTE_REPARSE_POINT }
 }
 
 fn list_std(dir: &Path) -> Option<Vec<Entry>> {
@@ -256,11 +267,13 @@ fn list_std(dir: &Path) -> Option<Vec<Entry>> {
         rd.flatten()
             .filter_map(|e| {
                 // Sous Windows, ces métadonnées viennent de la lecture du dossier : pas d'appel système en plus.
+                // `is_symlink` : point d'analyse « substitut de nom » (lien, jonction), pas un dossier cloud.
                 let m = e.metadata().ok()?;
+                let attrs = links_only(m.file_attributes(), m.file_type().is_symlink());
                 Some(Entry {
                     path: e.path(),
-                    is_dir: m.is_dir(),
-                    attrs: m.file_attributes(),
+                    is_dir: attrs & FILE_ATTRIBUTE_DIRECTORY != 0,
+                    attrs,
                     len: m.len(),
                     modified: unix_secs(m.modified()),
                     frn: 0,
@@ -272,14 +285,13 @@ fn list_std(dir: &Path) -> Option<Vec<Entry>> {
 
 /// Liste un dossier avec FILE_FLAG_BACKUP_SEMANTICS : avec le privilège de sauvegarde actif, Windows
 /// accorde la lecture même aux dossiers réservés à SYSTEM. Ouverture en lecture seule (FILE_LIST_DIRECTORY).
-fn list_backup(dir: &Path) -> Option<Vec<Entry>> {
+pub(crate) fn list_backup(dir: &Path) -> Option<Vec<Entry>> {
     use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::Foundation::{CloseHandle, INVALID_HANDLE_VALUE};
     use windows_sys::Win32::Storage::FileSystem::{
         CreateFileW, FILE_FLAG_BACKUP_SEMANTICS, FILE_FULL_DIR_INFO, FILE_LIST_DIRECTORY, FILE_SHARE_DELETE,
         FILE_SHARE_READ, FILE_SHARE_WRITE, FileFullDirectoryInfo, GetFileInformationByHandleEx, OPEN_EXISTING,
     };
-    const FILE_ATTRIBUTE_DIRECTORY: u32 = 0x10;
     // Écart entre 1601 (FILETIME) et 1970 (Unix), en unités de 100 ns.
     const EPOCH_DIFF: i64 = 116_444_736_000_000_000;
 
@@ -315,10 +327,12 @@ fn list_backup(dir: &Path) -> Option<Vec<Entry>> {
             let name = unsafe { std::slice::from_raw_parts(info.FileName.as_ptr(), name_len) };
             let name = String::from_utf16_lossy(name);
             if name != "." && name != ".." {
+                // Pour un point d'analyse, EaSize contient son étiquette.
+                let attrs = links_only(info.FileAttributes, info.EaSize & NAME_SURROGATE != 0);
                 out.push(Entry {
                     path: dir.join(&name),
-                    is_dir: info.FileAttributes & FILE_ATTRIBUTE_DIRECTORY != 0,
-                    attrs: info.FileAttributes,
+                    is_dir: attrs & FILE_ATTRIBUTE_DIRECTORY != 0,
+                    attrs,
                     len: info.EndOfFile.max(0) as u64,
                     modified: ((info.LastWriteTime - EPOCH_DIFF).max(0) / 10_000_000) as u64,
                     frn: 0,
@@ -760,6 +774,35 @@ mod tests {
             .unwrap();
         assert!(ok.status.success());
         assert_eq!(run(&s.0).bytes, 5000, "la jonction ne doit pas doubler la taille");
+    }
+
+    #[test]
+    fn junction_stays_a_link_in_both_listings() {
+        let s = Sandbox::new("linkattr");
+        s.file("real/a.bin", 10);
+        let ok = Command::new("cmd").args(["/C", "mklink", "/J"]).arg(s.0.join("link")).arg(s.0.join("real")).output().unwrap();
+        assert!(ok.status.success());
+        for list in [list_std(&s.0).unwrap(), list_backup(&s.0).unwrap()] {
+            let link = list.iter().find(|e| e.path.ends_with("link")).unwrap();
+            assert!(link.is_dir && link.attrs & FILE_ATTRIBUTE_REPARSE_POINT != 0);
+            let real = list.iter().find(|e| e.path.ends_with("real")).unwrap();
+            assert!(real.is_dir && real.attrs & FILE_ATTRIBUTE_REPARSE_POINT == 0);
+        }
+    }
+
+    /// Sur la vraie machine avec OneDrive : ses dossiers ne sont pas des liens, l'analyse y entre.
+    /// `cargo test --release scan::tests::onedrive_real -- --ignored --nocapture`
+    #[test]
+    #[ignore]
+    fn onedrive_real() {
+        let root = PathBuf::from(std::env::var_os("OneDrive").expect("OneDrive"));
+        for list in [list_std(&root).unwrap(), list_backup(&root).unwrap()] {
+            for e in list.iter().filter(|e| e.is_dir) {
+                println!("{:#x} {}", e.attrs, e.path.display());
+                assert_eq!(e.attrs & FILE_ATTRIBUTE_REPARSE_POINT, 0, "{}", e.path.display());
+            }
+        }
+        assert!(crate::guard::no_links(&root).is_ok());
     }
 
     #[test]

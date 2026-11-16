@@ -8,6 +8,8 @@ const KNOWN: [RegExp, Key][] = [
   [/\(link or junction on the path\)/, "error.link"],
   [/\(path not found\)/, "error.notFound"],
   [/Turn off "Start with Windows" first/, "error.autostartFirst"],
+  [/would be deleted permanently/, "error.noBin"],
+  [/account is not an administrator/, "error.standardAccount"],
   [/admin(istrator)? rights/i, "error.admin"],
   [/\(outside allowed locations\)/, "error.outside"],
   [/\(online-only file\)/, "error.cloudOnly"],

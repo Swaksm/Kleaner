@@ -518,6 +518,8 @@
   "error.inUse": "Refusé : un fichier de ce dossier est ouvert. Ferme les programmes qui l’utilisent, puis réessaie.",
   "error.noSpace": "Refusé : pas assez de place sur ce disque.",
   "error.exists": "Refusé : la destination existe déjà. Kleaner n’écrase et ne fusionne jamais.",
+  "error.noBin": "Windows le supprimerait définitivement au lieu de le mettre à la Corbeille (trop gros, ou ce disque n’a pas de Corbeille). Rien n’a été déplacé. Supprime-le depuis l’Explorateur si tu es sûr.",
+  "error.standardAccount": "Ce compte Windows n’est pas administrateur : le mode admin tournerait sous un autre compte, avec ses propres fichiers. Connecte-toi avec un compte administrateur pour l’utiliser.",
   "error.cancelled": "Annulé. L’original est intact, à sa place.",
   "tour.start": "C’est parti",
   "tour.next": "Suivant",

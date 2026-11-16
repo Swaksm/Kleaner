@@ -199,6 +199,9 @@ fn parse_record(rec: &mut [u8], frn: u32, out: &mut Chunk) {
         }
         let used = (u32_at(rec, 0x18) as usize).min(rec.len());
         let mut pos = u16_at(rec, 0x14) as usize;
+        // Point d'analyse qui n'est pas un lien (dossier OneDrive, Dropbox…) : traité comme un dossier normal.
+        // Étiquette illisible (attribut hors de l'enregistrement) : on garde « lien », le cas prudent.
+        let mut not_a_link = false;
         while pos + 16 <= used {
             let ty = u32_at(rec, pos);
             let len = u32_at(rec, pos + 4) as usize;
@@ -208,6 +211,13 @@ fn parse_record(rec: &mut [u8], frn: u32, out: &mut Chunk) {
             let non_resident = rec[pos + 8] != 0;
             let unnamed = rec[pos + 9] == 0;
             match ty {
+                // $REPARSE_POINT : l'étiquette est le premier mot de la valeur.
+                0xC0 if !non_resident => {
+                    let v = pos + u16_at(rec, pos + 0x14) as usize;
+                    if u32_at(rec, pos + 0x10) >= 4 && v + 4 <= used {
+                        not_a_link = u32_at(rec, v) & crate::scan::NAME_SURROGATE == 0;
+                    }
+                }
                 // $STANDARD_INFORMATION : dernière écriture (+8) et attributs (+0x20).
                 0x10 if !non_resident => {
                     let v = pos + u16_at(rec, pos + 0x14) as usize;
@@ -252,6 +262,7 @@ fn parse_record(rec: &mut [u8], frn: u32, out: &mut Chunk) {
             }
             pos += len;
         }
+        meta.attrs = crate::scan::links_only(meta.attrs, !not_a_link);
     }
     out.meta.push(meta);
 }

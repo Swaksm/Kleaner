@@ -518,6 +518,8 @@
   "error.inUse": "Rechazado: un archivo de esta carpeta está abierto. Cierra los programas que lo usan y vuelve a intentarlo.",
   "error.noSpace": "Rechazado: no hay espacio suficiente en ese disco.",
   "error.exists": "Rechazado: el destino ya existe. Kleaner nunca sobrescribe ni fusiona.",
+  "error.noBin": "Windows lo borraría definitivamente en lugar de enviarlo a la Papelera (demasiado grande, o esta unidad no tiene Papelera). No se ha movido nada. Bórralo desde el Explorador si estás seguro.",
+  "error.standardAccount": "Esta cuenta de Windows no es de administrador: el modo admin se ejecutaría con otra cuenta y sus propios archivos. Inicia sesión con una cuenta de administrador para usarlo.",
   "error.cancelled": "Cancelado. El original está intacto, en su sitio.",
   "tour.start": "Empezar",
   "tour.next": "Siguiente",

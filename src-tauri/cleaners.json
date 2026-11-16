@@ -783,7 +783,7 @@
     ],
     "mode": "command",
     "level": "heavy",
-    "command": "takeown /F <folder> /R /A ; icacls <folder> /grant Administrators:F /T ; delete ; rd /S /Q <folder>"
+    "command": "delete <folder> with SeBackupPrivilege + SeRestorePrivilege (links and junctions removed, never followed; permissions unchanged)"
   },
   {
     "id": "component-store",

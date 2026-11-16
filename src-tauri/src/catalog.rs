@@ -471,6 +471,76 @@ pub(crate) mod commands {
         exec("powershell.exe", &["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", &script])
     }
 
+    /// Supprime un fichier, un dossier vide ou un lien (le lien lui-même, jamais sa cible).
+    /// Ouverture en mode sauvegarde : avec le privilège de restauration (admin), Windows accorde la suppression
+    /// sans regarder les droits du fichier ; les droits et le propriétaire ne sont jamais modifiés.
+    fn delete_item(p: &std::path::Path) -> bool {
+        use std::os::windows::ffi::OsStrExt;
+        use windows_sys::Win32::Foundation::{CloseHandle, INVALID_HANDLE_VALUE};
+        use windows_sys::Win32::Storage::FileSystem::{
+            CreateFileW, DELETE, FILE_DISPOSITION_FLAG_DELETE, FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE,
+            FILE_DISPOSITION_FLAG_POSIX_SEMANTICS, FILE_DISPOSITION_INFO_EX, FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT,
+            FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, FileDispositionInfoEx, OPEN_EXISTING, SetFileInformationByHandle,
+        };
+        let wide: Vec<u16> = p.as_os_str().encode_wide().chain([0]).collect();
+        let h = unsafe {
+            CreateFileW(
+                wide.as_ptr(),
+                DELETE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                std::ptr::null(),
+                OPEN_EXISTING,
+                FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+                std::ptr::null_mut(),
+            )
+        };
+        if h == INVALID_HANDLE_VALUE {
+            return false;
+        }
+        let info = FILE_DISPOSITION_INFO_EX {
+            Flags: FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_POSIX_SEMANTICS | FILE_DISPOSITION_FLAG_IGNORE_READONLY_ATTRIBUTE,
+        };
+        let ok = unsafe {
+            SetFileInformationByHandle(h, FileDispositionInfoEx, (&info as *const FILE_DISPOSITION_INFO_EX).cast(), size_of::<FILE_DISPOSITION_INFO_EX>() as u32)
+        } != 0;
+        unsafe { CloseHandle(h) };
+        ok
+    }
+
+    /// Supprime `dir` et tout ce qu'il contient sans jamais suivre un lien : une jonction est retirée, sa cible reste.
+    /// Renvoie `true` si `dir` a disparu. Fichiers impossibles à supprimer : comptés dans `skipped`.
+    pub(crate) fn delete_tree(dir: &std::path::Path, r: &mut CleanReport) -> bool {
+        const REPARSE: u32 = 0x400;
+        let Some(entries) = crate::scan::list_backup(dir) else {
+            r.skipped += 1;
+            return false;
+        };
+        let mut all = true;
+        for e in entries {
+            // `attrs` garde 0x400 seulement pour un vrai lien (voir `scan::Entry`).
+            let ok = if e.is_dir && e.attrs & REPARSE == 0 {
+                delete_tree(&e.path, r)
+            } else if delete_item(&e.path) {
+                if !e.is_dir {
+                    r.files += 1;
+                    r.bytes += e.len;
+                }
+                true
+            } else {
+                r.skipped += 1;
+                false
+            };
+            all &= ok;
+        }
+        all && delete_item(dir)
+    }
+
+    /// « C:\x » → « \\?\C:\x » : Windows.old dépasse souvent 260 caractères.
+    fn verbatim(p: &std::path::Path) -> PathBuf {
+        let s = p.display().to_string();
+        if s.starts_with(r"\\?\") { p.to_path_buf() } else { PathBuf::from(format!(r"\\?\{s}")) }
+    }
+
     fn file_size(p: Option<PathBuf>) -> u64 {
         p.and_then(|p| std::fs::metadata(p).ok()).map_or(0, |m| m.len())
     }
@@ -521,9 +591,10 @@ pub(crate) mod commands {
         let mut r = CleanReport { id: entry.id.clone(), ..Default::default() };
         // (succès, sortie) de chaque étape ; les étapes informatives sont marquées réussies.
         let mut steps: Vec<(bool, String)> = Vec::new();
-        let mut check_result = true;
         // compact ne supprime rien : le gain se lit dans l'espace libre du disque système.
         let mut freed = None;
+        // (fichiers, octets) comptés pendant la suppression elle-même (Windows.old : la mesure avant/après ne lit pas tout).
+        let mut counted: Option<(u64, u64)> = None;
         match entry.id.as_str() {
             "recycle-bin" => {
                 if before.files > 0 {
@@ -548,21 +619,17 @@ pub(crate) mod commands {
                 // Relancé dans tous les cas, même si la suppression a échoué.
                 steps.push(powershell("Start-Service wuauserv,bits"));
             }
+            // Pas de takeown /R ni icacls /T : ils suivent les jonctions de Windows.old jusqu'au Windows en service.
             "windows-old" => {
+                let privileges = ["SeBackupPrivilege", "SeRestorePrivilege"].map(crate::elevation::enable_privilege);
+                steps.push((privileges.iter().all(|&p| p), format!("SeBackupPrivilege, SeRestorePrivilege: {privileges:?}")));
+                let mut d = CleanReport::default();
                 for root in entry.paths.iter().flat_map(|p| resolve(p)) {
-                    let p = root.display().to_string();
-                    // /D attend « Y » en anglais et « O » en français : l'option inconnue échoue sans effet.
-                    steps.push(exec("takeown", &["/F", &p, "/R", "/A", "/D", "Y"]));
-                    steps.push((true, exec("takeown", &["/F", &p, "/R", "/A", "/D", "O"]).1));
-                    steps.push(exec("icacls", &[&p, "/grant", "*S-1-5-32-544:F", "/T", "/C", "/Q"]));
+                    let gone = delete_tree(&verbatim(&root), &mut d);
+                    steps.push((gone, format!("delete {} (links never followed): {}", root.display(), if gone { "done" } else { "not complete" })));
                 }
-                let w = walk_paths(entry, false);
-                r.skipped = w.skipped;
-                // Restent des dossiers vides et des jonctions : rd ne suit pas les jonctions.
-                for root in entry.paths.iter().flat_map(|p| resolve(p)) {
-                    steps.push((true, exec("cmd", &["/C", "rd", "/S", "/Q", &root.display().to_string()]).1));
-                }
-                check_result = false; // le résultat réel est mesuré ci-dessous
+                r.skipped = d.skipped;
+                counted = Some((d.files, d.bytes));
             }
             "component-store" => {
                 let dism = env_path("SystemRoot", "System32\\Dism.exe").unwrap_or_else(|| "Dism.exe".into());
@@ -581,11 +648,15 @@ pub(crate) mod commands {
             )),
             _ => {}
         }
-        let after = measure(entry);
-        r.bytes = freed.unwrap_or(before.bytes.saturating_sub(after.bytes));
-        r.files = before.files.saturating_sub(after.files);
+        if let Some((files, bytes)) = counted {
+            (r.files, r.bytes) = (files, bytes);
+        } else {
+            let after = measure(entry);
+            r.bytes = freed.unwrap_or(before.bytes.saturating_sub(after.bytes));
+            r.files = before.files.saturating_sub(after.files);
+        }
         r.output = Some(steps.iter().map(|s| s.1.as_str()).collect::<Vec<_>>().join("\n\n"));
-        if check_result && steps.iter().any(|s| !s.0) {
+        if steps.iter().any(|s| !s.0) {
             r.error = Some("A command failed, see the output.".into());
         }
         r
@@ -806,6 +877,27 @@ mod tests {
         c.flat = false;
         execute(&c, &journal_dir(&s)).unwrap();
         assert!(!deep.exists(), "sans flat, la descente reste le comportement normal");
+    }
+
+    /// Windows.old : tout part, une jonction est retirée sans toucher sa cible, lecture seule ignorée, rien n'est suivi.
+    #[test]
+    fn delete_tree_removes_links_never_their_target() {
+        let s = Sandbox::new("deltree");
+        let live = s.file("live/precious.txt", 10);
+        let old = s.0.join("old");
+        s.file("old/a.bin", 100);
+        let ro = s.file("old/sub/deep/ro.bin", 50);
+        let mut p = fs::metadata(&ro).unwrap().permissions();
+        p.set_readonly(true);
+        fs::set_permissions(&ro, p).unwrap();
+        let ok = Command::new("cmd").args(["/C", "mklink", "/J"]).arg(old.join("sub").join("link")).arg(s.0.join("live")).output().unwrap();
+        assert!(ok.status.success());
+        let mut r = CleanReport::default();
+        let long = PathBuf::from(format!(r"\\?\{}", old.display()));
+        assert!(commands::delete_tree(&long, &mut r), "{r:?}");
+        assert_eq!((r.files, r.bytes, r.skipped), (2, 150, 0));
+        assert!(!old.exists());
+        assert!(live.exists(), "la cible de la jonction est intacte");
     }
 
     #[test]

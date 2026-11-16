@@ -518,6 +518,8 @@
   "error.inUse": "Refused: a file in this folder is open. Close the programs using it, then try again.",
   "error.noSpace": "Refused: not enough free space on that drive.",
   "error.exists": "Refused: the destination already exists. Kleaner never overwrites or merges.",
+  "error.noBin": "Windows would delete this permanently instead of putting it in the Recycle Bin (too big, or this drive has no Recycle Bin). Nothing was moved. Delete it from Explorer if you are sure.",
+  "error.standardAccount": "This Windows account is not an administrator: admin mode would run under another account, with its own files. Sign in with an administrator account to use it.",
   "error.cancelled": "Cancelled. The original is intact, in its place.",
   "tour.start": "Let’s go",
   "tour.next": "Next",

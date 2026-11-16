@@ -518,6 +518,8 @@
   "error.inUse": "Abgelehnt: Eine Datei in diesem Ordner ist geöffnet. Schließe die Programme, die sie nutzen, und versuche es erneut.",
   "error.noSpace": "Abgelehnt: nicht genug freier Platz auf diesem Laufwerk.",
   "error.exists": "Abgelehnt: Das Ziel existiert bereits. Kleaner überschreibt und vermischt nie.",
+  "error.noBin": "Windows würde es endgültig löschen statt in den Papierkorb zu verschieben (zu groß, oder dieses Laufwerk hat keinen Papierkorb). Nichts wurde verschoben. Lösche es im Explorer, wenn du sicher bist.",
+  "error.standardAccount": "Dieses Windows-Konto ist kein Administrator: Der Admin-Modus liefe unter einem anderen Konto mit dessen Dateien. Melde dich mit einem Administratorkonto an, um ihn zu nutzen.",
   "error.cancelled": "Abgebrochen. Das Original ist unverändert an seinem Platz.",
   "tour.start": "Los geht’s",
   "tour.next": "Weiter",

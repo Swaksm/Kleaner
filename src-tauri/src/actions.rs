@@ -10,6 +10,45 @@ pub struct ActionReport {
     pub bytes: u64,
 }
 
+/// Pourquoi Windows supprimerait `p` définitivement au lieu de le mettre à la Corbeille, s'il le ferait.
+/// Sans Corbeille (clé USB, réseau), Corbeille réglée sur « supprimer directement », ou élément plus gros que la Corbeille :
+/// Windows ouvre alors sa propre fenêtre de suppression définitive. Réglages inconnus : on laisse faire Windows.
+fn bin_refusal(p: &Path, size: u64) -> Option<&'static str> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::Storage::FileSystem::{GetDriveTypeW, GetVolumeNameForVolumeMountPointW, GetVolumePathNameW};
+    const DRIVE_FIXED: u32 = 3;
+    let wide: Vec<u16> = p.as_os_str().encode_wide().chain([0]).collect();
+    let mut mount = [0u16; 512];
+    if unsafe { GetVolumePathNameW(wide.as_ptr(), mount.as_mut_ptr(), mount.len() as u32) } == 0 {
+        return None;
+    }
+    if unsafe { GetDriveTypeW(mount.as_ptr()) } != DRIVE_FIXED {
+        return Some("this drive has no Recycle Bin");
+    }
+    let mut volume = [0u16; 64];
+    if unsafe { GetVolumeNameForVolumeMountPointW(mount.as_ptr(), volume.as_mut_ptr(), volume.len() as u32) } == 0 {
+        return None;
+    }
+    // « \\?\Volume{guid}\ » → « {guid} », la clé de la Corbeille de ce disque.
+    let volume = String::from_utf16_lossy(&volume[..volume.iter().position(|&c| c == 0).unwrap_or(0)]);
+    let guid = volume.trim_end_matches('\\').rsplit("Volume").next()?.to_string();
+    let key = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER)
+        .open_subkey(format!(r"Software\Microsoft\Windows\CurrentVersion\Explorer\BitBucket\Volume\{guid}"))
+        .ok()?;
+    if key.get_value::<u32, _>("NukeOnDelete").is_ok_and(|n| n != 0) {
+        return Some("the Recycle Bin of this drive deletes permanently");
+    }
+    let max_mb = key.get_value::<u32, _>("MaxCapacity").ok()?;
+    (size > u64::from(max_mb) * 1024 * 1024).then_some("too big for the Recycle Bin")
+}
+
+fn check_bin(p: &Path, size: u64) -> Result<(), String> {
+    match bin_refusal(p, size) {
+        Some(why) => Err(format!("Refused: {} would be deleted permanently ({why}). Delete it from Explorer if you are sure.", p.display())),
+        None => Ok(()),
+    }
+}
+
 /// Envoie des fichiers choisis par l'utilisateur à la Corbeille.
 /// Tout ou rien : si un seul chemin est refusé par la garde, rien n'est déplacé.
 pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir: &Path) -> Result<ActionReport, String> {
@@ -21,6 +60,7 @@ pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir:
         if !m.is_file() {
             return Err(format!("Refused: {} (only files can be sent to the Recycle Bin)", p.display()));
         }
+        check_bin(&c, m.len())?;
         bytes += m.len();
         checked.push(c);
     }
@@ -41,11 +81,12 @@ pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir:
 /// Tout ou rien : si un seul dossier est refusé par la garde, rien n'est déplacé.
 pub fn trash_dirs(paths: &[PathBuf], protected: &guard::Protected, journal_dir: &Path, sizes: &[u64]) -> Result<ActionReport, String> {
     let mut checked = Vec::with_capacity(paths.len());
-    for p in paths {
+    for (i, p) in paths.iter().enumerate() {
         let c = guard::check_trash(p, protected).map_err(|e| format!("Refused: {} ({e})", p.display()))?;
         if !std::fs::metadata(&c).is_ok_and(|m| m.is_dir()) {
             return Err(format!("Refused: {} (not a folder)", p.display()));
         }
+        check_bin(&c, sizes.get(i).copied().unwrap_or(0))?;
         checked.push(c);
     }
     let bytes = sizes.iter().sum();
@@ -269,6 +310,17 @@ mod tests {
         let local = PathBuf::from(std::env::var_os("LOCALAPPDATA").unwrap());
         let err = trash_dirs(&[local], &guard::Protected::from_env(), &d, &[0]).unwrap_err();
         assert!(err.starts_with("Refused"), "{err}");
+        fs::remove_dir_all(&d).unwrap();
+    }
+
+    /// Petit fichier sur C: : la Corbeille le prend. Plus gros que 1 Po : jamais.
+    #[test]
+    fn recycle_bin_limits() {
+        let d = temp("bin");
+        assert_eq!(bin_refusal(&d, 10), None);
+        if bin_refusal(&d, 0).is_none() && bin_refusal(&d, u64::MAX / 2).is_some() {
+            assert_eq!(bin_refusal(&d, u64::MAX / 2), Some("too big for the Recycle Bin"));
+        }
         fs::remove_dir_all(&d).unwrap();
     }
 

@@ -518,6 +518,8 @@
   "error.inUse": "Rifiutato: un file di questa cartella è aperto. Chiudi i programmi che lo usano, poi riprova.",
   "error.noSpace": "Rifiutato: spazio libero insufficiente su quel disco.",
   "error.exists": "Rifiutato: la destinazione esiste già. Kleaner non sovrascrive né unisce mai.",
+  "error.noBin": "Windows lo eliminerebbe definitivamente invece di metterlo nel Cestino (troppo grande, o questa unità non ha un Cestino). Non è stato spostato nulla. Eliminalo da Esplora file se sei sicuro.",
+  "error.standardAccount": "Questo account Windows non è amministratore: la modalità admin girerebbe con un altro account, con i suoi file. Accedi con un account amministratore per usarla.",
   "error.cancelled": "Annullato. L’originale è intatto, al suo posto.",
   "tour.start": "Iniziamo",
   "tour.next": "Avanti",

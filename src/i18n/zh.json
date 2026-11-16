@@ -518,6 +518,8 @@
   "error.inUse": "已拒绝：此文件夹中的文件已打开。请关闭使用它的程序后重试。",
   "error.noSpace": "已拒绝：该磁盘可用空间不足。",
   "error.exists": "已拒绝：目标已存在。Kleaner 从不覆盖或合并。",
+  "error.noBin": "Windows 会将其永久删除，而不是放入回收站（文件太大，或此驱动器没有回收站）。未移动任何内容。如确定，请在资源管理器中删除。",
+  "error.standardAccount": "此 Windows 帐户不是管理员：管理员模式会在另一个帐户下运行，使用该帐户的文件。请用管理员帐户登录后再使用。",
   "error.cancelled": "已取消。原文件夹完好无损，仍在原处。",
   "tour.start": "开始",
   "tour.next": "下一步",

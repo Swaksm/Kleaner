@@ -77,8 +77,11 @@ fn inside(child: &str, parent: &str) -> bool {
 /// Refuse si le chemin ou l'un de ses parents est un lien symbolique ou une jonction.
 pub fn no_links(p: &Path) -> Result<(), GuardError> {
     for a in p.ancestors() {
+        // `is_symlink` : lien, jonction ou point de montage (« substitut de nom »). Un dossier OneDrive ou Dropbox
+        // porte aussi un point d'analyse, mais ne renvoie nulle part : il n'est pas refusé.
         if let Ok(m) = std::fs::symlink_metadata(a)
             && m.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0
+            && m.file_type().is_symlink()
         {
             return Err(GuardError::Link);
         }

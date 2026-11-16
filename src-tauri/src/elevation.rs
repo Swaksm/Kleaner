@@ -26,10 +26,35 @@ pub fn is_elevated() -> bool {
     }
 }
 
-/// Active le privilège de sauvegarde pour ce processus (admin uniquement).
-/// Il permet de *lire* les dossiers réservés à SYSTEM (System Volume Information, WindowsApps…).
-/// Kleaner ne s'en sert que pour lister des dossiers, jamais pour écrire.
+/// Compte Windows standard (pas administrateur) : l'UAC demanderait le mot de passe d'un *autre* compte,
+/// et Kleaner relancé tournerait avec ses dossiers (AppData, Corbeille, Documents), pas ceux de l'utilisateur.
+pub fn is_standard_account() -> bool {
+    use windows_sys::Win32::Security::{TOKEN_ELEVATION_TYPE, TokenElevationType, TokenElevationTypeDefault};
+    if is_elevated() {
+        return false;
+    }
+    unsafe {
+        let mut token: HANDLE = std::ptr::null_mut();
+        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token) == 0 {
+            return false;
+        }
+        let mut kind: TOKEN_ELEVATION_TYPE = 0;
+        let mut len = 0u32;
+        let ok = GetTokenInformation(token, TokenElevationType, (&mut kind as *mut TOKEN_ELEVATION_TYPE).cast(), size_of::<TOKEN_ELEVATION_TYPE>() as u32, &mut len);
+        CloseHandle(token);
+        // Administrateur avec UAC : jeton « limité ». Compte standard : jeton « par défaut » et pas élevé.
+        ok != 0 && kind == TokenElevationTypeDefault
+    }
+}
+
+/// Privilèges de sauvegarde et de restauration (admin uniquement).
+/// Sauvegarde : *lire* les dossiers réservés à SYSTEM (System Volume Information, WindowsApps…) pour les lister.
+/// Restauration : supprimer sans changer les droits ni le propriétaire (Windows.old, voir `catalog::commands`).
 pub fn enable_backup_privilege() -> bool {
+    enable_privilege("SeBackupPrivilege")
+}
+
+pub fn enable_privilege(privilege: &str) -> bool {
     use windows_sys::Win32::Foundation::{GetLastError, LUID};
     use windows_sys::Win32::Security::{
         AdjustTokenPrivileges, LUID_AND_ATTRIBUTES, LookupPrivilegeValueW, SE_PRIVILEGE_ENABLED,
@@ -41,7 +66,7 @@ pub fn enable_backup_privilege() -> bool {
         if OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &mut token) == 0 {
             return false;
         }
-        let name = wide("SeBackupPrivilege".as_ref());
+        let name = wide(privilege.as_ref());
         let mut luid = LUID { LowPart: 0, HighPart: 0 };
         let mut ok = LookupPrivilegeValueW(std::ptr::null(), name.as_ptr(), &mut luid) != 0;
         if ok {
@@ -103,6 +128,9 @@ fn wide(s: &std::ffi::OsStr) -> Vec<u16> {
 
 /// Relance l'exe en admin (fenêtre UAC de Windows). `Err` si l'utilisateur refuse.
 pub fn relaunch_as_admin() -> Result<(), String> {
+    if is_standard_account() {
+        return Err("Refused: this Windows account is not an administrator (admin mode would run as another account)".into());
+    }
     // Version Store : par l'alias du paquet, sinon l'instance admin perdrait son identité de paquet.
     let exe = match crate::store::is_packaged().then(crate::store::alias).flatten() {
         Some(alias) => alias,
@@ -131,5 +159,12 @@ mod tests {
     #[test]
     fn is_elevated_does_not_crash() {
         let _ = super::is_elevated();
+    }
+
+    #[test]
+    fn elevated_is_never_a_standard_account() {
+        if super::is_elevated() {
+            assert!(!super::is_standard_account());
+        }
     }
 }
