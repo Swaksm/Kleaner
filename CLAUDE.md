@@ -5,7 +5,6 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 
 ## Règles non négociables
 
-- **Aucune attribution Claude** dans les commits, PR, fichiers (pas de `Co-Authored-By`).
 - **Aucun réseau**, sauf la vérification de mise à jour optionnelle (désactivée par défaut, `api.github.com`, autorisée dans la CSP). Windows Update, winget et « Installer la mise à jour » (`updater.rs` : installateur de la release, SHA-256 vérifié, version installée seulement) ne contactent Internet que sur clic.
 - **Suppression définitive** seulement dans les dossiers de `src-tauri/cleaners.json` et `src-tauri/winapp2.json` (vérifié par `guard::check_delete`), ou les dossiers régénérables de projets trouvés par la dernière analyse (`delete_artifacts`).
 - **Fichiers personnels et restes de programmes** : Corbeille uniquement (`guard::check_trash`, restaurable depuis le Journal).
