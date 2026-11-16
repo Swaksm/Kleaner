@@ -66,7 +66,11 @@ struct JournalView {
 #[tauri::command]
 fn read_journal(limit: usize) -> Result<JournalView, String> {
     let dir = journal::data_dir();
-    let entries = journal::read_last(&dir, limit).map_err(|e| e.to_string())?;
+    // Les `limit` dernières lignes, plus toutes les actions plus anciennes qu'on peut encore annuler
+    // (et les retours de déplacement, qui disent qu'un déplacement est déjà annulé) : leur bouton Restaurer ne disparaît pas.
+    const UNDOABLE: [&str; 5] = ["trash", "trash-leftovers", "ghost-remove", "move", "move-back"];
+    let all = journal::read_last(&dir, usize::MAX).map_err(|e| e.to_string())?;
+    let entries = all.into_iter().enumerate().filter(|(i, e)| *i < limit || UNDOABLE.contains(&e.action.as_str())).map(|(_, e)| e).collect();
     Ok(JournalView { path: dir.join("journal.log").display().to_string(), entries })
 }
 
@@ -188,13 +192,15 @@ struct ScanProgress {
 
 /// Lance l'analyse de tous les disques fixes en arrière-plan.
 /// Événements : `scan-progress` toutes les 250 ms, puis `scan-done` avec le résultat.
+// async : lire l'espace d'un lecteur réseau injoignable prend des dizaines de secondes, la fenêtre ne doit pas se figer.
 #[tauri::command]
-fn start_scan(app: tauri::AppHandle, state: State<ScanState>, roots: Option<Vec<String>>) -> Result<(), String> {
+async fn start_scan(app: tauri::AppHandle, state: State<'_, ScanState>, roots: Option<Vec<String>>) -> Result<(), String> {
     // Seules des racines de disques réellement présents sont acceptées ; par défaut, les disques fixes.
     let roots: Vec<PathBuf> = match roots {
         None => scan::fixed_drives(),
         Some(asked) => {
-            let present: Vec<String> = scan::drives().into_iter().map(|d| d.root).collect();
+            let present: Vec<String> =
+                tauri::async_runtime::spawn_blocking(scan::drives).await.map_err(|e| e.to_string())?.into_iter().map(|d| d.root).collect();
             let mut out = Vec::new();
             for r in asked {
                 if !present.iter().any(|p| p.eq_ignore_ascii_case(&r)) {
@@ -431,9 +437,10 @@ async fn explain_paths(paths: Vec<String>) -> Result<Vec<knowledge::Explanation>
     tauri::async_runtime::spawn_blocking(move || knowledge::explain_all(&paths)).await.map_err(|e| e.to_string())
 }
 
+/// Hors du fil de la fenêtre : un lecteur réseau injoignable met longtemps à répondre.
 #[tauri::command]
-fn list_drives() -> Vec<scan::DriveInfo> {
-    scan::drives()
+async fn list_drives() -> Result<Vec<scan::DriveInfo>, String> {
+    tauri::async_runtime::spawn_blocking(scan::drives).await.map_err(|e| e.to_string())
 }
 
 #[derive(Serialize, Clone)]
@@ -904,6 +911,9 @@ pub fn run() {
                 use tauri::window::{Effect, EffectsBuilder};
                 MICA.store(w.set_effects(EffectsBuilder::new().effect(Effect::Mica).build()).is_ok(), Relaxed);
             }
+            // Kleaner relancé alors qu'il tourne déjà (même caché près de l'horloge, même en admin) : on montre la fenêtre.
+            let handle = app.handle().clone();
+            elevation::listen_show(move || tray::show(&handle));
             // Lancé par la tâche de démarrage : icône près de l'horloge, fenêtre cachée.
             if std::env::args().any(|a| a == autostart::MINIMIZED_ARG) || store::launched_at_startup() {
                 tray::start(app.handle())?;

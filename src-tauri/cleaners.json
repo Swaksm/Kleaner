@@ -841,8 +841,8 @@
       "en": "Old restore points"
     },
     "what": {
-      "fr": "Tous les points de restauration système sauf le plus récent.",
-      "en": "All system restore points except the most recent one."
+      "fr": "Tous les points de restauration système sauf le plus récent de chaque disque.",
+      "en": "All system restore points except the most recent one on each drive."
     },
     "why": {
       "fr": "Le plus récent suffit en général pour réparer Windows.",
@@ -855,7 +855,7 @@
     "admin": true,
     "mode": "command",
     "level": "heavy",
-    "command": "Get-CimInstance Win32_ShadowCopy | (all but the most recent) | Remove-CimInstance"
+    "command": "Get-CimInstance Win32_ShadowCopy | Group-Object VolumeName | (all but the most recent of each drive) | Remove-CimInstance"
   },
   {
     "id": "compact-os",
@@ -1037,6 +1037,7 @@
     "mode": "delete",
     "level": "safe",
     "id": "dev-maven",
+    "ask": true,
     "group": "dev",
     "label": {
       "fr": "Maven : cache",
@@ -1051,8 +1052,8 @@
       "en": "Maven downloads or rebuilds them when needed. Your projects are untouched."
     },
     "effect": {
-      "fr": "Le prochain install ou build retélécharge ce qui manque.",
-      "en": "The next install or build downloads what is missing again."
+      "fr": "Le prochain build retélécharge les dépendances. Les bibliothèques installées à la main (mvn install) partent aussi : jamais coché d’office.",
+      "en": "The next build downloads dependencies again. Libraries installed by hand (mvn install) are lost too: never ticked automatically."
     },
     "paths": [
       "%USERPROFILE%\\.m2\\repository"
@@ -1156,7 +1157,8 @@
       "en": "The next install or build downloads what is missing again."
     },
     "paths": [
-      "%LOCALAPPDATA%\\Pub\\Cache"
+      "%LOCALAPPDATA%\\Pub\\Cache\\hosted",
+      "%LOCALAPPDATA%\\Pub\\Cache\\git"
     ]
   },
   {

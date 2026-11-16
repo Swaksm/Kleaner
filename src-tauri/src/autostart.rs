@@ -1,5 +1,5 @@
 //! Démarrage avec Windows, sur demande seulement : une tâche planifiée « Kleaner » lance l'exe réduit
-//! (`--minimized`) à l'ouverture de session de l'utilisateur, avec les droits admin et sans invite UAC.
+//! (`--minimized`) à l'ouverture de session de l'utilisateur ; version installée : avec les droits admin, sans invite UAC.
 //! Kleaner n'analyse ni ne nettoie rien au démarrage. Créer ou retirer la tâche demande les droits admin.
 //! Version Store : la tâche de démarrage du paquet MSIX (`StartupTask`), sans droits admin ; la tâche planifiée n'y sert pas.
 
@@ -17,17 +17,20 @@ fn quote(s: &str) -> String {
 }
 
 /// Script qui crée (ou remplace) la tâche pour l'utilisateur courant.
-fn create_script(exe: &Path) -> String {
+/// `admin` : droits admin sans invite, seulement pour l'exe installé dans Program Files (qu'un admin seul peut remplacer).
+/// L'exe portable (Téléchargements, Bureau…) peut être écrasé par n'importe quel programme : sa tâche démarre sans droits admin.
+fn create_script(exe: &Path, admin: bool) -> String {
     format!(
         "$user = \"$env:USERDOMAIN\\$env:USERNAME\";
         $action = New-ScheduledTaskAction -Execute {exe} -Argument {arg};
         $trigger = New-ScheduledTaskTrigger -AtLogOn -User $user;
-        $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Highest;
+        $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel {level};
         $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0;
         Register-ScheduledTask -TaskName {task} -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null",
         exe = quote(&exe.display().to_string()),
         arg = quote(MINIMIZED_ARG),
         task = quote(TASK),
+        level = if admin { "Highest" } else { "Limited" },
     )
 }
 
@@ -86,7 +89,7 @@ pub fn set(on: bool, journal_dir: &Path) -> Result<(), String> {
     }
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let script = if on {
-        create_script(&exe)
+        create_script(&exe, crate::updater::is_installed())
     } else {
         format!("Unregister-ScheduledTask -TaskName {} -Confirm:$false -ErrorAction SilentlyContinue", quote(TASK))
     };
@@ -106,10 +109,12 @@ mod tests {
 
     #[test]
     fn script_quotes_the_path_and_runs_minimized_as_admin() {
-        let s = create_script(Path::new(r"C:\Program Files\Kleaner\it's.exe"));
+        let s = create_script(Path::new(r"C:\Program Files\Kleaner\it's.exe"), true);
         assert!(s.contains(r"-Execute 'C:\Program Files\Kleaner\it''s.exe'"), "{s}");
         assert!(s.contains("-Argument '--minimized'"));
         assert!(s.contains("-RunLevel Highest"));
         assert!(s.contains("-AtLogOn -User $user"), "seulement pour l'utilisateur courant");
+        let portable = create_script(Path::new(r"C:\Users\me\Downloads\kleaner.exe"), false);
+        assert!(portable.contains("-RunLevel Limited"), "exe portable : jamais admin sans invite");
     }
 }

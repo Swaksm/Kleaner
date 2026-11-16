@@ -114,21 +114,32 @@ function App() {
   }, [ready]);
 
   // Raccourcis : Ctrl+1…8 pour les pages principales, F5 relance l'analyse (au lieu de recharger la fenêtre).
+  // Recharger la fenêtre n'est jamais permis : pendant une action, Rust continue seul, sans écran d'attente ni résultat.
+  // Le menu du clic droit (Actualiser) est retiré aussi, sauf dans les champs de saisie (copier, coller).
   useEffect(() => {
-    // Pas pendant une action : changer de page ne doit rien interrompre.
-    if (!ready || tour || busy) return;
+    const active = ready && !tour && !busy;
     const onKey = (e: KeyboardEvent) => {
+      const reload = e.key === "F5" || (e.ctrlKey && e.key.toLowerCase() === "r");
+      if (reload) e.preventDefault();
+      // Pas pendant une action : changer de page ne doit rien interrompre.
+      if (!active) return;
       if (e.ctrlKey && !e.altKey && !e.shiftKey && /^[1-8]$/.test(e.key)) {
         e.preventDefault();
         setPage(MAIN[Number(e.key) - 1]);
-      } else if (e.key === "F5" || (e.ctrlKey && e.key.toLowerCase() === "r")) {
-        e.preventDefault();
+      } else if (reload) {
         setScanRequest((n) => n + 1);
         setPage("analyse");
       }
     };
+    const onMenu = (e: MouseEvent) => {
+      if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) e.preventDefault();
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("contextmenu", onMenu);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("contextmenu", onMenu);
+    };
   }, [ready, tour, busy]);
 
   useEffect(() => {

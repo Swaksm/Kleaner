@@ -36,7 +36,7 @@ Spécification : `SPEC.md` (révisions 1 à 6 en fin de fichier). README génér
 - `system.rs` : infos machine, Windows Update (COM, lecture), winget (tableau lu), fin de support Windows.
 - `elevation.rs` : admin, relance UAC (`--relaunch`), privilège de sauvegarde, verrou d'instance unique (`.Dev` en debug).
 - `tray.rs` : en mode `--minimized` (démarrage auto), fenêtre cachée, icône près de l'horloge (Ouvrir / Quitter), notification si un disque fixe a moins de 10 % libre (une fois par 24 h) ; au plus une fois par mois, rappel des Go que libéreraient les nettoyages sûrs (≥ 1 Go, date dans `%LOCALAPPDATA%\Kleaner\reminder`). Textes dans la langue de Windows.
-- `autostart.rs` : démarrage avec Windows sur demande (tâche planifiée « Kleaner », à l'ouverture de session, admin, `--minimized`), journalisé ; changer le réglage demande l'admin. Version Store : `StartupTask` du paquet, sans admin.
+- `autostart.rs` : démarrage avec Windows sur demande (tâche planifiée « Kleaner », à l'ouverture de session, `--minimized` ; admin seulement pour la version installée, l'exe portable démarre sans droits admin), journalisé ; changer le réglage demande l'admin. Version Store : `StartupTask` du paquet, sans admin.
 - `store.rs` : version Microsoft Store (même exe dans le paquet MSIX `packaging/msix`) : pas de mise à jour intégrée, relance admin par l'alias du paquet, lancement par la tâche de démarrage détecté.
 - `journal.rs` : journal JSON lignes.
 - `startup.rs` : programmes au démarrage (Run, dossiers, tâches ; services en lecture seule), activation par `StartupApproved`.

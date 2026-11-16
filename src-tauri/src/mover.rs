@@ -77,7 +77,8 @@ fn walk(root: &Path) -> Result<Vec<Item>, String> {
             if a & (OFFLINE | RECALL_ON_OPEN | RECALL_ON_DATA_ACCESS) != 0 {
                 return Err(format!("Refused: {} (online-only file)", plain(&e.path())));
             }
-            if a & SYSTEM != 0 {
+            // desktop.ini (caché, système) personnalise l'icône du dossier : copié avec ses attributs.
+            if a & SYSTEM != 0 && !e.file_name().eq_ignore_ascii_case("desktop.ini") {
                 return Err(format!("Refused: {} (system file)", plain(&e.path())));
             }
             let child = rel.join(e.file_name());
@@ -165,9 +166,9 @@ pub fn move_folder(
     if t.free < p.bytes + MARGIN {
         return Err(format!("Refused: not enough free space on {}", t.root));
     }
-    let (from, items) = inspect(source, home, programs)?;
+    let (from, _) = inspect(source, home, programs)?;
     let to = PathBuf::from(&t.dest);
-    let report = transfer(&from, &to, &items, "move", journal_dir, cancel, progress)?;
+    let report = transfer(&from, &to, "move", journal_dir, cancel, progress)?;
     Ok((report, t.dest.clone()))
 }
 
@@ -188,7 +189,7 @@ pub fn move_back(original: &Path, moved: &Path, journal_dir: &Path, cancel: &Ato
     {
         return Err(format!("Refused: not enough free space on {}", d.root));
     }
-    let report = transfer(&from, original, &items, "move-back", journal_dir, cancel, progress)?;
+    let report = transfer(&from, original, "move-back", journal_dir, cancel, progress)?;
     // Dossiers « Kleaner moved\Videos » devenus vides : retirés (remove_dir refuse un dossier non vide).
     for parent in from.ancestors().skip(1) {
         if fs::remove_dir(parent).is_err() || parent.file_name().is_some_and(|n| n == FOLDER) {
@@ -202,7 +203,6 @@ pub fn move_back(original: &Path, moved: &Path, journal_dir: &Path, cancel: &Ato
 fn transfer(
     from: &Path,
     to: &Path,
-    items: &[Item],
     action: &str,
     journal_dir: &Path,
     cancel: &AtomicBool,
@@ -222,6 +222,18 @@ fn transfer(
         let _ = fs::remove_dir(to);
         return Err(format!("Refused: {} is in use, close the programs that use it", plain(from)));
     }
+    // Liste faite après le renommage : un fichier arrivé entre-temps est copié lui aussi, jamais supprimé sans copie.
+    let items = match walk(&parked) {
+        Ok(items) => items,
+        Err(e) => {
+            let _ = fs::remove_dir(to);
+            return Err(match fs::rename(&parked, from) {
+                Ok(()) => e,
+                Err(r) => format!("{e}. The original is intact but kept the name {} ({r})", plain(&parked)),
+            });
+        }
+    };
+    let items = &items[..];
 
     let mut entry = journal::Entry::new(action);
     entry.paths = vec![plain(from), plain(to)];
@@ -242,6 +254,14 @@ fn transfer(
     entry.error = result.as_ref().err().cloned();
     journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
     result.map(|_| ActionReport { files: entry.files, bytes: entry.bytes })
+}
+
+fn set_attributes(p: &Path, attrs: u32) {
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::Storage::FileSystem::SetFileAttributesW;
+    let wide: Vec<u16> = p.as_os_str().encode_wide().chain([0]).collect();
+    // 0 serait refusé : « normal » vaut 0x80.
+    unsafe { SetFileAttributesW(wide.as_ptr(), if attrs == 0 { 0x80 } else { attrs }) };
 }
 
 fn copy_verified(from: &Path, to: &Path, items: &[Item], total: u64, cancel: &AtomicBool, progress: &dyn Fn(u64, u64)) -> Result<(), String> {
@@ -289,11 +309,8 @@ fn copy_verified(from: &Path, to: &Path, items: &[Item], total: u64, cancel: &At
         if check.finalize() != sum.finalize() {
             return Err(format!("Copy check failed: {}", plain(&src)));
         }
-        if m.permissions().readonly() {
-            let mut perm = m.permissions();
-            perm.set_readonly(true);
-            let _ = fs::set_permissions(&dst, perm);
-        }
+        // Lecture seule, caché, système, archive : comme l'original (desktop.ini doit rester caché et système).
+        set_attributes(&dst, m.file_attributes() & 0x27);
         progress(done, total);
     }
     Ok(())
@@ -332,19 +349,23 @@ mod tests {
         let s = Sandbox::new("roundtrip");
         let (src, dst, log) = (s.0.join("Rushes"), s.0.join("D/Kleaner moved/Videos/Rushes"), s.0.join("log"));
         fill(&src);
+        // desktop.ini caché et système (icône du dossier) : accepté et copié avec ses attributs.
+        let ini = src.join("desktop.ini");
+        fs::write(&ini, b"[.ShellClassInfo]").unwrap();
+        assert!(std::process::Command::new("attrib").args(["+h", "+s"]).arg(&ini).status().unwrap().success());
         let items = walk(&src).unwrap();
-        assert_eq!(items.iter().filter(|i| !i.dir).count(), 3);
+        assert_eq!(items.iter().filter(|i| !i.dir).count(), 4);
         let stop = AtomicBool::new(false);
-        let r = transfer(&src, &dst, &items, "move", &log, &stop, &|_, _| {}).unwrap();
-        assert_eq!((r.files, r.bytes), (3, 5 + (3 << 20)));
+        let r = transfer(&src, &dst, "move", &log, &stop, &|_, _| {}).unwrap();
+        assert_eq!((r.files, r.bytes), (4, 5 + 17 + (3 << 20)));
         assert!(!src.exists(), "original retiré");
+        assert_eq!(fs::metadata(dst.join("desktop.ini")).unwrap().file_attributes() & 0x6, 0x6, "caché et système");
         assert_eq!(fs::read(dst.join("a/two.bin")).unwrap(), vec![7u8; 3 << 20]);
         let entries = journal::read_last(&log, 10).unwrap();
         assert_eq!(entries[0].action, "move");
         assert_eq!(entries[0].paths, [plain(&src), plain(&dst)]);
 
-        let back = walk(&dst).unwrap();
-        transfer(&dst, &src, &back, "move-back", &log, &stop, &|_, _| {}).unwrap();
+        transfer(&dst, &src, "move-back", &log, &stop, &|_, _| {}).unwrap();
         assert_eq!(fs::read(src.join("one.txt")).unwrap(), b"hello");
         assert!(src.join("a/b/three").is_file() && !dst.exists());
     }
@@ -354,9 +375,8 @@ mod tests {
         let s = Sandbox::new("cancel");
         let (src, dst, log) = (s.0.join("Big"), s.0.join("D/Big"), s.0.join("log"));
         fill(&src);
-        let items = walk(&src).unwrap();
         let stop = AtomicBool::new(true);
-        let e = transfer(&src, &dst, &items, "move", &log, &stop, &|_, _| {}).unwrap_err();
+        let e = transfer(&src, &dst, "move", &log, &stop, &|_, _| {}).unwrap_err();
         assert_eq!(e, "Cancelled");
         assert!(src.join("a/two.bin").is_file() && !dst.exists(), "original à sa place, copie partielle retirée");
         assert!(journal::read_last(&log, 1).unwrap()[0].error.is_some());
@@ -369,8 +389,7 @@ mod tests {
         fill(&src);
         fs::create_dir_all(&dst).unwrap();
         fs::write(dst.join("mine"), b"keep").unwrap();
-        let items = walk(&src).unwrap();
-        assert!(transfer(&src, &dst, &items, "move", &log, &AtomicBool::new(false), &|_, _| {}).unwrap_err().contains("already exists"));
+        assert!(transfer(&src, &dst, "move", &log, &AtomicBool::new(false), &|_, _| {}).unwrap_err().contains("already exists"));
         assert_eq!(fs::read(dst.join("mine")).unwrap(), b"keep");
         assert!(src.join("one.txt").is_file());
     }
@@ -380,9 +399,8 @@ mod tests {
         let s = Sandbox::new("locked");
         let (src, dst, log) = (s.0.join("Busy"), s.0.join("D/Busy"), s.0.join("log"));
         fill(&src);
-        let items = walk(&src).unwrap();
         let _open = File::open(src.join("one.txt")).unwrap();
-        let e = transfer(&src, &dst, &items, "move", &log, &AtomicBool::new(false), &|_, _| {}).unwrap_err();
+        let e = transfer(&src, &dst, "move", &log, &AtomicBool::new(false), &|_, _| {}).unwrap_err();
         assert!(e.contains("in use"), "{e}");
         assert!(src.join("one.txt").is_file() && !dst.exists());
     }

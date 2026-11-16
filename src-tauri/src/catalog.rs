@@ -128,6 +128,10 @@ pub struct Cleaner {
     pub flat: bool,
     #[serde(default)]
     pub admin: bool,
+    /// Retire aussi des choses qu'on ne retélécharge pas (ex. bibliothèques Maven installées à la main) :
+    /// jamais coché par « Cocher les éléments sans risque », jamais compté dans l'espace « sans risque ».
+    #[serde(default)]
+    pub ask: bool,
     pub mode: Mode,
     pub level: Level,
     /// Processus qui doivent être fermés ; sinon l'entrée est ignorée.
@@ -567,13 +571,13 @@ pub(crate) mod commands {
             }
             "restore-points" => {
                 let (_, out) = powershell(
-                    "$s=@(Get-CimInstance Win32_ShadowCopy); $u=(Get-CimInstance Win32_ShadowStorage | Measure-Object UsedSpace -Sum).Sum; \"$($s.Count) $([int64]$u)\"",
+                    "$s=@(Get-CimInstance Win32_ShadowCopy); $v=@($s | Group-Object VolumeName).Count; $u=(Get-CimInstance Win32_ShadowStorage | Measure-Object UsedSpace -Sum).Sum; \"$($s.Count) $v $([int64]$u)\"",
                 );
                 let nums: Vec<u64> = out.lines().last().unwrap_or("").split(' ').filter_map(|n| n.parse().ok()).collect();
-                if let [count, used] = nums[..] {
-                    // On garde le plus récent : estimation proportionnelle.
-                    r.files = count.saturating_sub(1);
-                    r.bytes = if count > 1 { used / count * (count - 1) } else { 0 };
+                if let [count, drives, used] = nums[..] {
+                    // On garde le plus récent de chaque disque : estimation proportionnelle.
+                    r.files = count.saturating_sub(drives);
+                    r.bytes = used.checked_div(count).map_or(0, |per| per * r.files);
                 }
             }
             // Taille connue seulement après DISM ou compact.
@@ -644,7 +648,8 @@ pub(crate) mod commands {
                 freed = start.zip(free()).map(|(a, b)| b.saturating_sub(a));
             }
             "restore-points" => steps.push(powershell(
-                "$s=@(Get-CimInstance Win32_ShadowCopy | Sort-Object InstallDate); if ($s.Count -gt 1) { $s | Select-Object -First ($s.Count-1) | Remove-CimInstance }; \"$($s.Count) point(s), most recent one kept\"",
+                // Groupés par disque : chaque disque garde son point le plus récent.
+                "$n=0; Get-CimInstance Win32_ShadowCopy | Group-Object VolumeName | ForEach-Object { $g=@($_.Group | Sort-Object InstallDate); if ($g.Count -gt 1) { $g | Select-Object -First ($g.Count-1) | Remove-CimInstance; $n += $g.Count-1 } }; \"$n point(s) removed, most recent one kept on each drive\"",
             )),
             _ => {}
         }

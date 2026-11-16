@@ -24,7 +24,7 @@ function subscribe(fn: () => void) {
 function compute(): Promise<number> {
   return Promise.all([listCleaners(), estimateCleaners()]).then(([view, list]) => {
     const byId = new Map(view.cleaners.map((c) => [c.id, c]));
-    return list.filter((r) => byId.get(r.id)?.level === "safe" && byId.get(r.id)?.group !== "community" && r.blocked_by.length === 0).reduce((n, r) => n + r.bytes, 0);
+    return list.filter((r) => byId.get(r.id)?.level === "safe" && byId.get(r.id)?.group !== "community" && !byId.get(r.id)?.ask && r.blocked_by.length === 0).reduce((n, r) => n + r.bytes, 0);
   });
 }
 

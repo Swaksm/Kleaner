@@ -56,7 +56,7 @@ export function Cleanup({ quick = false, onQuickDone }: { quick?: boolean; onQui
   const selectable = (c: Cleaner, map: Map<string, CleanReport>) => {
     const r = map.get(c.id);
     // Le catalogue communautaire n'est jamais coché en bloc.
-    return c.level === "safe" && c.group !== "community" && !!r && r.bytes > 0 && r.blocked_by.length === 0;
+    return c.level === "safe" && c.group !== "community" && !c.ask && !!r && r.bytes > 0 && r.blocked_by.length === 0;
   };
 
   // Jamais de sélection automatique : l'utilisateur coche lui-même, ou clique « Cocher les éléments sans risque »

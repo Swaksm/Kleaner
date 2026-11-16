@@ -78,6 +78,7 @@ export type Cleaner = {
   only: string[];
   flat: boolean;
   admin: boolean;
+  ask?: boolean;
   mode: "delete" | "command";
   level: "safe" | "heavy";
   close: string[];

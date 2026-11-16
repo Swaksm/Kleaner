@@ -109,8 +109,57 @@ pub fn single_instance() -> bool {
     false
 }
 
+fn show_event() -> Vec<u16> {
+    wide(if cfg!(debug_assertions) { "Local\\Kleaner.Show.Dev" } else { "Local\\Kleaner.Show" }.as_ref())
+}
+
+/// Première instance : `on_show` est appelé chaque fois qu'une autre instance demande la fenêtre.
+/// L'événement est ouvert à tous les processus de la session (liste d'accès vide) : une instance sans droits admin
+/// peut ainsi réveiller une instance admin (démarrage avec Windows), ce que Windows refuse pour une fenêtre.
+pub fn listen_show(on_show: impl Fn() + Send + 'static) {
+    use windows_sys::Win32::Security::{InitializeSecurityDescriptor, SECURITY_ATTRIBUTES, SECURITY_DESCRIPTOR, SetSecurityDescriptorDacl};
+    use windows_sys::Win32::System::Threading::{CreateEventW, INFINITE, WaitForSingleObject};
+    const SECURITY_DESCRIPTOR_REVISION: u32 = 1;
+    let name = show_event();
+    let event = unsafe {
+        let mut sd: SECURITY_DESCRIPTOR = std::mem::zeroed();
+        InitializeSecurityDescriptor((&mut sd as *mut SECURITY_DESCRIPTOR).cast(), SECURITY_DESCRIPTOR_REVISION);
+        SetSecurityDescriptorDacl((&mut sd as *mut SECURITY_DESCRIPTOR).cast(), 1, std::ptr::null(), 0);
+        let sa = SECURITY_ATTRIBUTES { nLength: size_of::<SECURITY_ATTRIBUTES>() as u32, lpSecurityDescriptor: (&mut sd as *mut SECURITY_DESCRIPTOR).cast(), bInheritHandle: 0 };
+        CreateEventW(&sa, 0, 0, name.as_ptr())
+    };
+    if event.is_null() {
+        return;
+    }
+    // Le handle vit aussi longtemps que le processus.
+    let event = event as usize;
+    std::thread::spawn(move || {
+        while unsafe { WaitForSingleObject(event as HANDLE, INFINITE) } == 0 {
+            on_show();
+        }
+    });
+}
+
+/// Demande à la première instance de se montrer. `false` si elle n'écoute pas.
+fn request_show() -> bool {
+    use windows_sys::Win32::System::Threading::{EVENT_MODIFY_STATE, OpenEventW, SetEvent};
+    let name = show_event();
+    unsafe {
+        let e = OpenEventW(EVENT_MODIFY_STATE, 0, name.as_ptr());
+        if e.is_null() {
+            return false;
+        }
+        let ok = SetEvent(e) != 0;
+        CloseHandle(e);
+        ok
+    }
+}
+
 fn focus_existing() {
     use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowW, SW_RESTORE, SetForegroundWindow, ShowWindow};
+    if request_show() {
+        return;
+    }
     let title = wide("Kleaner".as_ref());
     unsafe {
         let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());

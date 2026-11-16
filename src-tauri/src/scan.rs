@@ -142,8 +142,8 @@ fn artifact_kind(name: &str, files: &[String]) -> Option<&'static str> {
     match name {
         "node_modules" if has("package.json") => Some("node"),
         ".next" if has("package.json") => Some("next"),
-        ".venv" => Some("python"),
-        "venv" if has("requirements.txt") || has("pyproject.toml") || has("setup.py") || has("pipfile") => Some("python"),
+        // Sans liste des paquets à côté, l'environnement ne se recrée pas à l'identique : pas proposé.
+        ".venv" | "venv" if has("requirements.txt") || has("pyproject.toml") || has("setup.py") || has("pipfile") => Some("python"),
         "target" if has("cargo.toml") => Some("rust"),
         ".gradle" if has("build.gradle") || has("build.gradle.kts") || has("settings.gradle") || has("settings.gradle.kts") => {
             Some("gradle")
@@ -722,6 +722,9 @@ mod tests {
         s.file("rs/Cargo.toml", 10);
         s.file("rs/target/debug/app.exe", 3000);
         s.file("notaproject/target/keep.bin", 1000);
+        s.file("script/.venv/lib/x.py", 100);
+        s.file("app/requirements.txt", 1);
+        s.file("app/.venv/lib/x.py", 100);
         let old = std::time::UNIX_EPOCH + std::time::Duration::from_secs(1_500_000_000);
         fs::File::options().write(true).open(&pkg).unwrap().set_modified(old).unwrap();
         let r = run(&s.0);
@@ -732,6 +735,8 @@ mod tests {
         assert_eq!(node[0].project_modified, 1_500_000_000, "la date du projet ignore node_modules");
         assert_eq!(find("rust").len(), 1);
         assert!(!r.artifacts.iter().any(|a| a.path.contains("notaproject")), "target sans Cargo.toml ignoré");
+        let python: Vec<&str> = find("python").iter().map(|a| a.project.as_str()).collect();
+        assert!(python.len() == 1 && python[0].ends_with("app"), ".venv sans requirements.txt ignoré : {python:?}");
     }
 
     #[test]

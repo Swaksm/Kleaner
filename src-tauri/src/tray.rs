@@ -58,7 +58,7 @@ fn gib(bytes: u64) -> String {
 fn safe_bytes() -> u64 {
     catalog::all()
         .iter()
-        .filter(|c| c.level == Level::Safe && !c.admin && c.group != "community")
+        .filter(|c| c.level == Level::Safe && !c.admin && !c.ask && c.group != "community")
         .map(|c| catalog::estimate(c).bytes)
         .sum()
 }
@@ -83,7 +83,7 @@ pub fn set_reminder(on: bool) -> std::io::Result<()> {
     }
 }
 
-fn show(app: &AppHandle) {
+pub fn show(app: &AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.show();
         let _ = w.unminimize();
