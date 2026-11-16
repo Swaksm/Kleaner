@@ -222,6 +222,11 @@ fn transfer(
         let _ = fs::remove_dir(to);
         return Err(format!("Refused: {} is in use, close the programs that use it", plain(from)));
     }
+    // Trace dès le renommage : si Kleaner s'arrête en route (plantage, coupure), le Journal dit où est l'original
+    // (« <nom>.kleaner-moving ») et où est la copie partielle.
+    let mut start = journal::Entry::new(format!("{action}-start"));
+    start.paths = vec![plain(from), plain(&parked), plain(to)];
+    let _ = journal::append(journal_dir, &start);
     // Liste faite après le renommage : un fichier arrivé entre-temps est copié lui aussi, jamais supprimé sans copie.
     let items = match walk(&parked) {
         Ok(items) => items,

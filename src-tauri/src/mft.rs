@@ -210,6 +210,12 @@ fn parse_record(rec: &mut [u8], frn: u32, out: &mut Chunk) {
             }
             let non_resident = rec[pos + 8] != 0;
             let unnamed = rec[pos + 9] == 0;
+            // En-tête d'attribut plus court que ce qu'on lit (enregistrement abîmé) : ignoré, sinon lecture hors limites
+            // et arrêt de Kleaner (panic = abort). Résident : 0x18 octets ; non résident : 0x38 (taille réelle à 0x30).
+            if len < if non_resident { 0x38 } else { 0x18 } {
+                pos += len;
+                continue;
+            }
             match ty {
                 // $REPARSE_POINT : l'étiquette est le premier mot de la valeur.
                 0xC0 if !non_resident => {
@@ -605,6 +611,22 @@ mod tests {
         rec[510] ^= 0xFF; // la fin du premier secteur ne vaut plus la valeur de contrôle
         let c = parse(rec, 33);
         assert!(c.meta[0].flags & IN_USE == 0 && c.names.is_empty());
+    }
+
+    /// Attribut trop court en fin d'enregistrement : ignoré, jamais de lecture hors limites.
+    #[test]
+    fn truncated_attribute_does_not_crash() {
+        let mut short = resident(0x10, &[]);
+        short.truncate(16);
+        short[4..8].copy_from_slice(&16u32.to_le_bytes());
+        let mut rec = record(1, 0, &[file_name(5, "a", 1)]);
+        // Place l'attribut court juste avant la fin utilisée de l'enregistrement.
+        let used = u32_at(&rec, 0x18) as usize - 4;
+        rec[used..used + 16].copy_from_slice(&short);
+        rec[used + 16..used + 20].copy_from_slice(&0xFFFF_FFFFu32.to_le_bytes());
+        rec[0x18..0x1C].copy_from_slice(&((used + 20) as u32).to_le_bytes());
+        let c = parse(rec, 35);
+        assert_eq!(c.names.len(), 1);
     }
 
     #[test]

@@ -88,7 +88,7 @@ fn install_roots() -> Vec<PathBuf> {
     ["ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"].iter().filter_map(|k| var(k)).collect()
 }
 
-fn under(child: &Path, parent: &Path) -> bool {
+pub(crate) fn under(child: &Path, parent: &Path) -> bool {
     let (c, p) = (child.to_string_lossy().to_lowercase(), parent.to_string_lossy().to_lowercase());
     let p = p.trim_end_matches('\\');
     c.len() > p.len() + 1 && c.starts_with(p) && c.as_bytes()[p.len()] == b'\\'
@@ -435,14 +435,7 @@ pub fn uninstall(id: &str, journal_dir: &Path) -> Result<Program, String> {
 }
 
 fn shell_open(exe: &str, args: &str) -> Result<(), String> {
-    use windows_sys::Win32::UI::Shell::ShellExecuteW;
-    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
-    let w = |s: &str| s.encode_utf16().chain([0]).collect::<Vec<u16>>();
-    let (verb, file, params) = (w("open"), w(exe), w(args));
-    let r = unsafe {
-        ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), params.as_ptr(), std::ptr::null(), SW_SHOWNORMAL)
-    };
-    if r as isize > 32 { Ok(()) } else { Err(format!("Could not start the uninstaller ({exe})")) }
+    if crate::system::shell_execute("open", exe.as_ref(), args) { Ok(()) } else { Err(format!("Could not start the uninstaller ({exe})")) }
 }
 
 #[cfg(test)]

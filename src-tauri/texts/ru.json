@@ -570,5 +570,13 @@
   "In the IDE: Help → Delete Leftover IDE Directories for old versions; File → Invalidate Caches for the current one.": "В IDE: Help → Delete Leftover IDE Directories для старых версий; File → Invalidate Caches для текущей.",
   "Spotify data on this PC: cache, and songs downloaded for offline listening.": "Данные Spotify на этом ПК: кэш и треки, скачанные для прослушивания офлайн.",
   "Deleting by hand also removes offline downloads.": "Удаление вручную уберёт и офлайн-загрузки.",
-  "Spotify → Settings → Storage → Clear cache.": "Spotify → Настройки → Хранилище → Очистить кэш."
+  "Spotify → Settings → Storage → Clear cache.": "Spotify → Настройки → Хранилище → Очистить кэш.",
+  "wear {n}%": "износ {n}%",
+  "{n} h powered on": "{n} ч работы",
+  "Health: {health}, {list}.": "Состояние: {health}, {list}.",
+  "Health: {health}. Run Kleaner as administrator to read wear and temperature.": "Состояние: {health}. Запустите Kleaner от имени администратора, чтобы узнать износ и температуру.",
+  "Power saver": "Экономия энергии",
+  "High performance": "Высокая производительность",
+  "Balanced": "Сбалансированная",
+  "{name}: the processor is slowed down. Choose Balanced if the PC feels slow.": "{name}: процессор замедлен. Выберите «Сбалансированная», если компьютер кажется медленным."
 }

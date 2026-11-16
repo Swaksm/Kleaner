@@ -572,5 +572,13 @@
   "In the IDE: Help → Delete Leftover IDE Directories for old versions; File → Invalidate Caches for the current one.": "在 IDE 中：旧版本用 Help → Delete Leftover IDE Directories；当前版本用 File → Invalidate Caches。",
   "Spotify data on this PC: cache, and songs downloaded for offline listening.": "Spotify 在此电脑上的数据：缓存，以及为离线收听下载的歌曲。",
   "Deleting by hand also removes offline downloads.": "手动删除也会移除离线下载。",
-  "Spotify → Settings → Storage → Clear cache.": "Spotify → 设置 → 存储 → 清除缓存。"
+  "Spotify → Settings → Storage → Clear cache.": "Spotify → 设置 → 存储 → 清除缓存。",
+  "wear {n}%": "磨损 {n}%",
+  "{n} h powered on": "通电 {n} 小时",
+  "Health: {health}, {list}.": "状态：{health}，{list}。",
+  "Health: {health}. Run Kleaner as administrator to read wear and temperature.": "状态：{health}。以管理员身份运行 Kleaner 才能读取磨损和温度。",
+  "Power saver": "节能",
+  "High performance": "高性能",
+  "Balanced": "平衡",
+  "{name}: the processor is slowed down. Choose Balanced if the PC feels slow.": "{name}：处理器被降速。如果电脑感觉很慢，请选择“平衡”。"
 }

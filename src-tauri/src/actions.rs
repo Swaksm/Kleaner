@@ -218,16 +218,8 @@ pub fn check_media(path: &Path) -> Result<PathBuf, String> {
 
 /// Ouvre une photo ou une vidéo avec l'application par défaut de Windows.
 pub fn open_media(path: &Path) -> Result<(), String> {
-    use std::os::windows::ffi::OsStrExt;
-    use windows_sys::Win32::UI::Shell::ShellExecuteW;
-    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
     let file = check_media(path)?;
-    let w = |s: &std::ffi::OsStr| s.encode_wide().chain([0]).collect::<Vec<u16>>();
-    let (verb, file) = (w("open".as_ref()), w(file.as_os_str()));
-    let r = unsafe {
-        ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL)
-    };
-    if r as isize > 32 { Ok(()) } else { Err("No app can open this file.".into()) }
+    if crate::system::shell_execute("open", file.as_os_str(), "") { Ok(()) } else { Err("No app can open this file.".into()) }
 }
 
 #[cfg(test)]

@@ -55,19 +55,14 @@ pub fn download(version: &str, dir: &Path) -> Result<PathBuf, String> {
 
 /// Lance l'installateur téléchargé en mode automatique (il demande lui-même les droits admin) et l'écrit au journal.
 pub fn launch(installer: &Path, version: &str, journal_dir: &Path) -> Result<(), String> {
-    use std::os::windows::ffi::OsStrExt;
-    use windows_sys::Win32::UI::Shell::ShellExecuteW;
-    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
-    let w = |s: &std::ffi::OsStr| s.encode_wide().chain([0]).collect::<Vec<u16>>();
-    let (verb, file, args) = (w("open".as_ref()), w(installer.as_os_str()), w("/P /UPDATE /R".as_ref()));
-    let r = unsafe { ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), args.as_ptr(), std::ptr::null(), SW_SHOWNORMAL) };
+    let started = crate::system::shell_execute("open", installer.as_os_str(), "/P /UPDATE /R");
     let mut j = journal::Entry::new("update");
     j.paths = vec![version.to_string(), installer.display().to_string()];
-    if r as isize <= 32 {
+    if !started {
         j.error = Some("Could not start the installer".into());
     }
     journal::append(journal_dir, &j).map_err(|e| format!("Log: {e}"))?;
-    if r as isize > 32 { Ok(()) } else { Err("Could not start the installer".into()) }
+    if started { Ok(()) } else { Err("Could not start the installer".into()) }
 }
 
 #[cfg(test)]

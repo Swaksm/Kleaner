@@ -229,12 +229,20 @@ pub fn open_windows_update() -> Result<(), String> {
 
 /// Ouvre un écran de Windows (`ms-settings:…`). L'appelant vérifie que l'adresse est dans une liste fermée.
 pub fn open_uri(uri: &str) -> Result<(), String> {
+    if shell_execute("open", uri.as_ref(), "") { Ok(()) } else { Err(format!("Could not open {uri}.")) }
+}
+
+/// ShellExecuteW (fichier, adresse ou programme, avec l'UAC si `verb` vaut « runas » ou si le programme l'exige).
+pub(crate) fn shell_execute(verb: &str, file: &std::ffi::OsStr, args: &str) -> bool {
+    use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::UI::Shell::ShellExecuteW;
     use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
-    let w = |s: &str| s.encode_utf16().chain([0]).collect::<Vec<u16>>();
-    let (verb, target) = (w("open"), w(uri));
-    let r = unsafe { ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), target.as_ptr(), std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL) };
-    if r as isize > 32 { Ok(()) } else { Err(format!("Could not open {uri}.")) }
+    let w = |s: &std::ffi::OsStr| s.encode_wide().chain([0]).collect::<Vec<u16>>();
+    let (verb, file, args) = (w(verb.as_ref()), w(file), w(args.as_ref()));
+    let params = if args.len() > 1 { args.as_ptr() } else { std::ptr::null() };
+    let r = unsafe { ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), file.as_ptr(), params, std::ptr::null(), SW_SHOWNORMAL) };
+    // ShellExecute renvoie une valeur > 32 en cas de succès.
+    r as isize > 32
 }
 
 // ---------- Applications (winget) ----------

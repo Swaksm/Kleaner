@@ -300,7 +300,10 @@ impl Walk<'_> {
                     continue;
                 }
                 let sub_empty = self.dir(&p);
-                let removable = sub_empty && self.entry.only.is_empty() && !self.dry_run;
+                // Avec une limite d'âge, un dossier récent (date lue avant le nettoyage) reste, même vide :
+                // un installeur en cours peut venir de le créer.
+                let old_enough = self.cutoff.is_none_or(|c| m.modified().is_ok_and(|t| t < c));
+                let removable = sub_empty && old_enough && self.entry.only.is_empty() && !self.dry_run;
                 if !(removable && guard::check_delete(&p, self.roots).is_ok() && fs::remove_dir(&p).is_ok()) {
                     empty = false;
                 }
@@ -862,9 +865,13 @@ mod tests {
         let mut c = cleaner(vec![s.0.join("cache").display().to_string()]);
         c.only = vec!["thumbcache_*.db".into()];
         c.older_than_hours = 24;
+        fs::create_dir_all(s.0.join("cache").join("new-empty")).unwrap();
         let r = execute(&c, &journal_dir(&s)).unwrap();
         assert_eq!(r.files, 1);
         assert!(keep.exists() && fresh.exists() && !old.exists());
+        c.only.clear();
+        execute(&c, &journal_dir(&s)).unwrap();
+        assert!(s.0.join("cache").join("new-empty").is_dir(), "dossier vide mais récent : gardé");
     }
 
     /// Winapp2 sans RECURSE : seulement le dossier lui-même (un `.log` de LevelDB dans un sous-dossier reste).

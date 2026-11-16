@@ -3,8 +3,6 @@
 use windows_sys::Win32::Foundation::{CloseHandle, HANDLE};
 use windows_sys::Win32::Security::{GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation};
 use windows_sys::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
-use windows_sys::Win32::UI::Shell::ShellExecuteW;
-use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
 pub fn is_elevated() -> bool {
     unsafe {
@@ -185,22 +183,8 @@ pub fn relaunch_as_admin() -> Result<(), String> {
         Some(alias) => alias,
         None => std::env::current_exe().map_err(|e| e.to_string())?,
     };
-    let verb = wide("runas".as_ref());
-    let file = wide(exe.as_os_str());
     // La nouvelle instance attend que celle-ci se ferme (voir `single_instance`).
-    let params = wide(RELAUNCH_ARG.as_ref());
-    let r = unsafe {
-        ShellExecuteW(
-            std::ptr::null_mut(),
-            verb.as_ptr(),
-            file.as_ptr(),
-            params.as_ptr(),
-            std::ptr::null(),
-            SW_SHOWNORMAL,
-        )
-    };
-    // ShellExecute renvoie une valeur > 32 en cas de succès.
-    if r as isize > 32 { Ok(()) } else { Err("Admin rights refused or unavailable.".into()) }
+    if crate::system::shell_execute("runas", exe.as_os_str(), RELAUNCH_ARG) { Ok(()) } else { Err("Admin rights refused or unavailable.".into()) }
 }
 
 #[cfg(test)]

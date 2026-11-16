@@ -545,5 +545,13 @@
   "In the IDE: Help → Delete Leftover IDE Directories for old versions; File → Invalidate Caches for the current one.": "Nell'IDE: Help → Delete Leftover IDE Directories per le vecchie versioni; File → Invalidate Caches per quella attuale.",
   "Spotify data on this PC: cache, and songs downloaded for offline listening.": "Dati di Spotify su questo PC: cache e brani scaricati per l'ascolto offline.",
   "Deleting by hand also removes offline downloads.": "Eliminare a mano rimuove anche i download offline.",
-  "Spotify → Settings → Storage → Clear cache.": "Spotify → Impostazioni → Spazio di archiviazione → Svuota cache."
+  "Spotify → Settings → Storage → Clear cache.": "Spotify → Impostazioni → Spazio di archiviazione → Svuota cache.",
+  "wear {n}%": "usura {n}%",
+  "{n} h powered on": "{n} h di funzionamento",
+  "Health: {health}, {list}.": "Stato: {health}, {list}.",
+  "Health: {health}. Run Kleaner as administrator to read wear and temperature.": "Stato: {health}. Avvia Kleaner come amministratore per leggere usura e temperatura.",
+  "Power saver": "Risparmio di energia",
+  "High performance": "Prestazioni elevate",
+  "Balanced": "Bilanciato",
+  "{name}: the processor is slowed down. Choose Balanced if the PC feels slow.": "{name}: il processore è rallentato. Scegli «Bilanciato» se il PC sembra lento."
 }

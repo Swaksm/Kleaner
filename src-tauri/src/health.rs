@@ -104,21 +104,17 @@ fn disks() -> Vec<HealthItem> {
     .unwrap_or_default();
     rows.into_iter()
         .map(|d| {
-            let mut en = Vec::new();
-            let mut fr = Vec::new();
+            // Gabarits traduits (texts/<langue>.json), assemblés langue par langue.
+            let mut parts: Vec<Text> = Vec::new();
             if d.wear >= 0 {
-                en.push(format!("wear {}%", d.wear));
-                fr.push(format!("usure {} %", d.wear));
+                parts.push(t("wear {n}%", "usure {n} %").with(&[("n", &d.wear.to_string())]));
             }
             if d.temp > 0 {
-                en.push(format!("{} °C", d.temp));
-                fr.push(format!("{} °C", d.temp));
+                parts.push(t("{n} °C", "{n} °C").with(&[("n", &d.temp.to_string())]));
             }
             if d.hours >= 0 {
-                en.push(format!("{} h powered on", d.hours));
-                fr.push(format!("{} h de fonctionnement", d.hours));
+                parts.push(t("{n} h powered on", "{n} h de fonctionnement").with(&[("n", &d.hours.to_string())]));
             }
-            let known = !en.is_empty();
             let status = if d.health != "Healthy" && !d.health.is_empty() || d.wear >= 90 || d.temp >= 75 {
                 "bad"
             } else if d.wear >= 70 || d.temp >= 60 {
@@ -128,18 +124,24 @@ fn disks() -> Vec<HealthItem> {
             } else {
                 "ok"
             };
-            let more = if known { "" } else { " Run Kleaner as administrator to read wear and temperature." };
-            let plus = if known { "" } else { " Lance Kleaner en administrateur pour lire l’usure et la température." };
             let health = if d.health.is_empty() { "unknown".to_string() } else { d.health.clone() };
+            let detail = match parts.split_first() {
+                Some((first, rest)) => {
+                    let list = rest.iter().fold(first.clone(), |a, b| a.join(b, |x, y| format!("{x}, {y}")));
+                    t("Health: {health}, {list}.", "État : {health}, {list}.").join(&list, |s, l| s.replace("{list}", l))
+                }
+                None => t(
+                    "Health: {health}. Run Kleaner as administrator to read wear and temperature.",
+                    "État : {health}. Lance Kleaner en administrateur pour lire l’usure et la température.",
+                ),
+            }
+            .with(&[("health", &health)]);
             item(
                 "disk",
                 "disk",
                 status,
                 t("Disk {name} ({media})", "Disque {name} ({media})").with(&[("name", &d.name), ("media", &d.media)]),
-                t(
-                    format!("Health: {health}{}{}.{more}", if known { ", " } else { "" }, en.join(", ")),
-                    format!("État : {health}{}{}.{plus}", if known { ", " } else { "" }, fr.join(", ")),
-                ),
+                detail,
                 None,
             )
         })
@@ -331,12 +333,12 @@ fn power_plan() -> Option<HealthItem> {
     use std::os::windows::process::CommandExt;
     let out = std::process::Command::new("powercfg").arg("/getactivescheme").creation_flags(crate::system::CREATE_NO_WINDOW).output().ok()?;
     let text = String::from_utf8_lossy(&out.stdout).to_lowercase();
-    let (name_en, name_fr, saver) = if text.contains("a1841308-3541-4fab-bc81-f71556f20b4a") {
-        ("Power saver", "Économie d’énergie", true)
+    let (name, saver) = if text.contains("a1841308-3541-4fab-bc81-f71556f20b4a") {
+        (t("Power saver", "Économie d’énergie"), true)
     } else if text.contains("8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c") {
-        ("High performance", "Performances élevées", false)
+        (t("High performance", "Performances élevées"), false)
     } else if text.contains("381b4222-f694-41f0-9685-ff5bb260df2e") {
-        ("Balanced", "Utilisation normale", false)
+        (t("Balanced", "Utilisation normale"), false)
     } else {
         return None;
     };
@@ -346,9 +348,13 @@ fn power_plan() -> Option<HealthItem> {
         if saver { "info" } else { "ok" },
         t("Power plan", "Mode d’alimentation"),
         if saver {
-            t(format!("{name_en}: the processor is slowed down. Choose Balanced if the PC feels slow."), format!("{name_fr} : le processeur est bridé. Choisis « Utilisation normale » si le PC paraît lent."))
+            t(
+                "{name}: the processor is slowed down. Choose Balanced if the PC feels slow.",
+                "{name} : le processeur est bridé. Choisis « Utilisation normale » si le PC paraît lent.",
+            )
+            .join(&name, |s, n| s.replace("{name}", n))
         } else {
-            t(format!("{name_en}."), format!("{name_fr}."))
+            name.map(|s| format!("{s}."))
         },
         saver.then_some("ms-settings:powersleep"),
     ))

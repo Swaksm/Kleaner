@@ -157,8 +157,7 @@ fn stem(s: &str) -> String {
 
 /// `dir` est-il le dossier d'installation ou un de ses parents ?
 fn under(location: &str, dir: &Path) -> bool {
-    let (l, d) = (location.to_lowercase(), dir.display().to_string().to_lowercase());
-    !l.is_empty() && (l == d || l.starts_with(&format!("{d}\\")))
+    !location.is_empty() && (location.eq_ignore_ascii_case(&dir.display().to_string()) || crate::programs::under(Path::new(location), dir))
 }
 
 /// Le dossier `name` peut-il appartenir à ce programme ?

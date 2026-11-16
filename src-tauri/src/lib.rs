@@ -266,7 +266,11 @@ fn cancel_scan(state: State<ScanState>) {
 async fn move_to_trash(paths: Vec<String>, state: State<'_, ScanState>) -> Result<actions::ActionReport, String> {
     check_known(&paths, &state.trashable.lock().unwrap())?;
     keeps_a_copy(&paths, &state.dup_groups.lock().unwrap())?;
-    let paths: Vec<_> = paths.into_iter().map(std::path::PathBuf::from).collect();
+    // Supprimé ailleurs depuis l'analyse : rien à faire pour lui, les autres partent quand même.
+    let paths: Vec<_> = paths.into_iter().map(PathBuf::from).filter(|p| p.symlink_metadata().is_ok()).collect();
+    if paths.is_empty() {
+        return Ok(actions::ActionReport { files: 0, bytes: 0 });
+    }
     tauri::async_runtime::spawn_blocking(move || actions::trash_files(&paths, &guard::Protected::from_env(), &journal::data_dir()))
         .await
         .map_err(|e| e.to_string())?
@@ -914,6 +918,8 @@ pub fn run() {
             // Kleaner relancé alors qu'il tourne déjà (même caché près de l'horloge, même en admin) : on montre la fenêtre.
             let handle = app.handle().clone();
             elevation::listen_show(move || tray::show(&handle));
+            // Exe portable : une ancienne tâche de démarrage admin redevient une tâche sans droits admin.
+            std::thread::spawn(|| autostart::downgrade_portable(&journal::data_dir()));
             // Lancé par la tâche de démarrage : icône près de l'horloge, fenêtre cachée.
             if std::env::args().any(|a| a == autostart::MINIMIZED_ARG) || store::launched_at_startup() {
                 tray::start(app.handle())?;

@@ -13,7 +13,7 @@ export function Journal() {
   const { t, lang } = useT();
   const [view, setView] = useState<JournalView | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [restored, setRestored] = useState<Map<number, string>>(new Map());
+  const [restored, setRestored] = useState<Map<string, string>>(new Map());
 
   function load() {
     readJournal().then(setView, (e) => setError(String(e)));
@@ -21,7 +21,7 @@ export function Journal() {
 
   useEffect(load, []);
 
-  async function restore(e: JournalEntry, key: number) {
+  async function restore(e: JournalEntry, key: string) {
     try {
       if (e.action === "move") {
         setRestored((m) => new Map(m).set(key, t("move.moving")));
@@ -62,8 +62,11 @@ export function Journal() {
           <p>{t("journal.empty")}</p>
         </Card>
       )}
-      {view?.entries.map((e, i) => (
-        <Card key={`${e.ts}-${i}`}>
+      {view?.entries.map((e, i) => {
+        // Clé propre à la ligne : deux actions de la même seconde ne partagent pas leur bouton.
+        const key = `${e.ts}|${e.action}|${e.paths.join("|")}`;
+        return (
+        <Card key={`${key}-${i}`}>
           <div className="row">
             <strong>{e.action}</strong>
             <span className="muted">{formatDate(e.ts, lang)}</span>
@@ -73,11 +76,11 @@ export function Journal() {
               <StatusPill status="ok">{t("journal.done")}</StatusPill>
             )}
             {RESTORABLE.includes(e.action) && !e.error && !movedBack(e) && (
-              <button className="btn btn-small" disabled={restored.has(e.ts)} onClick={() => restore(e, e.ts)}>
+              <button className="btn btn-small" disabled={restored.has(key)} onClick={() => restore(e, key)}>
                 {t("journal.restore")}
               </button>
             )}
-            {restored.has(e.ts) && <span className="muted small">{restored.get(e.ts)}</span>}
+            {restored.has(key) && <span className="muted small">{restored.get(key)}</span>}
           </div>
           <div className="row muted">
             <span>
@@ -90,14 +93,13 @@ export function Journal() {
               </span>
             )}
           </div>
-          {(e.action === "move" || e.action === "move-back") && e.paths.length === 2 && (
-            <p className="muted small path">
-              {e.paths[0]} → {e.paths[1]}
-            </p>
+          {(e.action === "move" || e.action === "move-back" || e.action.endsWith("-start")) && e.paths.length >= 2 && (
+            <p className="muted small path">{e.paths.join(" → ")}</p>
           )}
           {e.error && <p className="danger">{e.error}</p>}
         </Card>
-      ))}
+        );
+      })}
     </>
   );
 }

@@ -103,6 +103,26 @@ pub fn set(on: bool, journal_dir: &Path) -> Result<(), String> {
     if ok { Ok(()) } else { Err(err) }
 }
 
+/// Exe portable dont la tâche a été créée avec les droits admin (versions d'avant la 1.3) : recréée sans droits admin.
+/// Possible seulement quand Kleaner tourne en admin, ce que fait justement cette tâche à l'ouverture de session.
+/// Une tâche désactivée (page Démarrage) n'est pas touchée. Journalisé.
+pub fn downgrade_portable(journal_dir: &Path) {
+    if store::is_packaged() || crate::updater::is_installed() || !crate::elevation::is_elevated() {
+        return;
+    }
+    let script = format!("$t = Get-ScheduledTask -TaskName {} -ErrorAction SilentlyContinue; if ($t) {{ \"$($t.Principal.RunLevel)|$($t.State)\" }}", quote(TASK));
+    let admin_task = ps_run(&script).is_ok_and(|(out, ..)| out.starts_with("Highest|") && !out.ends_with("|Disabled"));
+    let Ok(exe) = std::env::current_exe() else { return };
+    if !admin_task {
+        return;
+    }
+    let Ok((_, err, ok)) = ps_run(&create_script(&exe, false)) else { return };
+    let mut entry = journal::Entry::new("autostart-limited");
+    entry.paths = vec![format!(r"Task Scheduler\{TASK}")];
+    entry.error = (!ok).then_some(err);
+    let _ = journal::append(journal_dir, &entry);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
