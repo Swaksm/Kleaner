@@ -1,13 +1,13 @@
 {
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Free, open-source and transparent Windows disk cleaner. Shows what takes up space and whether deleting it breaks anything.",
   "homepage": "https://github.com/Swaksm/Kleaner",
   "license": "MIT",
   "notes": "Kleaner stores its data in %LOCALAPPDATA%\\Kleaner. Settings → Remove Kleaner erases it.",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/Swaksm/Kleaner/releases/download/v1.3.0/kleaner.exe",
-      "hash": "c4d501be5b068d8ac472e04843d4f5deb054c2a302a2658aff1edcf367413712"
+      "url": "https://github.com/Swaksm/Kleaner/releases/download/v1.3.1/kleaner.exe",
+      "hash": "d88eaf95e60483c84911cfb21ab67813b87dc71001b76b933400caf15df2087e"
     }
   },
   "bin": "kleaner.exe",
