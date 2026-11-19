@@ -4,42 +4,55 @@ use crate::{guard, journal};
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 
-#[derive(Serialize, Debug, PartialEq)]
+#[derive(Serialize, Debug, PartialEq, Default)]
 pub struct ActionReport {
     pub files: u64,
     pub bytes: u64,
+    /// Éléments qui n'ont pas pu partir (les autres sont partis), avec la raison donnée par Windows.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub failed: Vec<String>,
 }
 
-/// Pourquoi Windows supprimerait `p` définitivement au lieu de le mettre à la Corbeille, s'il le ferait.
-/// Sans Corbeille (clé USB, réseau), Corbeille réglée sur « supprimer directement », ou élément plus gros que la Corbeille :
-/// Windows ouvre alors sa propre fenêtre de suppression définitive. Réglages inconnus : on laisse faire Windows.
-fn bin_refusal(p: &Path, size: u64) -> Option<&'static str> {
+/// Corbeille du disque de `p` : `Err` si Windows supprimerait définitivement (pas de Corbeille, ou réglée sur
+/// « supprimer directement »), sinon (racine du disque, place maximale en octets si elle est connue).
+fn bin_of(p: &Path) -> Result<(String, Option<u64>), &'static str> {
     use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::Storage::FileSystem::{GetDriveTypeW, GetVolumeNameForVolumeMountPointW, GetVolumePathNameW};
     const DRIVE_FIXED: u32 = 3;
     let wide: Vec<u16> = p.as_os_str().encode_wide().chain([0]).collect();
     let mut mount = [0u16; 512];
     if unsafe { GetVolumePathNameW(wide.as_ptr(), mount.as_mut_ptr(), mount.len() as u32) } == 0 {
-        return None;
+        return Ok((String::new(), None));
     }
+    let root = String::from_utf16_lossy(&mount[..mount.iter().position(|&c| c == 0).unwrap_or(0)]).to_lowercase();
     if unsafe { GetDriveTypeW(mount.as_ptr()) } != DRIVE_FIXED {
-        return Some("this drive has no Recycle Bin");
+        return Err("this drive has no Recycle Bin");
     }
     let mut volume = [0u16; 64];
     if unsafe { GetVolumeNameForVolumeMountPointW(mount.as_ptr(), volume.as_mut_ptr(), volume.len() as u32) } == 0 {
-        return None;
+        return Ok((root, None));
     }
     // « \\?\Volume{guid}\ » → « {guid} », la clé de la Corbeille de ce disque.
     let volume = String::from_utf16_lossy(&volume[..volume.iter().position(|&c| c == 0).unwrap_or(0)]);
-    let guid = volume.trim_end_matches('\\').rsplit("Volume").next()?.to_string();
-    let key = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER)
+    let Some(guid) = volume.trim_end_matches('\\').rsplit("Volume").next().map(str::to_string) else { return Ok((root, None)) };
+    let Ok(key) = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER)
         .open_subkey(format!(r"Software\Microsoft\Windows\CurrentVersion\Explorer\BitBucket\Volume\{guid}"))
-        .ok()?;
+    else {
+        return Ok((root, None));
+    };
     if key.get_value::<u32, _>("NukeOnDelete").is_ok_and(|n| n != 0) {
-        return Some("the Recycle Bin of this drive deletes permanently");
+        return Err("the Recycle Bin of this drive deletes permanently");
     }
-    let max_mb = key.get_value::<u32, _>("MaxCapacity").ok()?;
-    (size > u64::from(max_mb) * 1024 * 1024).then_some("too big for the Recycle Bin")
+    Ok((root, key.get_value::<u32, _>("MaxCapacity").ok().map(|mb| u64::from(mb) * 1024 * 1024)))
+}
+
+/// Pourquoi Windows supprimerait `p` définitivement au lieu de le mettre à la Corbeille, s'il le ferait.
+/// Windows ouvre alors sa propre fenêtre de suppression définitive. Réglages inconnus : on laisse faire Windows.
+fn bin_refusal(p: &Path, size: u64) -> Option<&'static str> {
+    match bin_of(p) {
+        Err(why) => Some(why),
+        Ok((_, max)) => max.is_some_and(|m| size > m).then_some("too big for the Recycle Bin"),
+    }
 }
 
 fn check_bin(p: &Path, size: u64) -> Result<(), String> {
@@ -49,10 +62,32 @@ fn check_bin(p: &Path, size: u64) -> Result<(), String> {
     }
 }
 
+/// Le lot entier tient-il dans la Corbeille de chaque disque ? Sinon Windows effacerait pour de bon
+/// les éléments les plus anciens de la Corbeille, y compris ceux du début de ce lot.
+fn check_bin_total(items: &[(PathBuf, u64)]) -> Result<(), String> {
+    let mut per_drive: std::collections::HashMap<String, (u64, Option<u64>)> = std::collections::HashMap::new();
+    for (p, size) in items {
+        if let Ok((root, max)) = bin_of(p) {
+            let e = per_drive.entry(root).or_insert((0, max));
+            e.0 += size;
+        }
+    }
+    match per_drive.into_iter().find(|(_, (sum, max))| max.is_some_and(|m| *sum > m)) {
+        Some((root, (sum, max))) => Err(format!(
+            "Refused: the selection on {} ({} GB) would be deleted permanently (too big for the Recycle Bin, {} GB). Send it in several times, emptying the Recycle Bin in between.",
+            root.to_uppercase(),
+            sum / 1_000_000_000,
+            max.unwrap_or(0) / 1_000_000_000
+        )),
+        None => Ok(()),
+    }
+}
+
 /// Envoie des fichiers choisis par l'utilisateur à la Corbeille.
 /// Tout ou rien : si un seul chemin est refusé par la garde, rien n'est déplacé.
 pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir: &Path) -> Result<ActionReport, String> {
     let mut checked = Vec::with_capacity(paths.len());
+    let mut sized = Vec::with_capacity(paths.len());
     let mut bytes = 0;
     for p in paths {
         let c = guard::check_trash(p, protected).map_err(|e| format!("Refused: {} ({e})", p.display()))?;
@@ -62,8 +97,10 @@ pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir:
         }
         check_bin(&c, m.len())?;
         bytes += m.len();
+        sized.push((c.clone(), m.len()));
         checked.push(c);
     }
+    check_bin_total(&sized)?;
 
     let mut entry = journal::Entry::new("trash");
     entry.paths = checked.iter().map(|p| p.display().to_string()).collect();
@@ -74,11 +111,12 @@ pub fn trash_files(paths: &[PathBuf], protected: &guard::Protected, journal_dir:
         entry.error = Some(e.clone());
     }
     journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
-    result.map(|_| ActionReport { files: entry.files, bytes })
+    result.map(|_| ActionReport { files: entry.files, bytes, ..Default::default() })
 }
 
 /// Envoie des dossiers entiers à la Corbeille (restes de programmes désinstallés).
-/// Tout ou rien : si un seul dossier est refusé par la garde, rien n'est déplacé.
+/// Vérifications en tout ou rien (garde, Corbeille assez grande) ; puis un dossier à la fois : un dossier qui échoue
+/// (fichier ouvert, chemin trop long…) n'empêche plus les autres de partir, et il est nommé avec la raison.
 pub fn trash_dirs(paths: &[PathBuf], protected: &guard::Protected, journal_dir: &Path, sizes: &[u64]) -> Result<ActionReport, String> {
     let mut checked = Vec::with_capacity(paths.len());
     for (i, p) in paths.iter().enumerate() {
@@ -86,20 +124,38 @@ pub fn trash_dirs(paths: &[PathBuf], protected: &guard::Protected, journal_dir: 
         if !std::fs::metadata(&c).is_ok_and(|m| m.is_dir()) {
             return Err(format!("Refused: {} (not a folder)", p.display()));
         }
-        check_bin(&c, sizes.get(i).copied().unwrap_or(0))?;
-        checked.push(c);
+        let size = sizes.get(i).copied().unwrap_or(0);
+        check_bin(&c, size)?;
+        checked.push((c, size, p));
     }
-    let bytes = sizes.iter().sum();
+    check_bin_total(&checked.iter().map(|(c, size, _)| (c.clone(), *size)).collect::<Vec<_>>())?;
     let mut entry = journal::Entry::new("trash-leftovers");
-    entry.paths = checked.iter().map(|p| p.display().to_string()).collect();
-    entry.files = checked.len() as u64;
-    entry.bytes = bytes;
-    let result = trash::delete_all(&checked).map_err(|e| e.to_string());
-    if let Err(e) = &result {
-        entry.error = Some(e.clone());
+    let mut report = ActionReport::default();
+    for (dir, size, asked) in &checked {
+        // Le crate ne dit pas toujours quel élément a échoué : on vérifie que le dossier a bien disparu.
+        match trash::delete(dir).map_err(|e| e.to_string()) {
+            Ok(()) if !dir.exists() => {
+                entry.paths.push(dir.display().to_string());
+                report.files += 1;
+                report.bytes += size;
+            }
+            // Le chemin tel que l'interface l'a envoyé : elle s'en sert pour garder ce dossier dans sa liste.
+            Ok(()) => report.failed.push(format!("{} (still there)", asked.display())),
+            Err(e) => report.failed.push(format!("{} ({e})", asked.display())),
+        }
+    }
+    entry.files = report.files;
+    entry.bytes = report.bytes;
+    entry.skipped = report.failed.len() as u64;
+    entry.output = (!report.failed.is_empty()).then(|| report.failed.join("\n"));
+    if report.files == 0 {
+        entry.error = Some(format!("Nothing could be sent to the Recycle Bin: {}", report.failed.join("; ")));
     }
     journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
-    result.map(|_| ActionReport { files: entry.files, bytes })
+    match entry.error {
+        Some(e) => Err(e),
+        None => Ok(report),
+    }
 }
 
 /// Windows peut masquer l'extension dans le nom renvoyé (« photo » pour « photo.jpg ») :
@@ -146,7 +202,7 @@ pub fn restore_from_trash(paths: &[String], journal_dir: &Path) -> Result<Action
         entry.error = Some(e.clone());
     }
     journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
-    result.map(|_| ActionReport { files: entry.files, bytes: 0 })
+    result.map(|_| ActionReport { files: entry.files, bytes: 0, ..Default::default() })
 }
 
 /// Rapport de bug : version, Windows, droits, dernières actions et erreurs du journal.
@@ -313,6 +369,27 @@ mod tests {
         if bin_refusal(&d, 0).is_none() && bin_refusal(&d, u64::MAX / 2).is_some() {
             assert_eq!(bin_refusal(&d, u64::MAX / 2), Some("too big for the Recycle Bin"));
         }
+        fs::remove_dir_all(&d).unwrap();
+    }
+
+    /// Restes : un dossier bloqué (fichier ouvert) n'empêche plus les autres de partir, et il est nommé.
+    #[test]
+    fn one_locked_folder_does_not_block_the_others() {
+        use std::os::windows::fs::OpenOptionsExt;
+        let d = temp("dirs");
+        let (free, busy) = (d.join("free"), d.join("busy"));
+        fs::create_dir_all(&free).unwrap();
+        fs::create_dir_all(&busy).unwrap();
+        fs::write(free.join("a"), b"x").unwrap();
+        fs::write(busy.join("b"), b"x").unwrap();
+        let hold = fs::File::options().read(true).share_mode(0).open(busy.join("b")).unwrap();
+        let r = trash_dirs(&[free.clone(), busy.clone()], &guard::Protected::from_env(), &d, &[10, 20]).unwrap();
+        assert_eq!((r.files, r.bytes, r.failed.len()), (1, 10, 1), "{r:?}");
+        assert!(r.failed[0].contains("busy") && !free.exists() && busy.exists());
+        let log = journal::read_last(&d, 1).unwrap();
+        assert_eq!((log[0].files, log[0].skipped, log[0].error.is_none()), (1, 1, true));
+        drop(hold);
+        restore_from_trash(&[free.display().to_string()], &d).unwrap();
         fs::remove_dir_all(&d).unwrap();
     }
 

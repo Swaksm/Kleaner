@@ -520,6 +520,8 @@
   "error.exists": "Recusado: o destino já existe. O Kleaner nunca sobrescreve nem mescla.",
   "error.noBin": "O Windows apagaria isso definitivamente em vez de mandar para a Lixeira (grande demais, ou esta unidade não tem Lixeira). Nada foi movido. Apague pelo Explorador se tiver certeza.",
   "error.standardAccount": "Esta conta do Windows não é de administrador: o modo admin rodaria em outra conta, com os arquivos dela. Entre com uma conta de administrador para usá-lo.",
+  "trash.failed": "não enviados (abertos em um programa ou bloqueados pelo Windows), feche o programa e tente de novo:",
+  "error.binTotal": "A seleção é maior que a Lixeira desta unidade: o Windows apagaria de vez os itens mais antigos. Nada foi movido. Aumente a Lixeira (botão direito → Propriedades → Tamanho personalizado) ou envie menos itens por vez.",
   "error.cancelled": "Cancelado. O original está intacto, no lugar.",
   "tour.start": "Vamos lá",
   "tour.next": "Próximo",

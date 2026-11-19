@@ -64,9 +64,17 @@ export function Ghosts({ onChange }: { onChange: () => void }) {
           {list ? t("dups.again") : t("ghosts.search")}
         </button>
         {list && list.length > 0 && (
-          <button className="btn" disabled={chosen.length === 0} onClick={() => setConfirm(true)}>
-            {t("ghosts.remove")} ({chosen.length})
-          </button>
+          <>
+            <button className="btn" onClick={() => setSelected(new Set(list.map((g) => g.id)))}>
+              {t("media.selectVisible")}
+            </button>
+            <button className="btn" disabled={selected.size === 0} onClick={() => setSelected(new Set())}>
+              {t("cleanup.selectNone")}
+            </button>
+            <button className="btn" disabled={chosen.length === 0} onClick={() => setConfirm(true)}>
+              {t("ghosts.remove")} ({chosen.length})
+            </button>
+          </>
         )}
       </div>
       {message && <StatusPill status={message.status}>{message.text}</StatusPill>}

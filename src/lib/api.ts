@@ -49,7 +49,7 @@ export type ScanResult = {
   tree: Item[];
   categories: { category: Category; bytes: number; files: number }[];
 };
-export type ActionReport = { files: number; bytes: number };
+export type ActionReport = { files: number; bytes: number; failed?: string[] };
 
 export const readJournal = (limit = 200) => call<JournalView>("read_journal", { limit });
 export const removeKleanerData = () => call<void>("remove_kleaner_data");

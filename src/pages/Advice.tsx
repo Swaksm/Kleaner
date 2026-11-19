@@ -74,6 +74,12 @@ export function Advice() {
           )}
           {list && list.some((a) => a.kind !== "game") && (
             <>
+              <button className="btn" onClick={() => setSelected(new Set(list.filter((a) => a.kind !== "game").map((a) => a.path)))}>
+                {t("media.selectVisible")}
+              </button>
+              <button className="btn" disabled={selected.size === 0} onClick={() => setSelected(new Set())}>
+                {t("cleanup.selectNone")}
+              </button>
               <button className="btn" disabled={chosen.length === 0} onClick={() => setConfirming(chosen)}>
                 {t("trash.button")}
               </button>

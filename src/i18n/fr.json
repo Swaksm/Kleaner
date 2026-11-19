@@ -520,6 +520,8 @@
   "error.exists": "Refusé : la destination existe déjà. Kleaner n’écrase et ne fusionne jamais.",
   "error.noBin": "Windows le supprimerait définitivement au lieu de le mettre à la Corbeille (trop gros, ou ce disque n’a pas de Corbeille). Rien n’a été déplacé. Supprime-le depuis l’Explorateur si tu es sûr.",
   "error.standardAccount": "Ce compte Windows n’est pas administrateur : le mode admin tournerait sous un autre compte, avec ses propres fichiers. Connecte-toi avec un compte administrateur pour l’utiliser.",
+  "trash.failed": "pas envoyés (ouverts dans un programme ou bloqués par Windows), ferme le programme puis réessaie :",
+  "error.binTotal": "La sélection est plus grosse que la Corbeille de ce disque : Windows effacerait définitivement les éléments les plus anciens. Rien n’a été déplacé. Agrandis la Corbeille (clic droit dessus → Propriétés → Taille personnalisée) ou envoie moins d’éléments à la fois.",
   "error.cancelled": "Annulé. L’original est intact, à sa place.",
   "tour.start": "C’est parti",
   "tour.next": "Suivant",

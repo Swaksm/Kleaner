@@ -269,7 +269,7 @@ async fn move_to_trash(paths: Vec<String>, state: State<'_, ScanState>) -> Resul
     // Supprimé ailleurs depuis l'analyse : rien à faire pour lui, les autres partent quand même.
     let paths: Vec<_> = paths.into_iter().map(PathBuf::from).filter(|p| p.symlink_metadata().is_ok()).collect();
     if paths.is_empty() {
-        return Ok(actions::ActionReport { files: 0, bytes: 0 });
+        return Ok(actions::ActionReport { files: 0, bytes: 0, ..Default::default() });
     }
     tauri::async_runtime::spawn_blocking(move || actions::trash_files(&paths, &guard::Protected::from_env(), &journal::data_dir()))
         .await
@@ -681,7 +681,7 @@ async fn onedrive_free(paths: Vec<String>, state: State<'_, ScanState>) -> Resul
     let (n, bytes) = tauri::async_runtime::spawn_blocking(move || onedrive::free_up(&files, &journal::data_dir()))
         .await
         .map_err(|e| e.to_string())??;
-    Ok(actions::ActionReport { files: n, bytes })
+    Ok(actions::ActionReport { files: n, bytes, ..Default::default() })
 }
 
 #[tauri::command]
@@ -748,7 +748,7 @@ async fn trash_advice(paths: Vec<String>, state: State<'_, ScanState>) -> Result
     check_known(&paths, &state.advice_files.lock().unwrap())?;
     let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).filter(|p| p.symlink_metadata().is_ok()).collect();
     if files.is_empty() {
-        return Ok(actions::ActionReport { files: 0, bytes: 0 });
+        return Ok(actions::ActionReport { files: 0, bytes: 0, ..Default::default() });
     }
     let protected = guard::Protected::from_env();
     tauri::async_runtime::spawn_blocking(move || actions::trash_files(&files, &protected, &journal::data_dir()))
@@ -783,7 +783,7 @@ async fn trash_shortcuts(paths: Vec<String>, state: State<'_, ScanState>) -> Res
     // Déjà disparu depuis la recherche (désinstallé entre-temps) : rien à faire pour lui.
     let files: Vec<PathBuf> = paths.into_iter().map(PathBuf::from).filter(|p| p.symlink_metadata().is_ok()).collect();
     if files.is_empty() {
-        return Ok(actions::ActionReport { files: 0, bytes: 0 });
+        return Ok(actions::ActionReport { files: 0, bytes: 0, ..Default::default() });
     }
     // Le menu Démarrer commun est dans ProgramData (protégé) : ses raccourcis restent autorisés (admin).
     let mut protected = guard::Protected::from_env();

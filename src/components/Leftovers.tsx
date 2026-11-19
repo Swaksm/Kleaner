@@ -51,10 +51,18 @@ export function Leftovers({ program }: { program?: { name: string; list: Leftove
     setConfirming([]);
     try {
       const r = await trashLeftovers(items.map((i) => i.path));
-      const gone = new Set(items.map((i) => i.path));
+      // Un dossier bloqué ne part pas, les autres si : seuls ceux partis quittent la liste, les autres restent cochés.
+      const failed = r.failed ?? [];
+      const stayed = new Set(items.filter((i) => failed.some((f) => f.startsWith(i.path))).map((i) => i.path));
+      const gone = new Set(items.map((i) => i.path).filter((p) => !stayed.has(p)));
       setList((prev) => prev?.filter((l) => !gone.has(l.path)) ?? null);
-      setSelected(new Set());
-      setMessage({ status: "ok", bin: true, text: `${r.files} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}` });
+      setSelected(stayed);
+      const done = `${r.files} · ${formatBytes(r.bytes, lang)} — ${t("trash.done")}`;
+      setMessage(
+        failed.length === 0
+          ? { status: "ok", bin: true, text: done }
+          : { status: "danger", bin: r.files > 0, text: `${done} ${failed.length} ${t("trash.failed")} ${failed.join(" · ")}` },
+      );
     } catch (e) {
       setMessage({ status: "danger", text: String(e) });
     }
@@ -82,6 +90,12 @@ export function Leftovers({ program }: { program?: { name: string; list: Leftove
         )}
         {list && list.length > 0 && (
           <>
+            <button className="btn" onClick={() => setSelected(new Set(list.filter((l) => l.trashable).map((l) => l.path)))}>
+              {t("media.selectVisible")}
+            </button>
+            <button className="btn" disabled={selected.size === 0} onClick={() => setSelected(new Set())}>
+              {t("cleanup.selectNone")}
+            </button>
             <button className={program ? "btn btn-primary" : "btn"} disabled={chosen.length === 0} onClick={() => setConfirming(chosen)}>
               {t("trash.button")}
             </button>

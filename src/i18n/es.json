@@ -520,6 +520,8 @@
   "error.exists": "Rechazado: el destino ya existe. Kleaner nunca sobrescribe ni fusiona.",
   "error.noBin": "Windows lo borraría definitivamente en lugar de enviarlo a la Papelera (demasiado grande, o esta unidad no tiene Papelera). No se ha movido nada. Bórralo desde el Explorador si estás seguro.",
   "error.standardAccount": "Esta cuenta de Windows no es de administrador: el modo admin se ejecutaría con otra cuenta y sus propios archivos. Inicia sesión con una cuenta de administrador para usarlo.",
+  "trash.failed": "no enviados (abiertos en un programa o bloqueados por Windows), cierra el programa y vuelve a intentarlo:",
+  "error.binTotal": "La selección es más grande que la Papelera de esta unidad: Windows borraría para siempre los elementos más antiguos. No se ha movido nada. Amplía la Papelera (clic derecho → Propiedades → Tamaño personalizado) o envía menos elementos a la vez.",
   "error.cancelled": "Cancelado. El original está intacto, en su sitio.",
   "tour.start": "Empezar",
   "tour.next": "Siguiente",

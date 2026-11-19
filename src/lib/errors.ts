@@ -8,6 +8,7 @@ const KNOWN: [RegExp, Key][] = [
   [/\(link or junction on the path\)/, "error.link"],
   [/\(path not found\)/, "error.notFound"],
   [/Turn off "Start with Windows" first/, "error.autostartFirst"],
+  [/the selection on .* too big for the Recycle Bin/, "error.binTotal"],
   [/would be deleted permanently/, "error.noBin"],
   [/account is not an administrator/, "error.standardAccount"],
   [/admin(istrator)? rights/i, "error.admin"],

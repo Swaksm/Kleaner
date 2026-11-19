@@ -30,6 +30,7 @@ import {
 import { formatBytes, formatDay } from "../lib/format";
 import { setScanResult, useScanResult } from "../lib/scanStore";
 import { useRecoverable } from "../lib/useRecoverable";
+import { useDiskVersion } from "../lib/busy";
 import { baseName, sortBy, type SortState } from "../lib/sort";
 
 // Ordre fixe des catégories = ordre des couleurs du graphique.
@@ -72,6 +73,11 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
   const scan = useScanResult();
   const recoverable = useRecoverable(scan);
   const [drives, setDrives] = useState<DriveInfo[]>([]);
+  // Espace libre relu après chaque action qui modifie le disque (barres des disques à jour sans relancer l'analyse).
+  const disk = useDiskVersion();
+  useEffect(() => {
+    if (disk > 0) listDrives().then(setDrives, () => {});
+  }, [disk]);
   const [roots, setRoots] = useState<Set<string>>(new Set());
   // Demande d'analyse venue de l'Accueil (une fois les disques connus).
   useEffect(() => {
@@ -169,7 +175,9 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
     (!minAge || (i.modified > 0 && i.modified < oldest));
   const files = sortBy(r.top_files.filter(keep), fileSort, itemGetters);
   const dirs = sortBy(r.top_dirs.filter(keep), dirSort, itemGetters);
-  const free = r.drives.reduce((sum, d) => sum + d.free, 0);
+  // Espace libre relu après chaque action (nettoyage, Corbeille) ; sinon celui de l'analyse.
+  const live = r.drives.map((d) => ({ ...d, free: drives.find((x) => x.root === d.root)?.free ?? d.free }));
+  const free = live.reduce((sum, d) => sum + d.free, 0);
   const headerCells = (first: string): HeaderCell<ItemKey>[] => [
     { sorts: [["name", first, false]] },
     { sorts: [["verdict", t("verdict.col"), false]] },
@@ -199,7 +207,7 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
           <summary className="muted">{t("drives.change")}</summary>
           <DrivePicker drives={drives} selected={roots} onChange={setRoots} />
         </details>
-        {r.drives.map((d) => (
+        {live.map((d) => (
           <SizeBar
             key={d.root}
             label={`${d.root} · ${formatBytes(d.free, lang)} ${t("analyse.freeOf")} ${formatBytes(d.total, lang)}`}

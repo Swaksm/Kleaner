@@ -520,6 +520,8 @@
   "error.exists": "Abgelehnt: Das Ziel existiert bereits. Kleaner überschreibt und vermischt nie.",
   "error.noBin": "Windows würde es endgültig löschen statt in den Papierkorb zu verschieben (zu groß, oder dieses Laufwerk hat keinen Papierkorb). Nichts wurde verschoben. Lösche es im Explorer, wenn du sicher bist.",
   "error.standardAccount": "Dieses Windows-Konto ist kein Administrator: Der Admin-Modus liefe unter einem anderen Konto mit dessen Dateien. Melde dich mit einem Administratorkonto an, um ihn zu nutzen.",
+  "trash.failed": "nicht verschoben (in einem Programm geöffnet oder von Windows blockiert), schließe das Programm und versuche es erneut:",
+  "error.binTotal": "Die Auswahl ist größer als der Papierkorb dieses Laufwerks: Windows würde die ältesten Elemente endgültig löschen. Nichts wurde verschoben. Vergrößere den Papierkorb (Rechtsklick → Eigenschaften → Benutzerdefinierte Größe) oder verschiebe weniger auf einmal.",
   "error.cancelled": "Abgebrochen. Das Original ist unverändert an seinem Platz.",
   "tour.start": "Los geht’s",
   "tour.next": "Weiter",

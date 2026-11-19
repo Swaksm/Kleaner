@@ -6,6 +6,7 @@ import { findLeftovers, freedTotal, listDrives, onedriveRoots, type DriveInfo } 
 import { formatBytes } from "../lib/format";
 import { useScanResult } from "../lib/scanStore";
 import { useRecoverable } from "../lib/useRecoverable";
+import { useDiskVersion } from "../lib/busy";
 
 type Target = "analyse" | "cleanup" | "programs" | "projects" | "duplicates" | "onedrive";
 const MONTH = 30 * 86_400;
@@ -20,17 +21,22 @@ export function Home({ onScan, go, onQuickClean }: { onScan: () => void; go: (pa
   const [onedrive, setOnedrive] = useState(false);
   // Espace libéré par Kleaner depuis le début, lu dans le journal (rien de nouveau n'est enregistré).
   const [gained, setGained] = useState<[number, number] | null>(null);
+  // Après chaque nettoyage ou mise à la Corbeille, l'espace libre et l'espace gagné se relisent.
+  const disk = useDiskVersion();
+
+  useEffect(() => {
+    onedriveRoots().then((r) => setOnedrive(r.length > 0), () => {});
+  }, []);
 
   useEffect(() => {
     listDrives().then((d) => setDrives(d.filter((x) => x.kind === "fixed")), () => {});
-    onedriveRoots().then((r) => setOnedrive(r.length > 0), () => {});
     freedTotal().then(setGained, () => {});
-  }, []);
+  }, [disk]);
 
   useEffect(() => {
     if (!scan) return;
     findLeftovers().then((l) => setLeftovers(l.filter((x) => x.trashable).reduce((s, x) => s + x.size, 0)), () => {});
-  }, [scan?.duration_ms]);
+  }, [scan?.duration_ms, disk]);
 
   const oldProjects = scan?.artifacts.filter((a) => a.project_modified < Date.now() / 1000 - 3 * MONTH).reduce((s, a) => s + a.size, 0) ?? 0;
 

@@ -520,6 +520,8 @@
   "error.exists": "Refused: the destination already exists. Kleaner never overwrites or merges.",
   "error.noBin": "Windows would delete this permanently instead of putting it in the Recycle Bin (too big, or this drive has no Recycle Bin). Nothing was moved. Delete it from Explorer if you are sure.",
   "error.standardAccount": "This Windows account is not an administrator: admin mode would run under another account, with its own files. Sign in with an administrator account to use it.",
+  "trash.failed": "not sent (open in a program or blocked by Windows), close the program and try again:",
+  "error.binTotal": "The selection is bigger than the Recycle Bin of this drive: Windows would delete the oldest items for good. Nothing was moved. Enlarge the Recycle Bin (right-click it → Properties → Custom size) or send fewer items at a time.",
   "error.cancelled": "Cancelled. The original is intact, in its place.",
   "tour.start": "Let’s go",
   "tour.next": "Next",

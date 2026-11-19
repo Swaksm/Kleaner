@@ -258,7 +258,7 @@ fn transfer(
     };
     entry.error = result.as_ref().err().cloned();
     journal::append(journal_dir, &entry).map_err(|e| format!("Log: {e}"))?;
-    result.map(|_| ActionReport { files: entry.files, bytes: entry.bytes })
+    result.map(|_| ActionReport { files: entry.files, bytes: entry.bytes, ..Default::default() })
 }
 
 fn set_attributes(p: &Path, attrs: u32) {

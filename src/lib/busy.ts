@@ -31,6 +31,10 @@ export function requestStop() {
   set({ ...current, stopping: true });
 }
 
+// Incrémenté à la fin de chaque action qui modifie le disque : l'espace libre affiché se relit tout seul.
+let diskVersion = 0;
+const diskListeners = new Set<() => void>();
+
 /** Lance `fn` derrière la fenêtre d'attente. `onStop` : un bouton Arrêter l'appelle. */
 export async function withBusy<T>(fn: () => Promise<T>, opts: { onStop?: () => void; name?: (label: string) => string } = {}): Promise<T> {
   set({ done: 0, total: 0, label: "", stopping: false, ...opts });
@@ -38,7 +42,22 @@ export async function withBusy<T>(fn: () => Promise<T>, opts: { onStop?: () => v
     return await fn();
   } finally {
     set(null);
+    diskVersion++;
+    diskListeners.forEach((fn) => fn());
   }
+}
+
+/** Change après chaque action sur le disque : à mettre dans les dépendances d'un effet qui relit l'espace libre. */
+export function useDiskVersion() {
+  return useSyncExternalStore(
+    (fn) => {
+      diskListeners.add(fn);
+      return () => {
+        diskListeners.delete(fn);
+      };
+    },
+    () => diskVersion,
+  );
 }
 
 function subscribe(fn: () => void) {
