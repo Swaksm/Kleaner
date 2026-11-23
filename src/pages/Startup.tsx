@@ -101,15 +101,17 @@ export function Startup() {
                     </span>
                   )}
                 </span>
-                {i.enabled ? (
-                  <button className="btn btn-small" disabled={busy === i.id} onClick={() => (i.keep ? setAsking(i) : change(i, false))}>
-                    {t("startup.disable")}
-                  </button>
-                ) : (
-                  <button className="btn btn-small btn-primary" disabled={busy === i.id} onClick={() => change(i, true)}>
-                    {t("startup.enable")}
-                  </button>
-                )}
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    aria-label={i.name}
+                    checked={i.enabled}
+                    disabled={busy === i.id}
+                    onChange={() => (!i.enabled ? change(i, true) : i.keep ? setAsking(i) : change(i, false))}
+                  />
+                  <span>{i.enabled ? t("startup.on") : t("startup.off")}</span>
+                </label>
               </li>
             ))}
           </ul>

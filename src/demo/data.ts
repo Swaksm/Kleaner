@@ -239,6 +239,30 @@ const SIZES: Record<string, number> = {
   "windows-update-cache": 1.0 * GB,
 };
 
+/** Journal fictif : quelques actions sur deux jours, la plus récente en premier. */
+export function demoJournal() {
+  const now = Math.floor(Date.now() / 1000);
+  const e = (ago: number, action: string, more: Partial<{ paths: string[]; files: number; bytes: number; skipped: number; error: string | null; output: string | null }> = {}) => ({
+    ts: now - ago,
+    action,
+    paths: [],
+    files: 0,
+    bytes: 0,
+    skipped: 0,
+    error: null,
+    output: null,
+    ...more,
+  });
+  return [
+    e(600, "clean:user-temp", { paths: [`${LOCAL}\\Temp`], files: 8_214, bytes: SIZES["user-temp"], skipped: 37 }),
+    e(640, "clean:browser-chrome", { paths: [`${LOCAL}\\Google\\Chrome\\User Data\\Default\\Cache`], files: 6_480, bytes: SIZES["browser-chrome"] }),
+    e(900, "trash", { paths: [`${HOME}\\Downloads\\setup-old.exe`, `${HOME}\\Videos\\capture-2024.mp4`], files: 2, bytes: 1_380_000_000 }),
+    e(1500, "startup-disable", { paths: ["Opera GX Browser Assistant"] }),
+    e(90_000, "move", { paths: [`${HOME}\\Videos\\Rushs`, "D:\\Kleaner moved\\Videos\\Rushs"], files: 412, bytes: 38_600_000_000 }),
+    e(90_400, "remove-app", { paths: ["Microsoft.BingNews_4.0_x64__8wekyb3d8bbwe"], error: "Access denied (0x80070005)" }),
+  ];
+}
+
 export const cleaners = (): Cleaner[] =>
   (cleanersJson as unknown as Partial<Cleaner>[]).map((c) => ({ only: [], flat: false, close: [], command: null, admin: false, ...c }) as Cleaner);
 

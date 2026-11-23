@@ -1,5 +1,5 @@
 // Remplace @tauri-apps/api/core dans le mode « demo » : des réponses fictives, rien ne touche au disque.
-import { cleaners, drives, estimates, explain, health, leftovers, scanResult, startupView } from "./data";
+import { cleaners, demoJournal, drives, estimates, explain, health, leftovers, scanResult, startupView } from "./data";
 import { emit } from "./event";
 
 export const convertFileSrc = (path: string) => path;
@@ -61,8 +61,10 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
       return ok(undefined);
     case "freed_total":
       return ok([51_800_000_000, 1_790_000_000]);
+    case "set_startup":
+      return ok(undefined);
     case "read_journal":
-      return ok({ path: "C:\\Users\\alex\\AppData\\Local\\Kleaner\\journal.log", entries: [] });
+      return ok({ path: "C:\\Users\\alex\\AppData\\Local\\Kleaner\\journal.log", entries: demoJournal() });
     case "plan_move": {
       const source = args.path as string;
       const rel = source.replace(/^C:\\Users\\[^\\]+\\/, "");
