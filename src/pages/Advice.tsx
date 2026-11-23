@@ -98,14 +98,16 @@ export function Advice() {
         return (
           <Card key={kind} title={t(`advice.${kind}` as Key)}>
             <p className="muted">{t(`advice.${kind}Hint` as Key)}</p>
-            <ul className="items grid-shortcuts">
+            <ul className="items grid-advice">
               {items.map((a) => (
                 <li key={a.path}>
                   {a.app_id ? (
-                    <span className="path" title={a.path}>
-                      {a.name}
-                      <span className="block muted small">{a.path}</span>
-                    </span>
+                    <div className="program">
+                      <strong>{a.name}</strong>
+                      <span className="muted path small" title={a.path}>
+                        {a.path}
+                      </span>
+                    </div>
                   ) : (
                     <label className="check path" title={a.path}>
                       <input type="checkbox" checked={selected.has(a.path)} onChange={() => toggle(a.path)} />

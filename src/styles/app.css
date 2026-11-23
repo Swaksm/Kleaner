@@ -1497,6 +1497,11 @@ select {
   border-bottom: 1px solid var(--border);
 }
 
+/* Bouton toujours dans la dernière colonne, même sans taille à côté : les « Voir » restent alignés */
+.recs li > .btn {
+  grid-column: 3;
+}
+
 .recs li:last-child {
   border-bottom: none;
 }
@@ -1648,6 +1653,11 @@ select {
 
 .items.grid-shortcuts li {
   grid-template-columns: minmax(0, 1fr) 130px 90px 70px;
+}
+
+/* Conseils : le bouton « Désinstaller avec Steam » prend sa largeur, sans barre de défilement horizontale */
+.items.grid-advice li {
+  grid-template-columns: minmax(0, 1fr) 90px 130px max-content;
 }
 
 .items.grid-ghosts li {
