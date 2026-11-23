@@ -47,8 +47,8 @@ Un exe signé (voir [signing.md](signing.md)) réduit les avertissements des ant
 
 Identité Partner Center : `Swaks.Kleaner`, éditeur `CN=6258F58B-4AB8-4F17-B676-8F34E41CF25D`, Store ID `9N00P7TVWDMM`, PFN `Swaks.Kleaner_dq2s3tjsjfehg`.
 
-1. `npm run tauri build -- --no-bundle` (version stable, sans `VITE_APP_VERSION`), puis `npm run msix` → `src-tauri/target/msix/Kleaner_<version>.0_x64.msix`, non signé (le Store signe).
-2. Partner Center → nouvelle soumission → Packages : déposer le `.msix`, coller la justification de `docs/store/capabilities.md`.
+1. Mettre dans `src-tauri/target/release/kleaner.exe` l'exe de la release GitHub (téléchargé, SHA-256 vérifié : le même binaire partout) ou le compiler avec `npm run tauri build -- --no-bundle`, puis `npm run msix` → `src-tauri/target/msix/Kleaner_<version>.0_x64.msix`, non signé (le Store signe).
+2. Partner Center → soumission → Packages : déposer le `.msix` (à la main : le navigateur intégré de Claude ne peut pas choisir un fichier). Submission options → Restricted capabilities : un champ par capacité, 500 caractères au plus ; le détail va dans Additional Testing Information (6 000 caractères). Textes dans `docs/store/capabilities.md`.
 3. Fiche : `docs/store/listing.md`, captures `npm run demo:build && npm run store:shots` → `docs/store/screenshots/`. Politique de confidentialité : `https://swaks.org/kleaner/privacy/` (dépôt `Swaksm/portfolio`, `kleaner/privacy/index.html`, déployée à chaque push).
 
 Même exe que la version portable : dans son paquet (`store.rs`), il cache la mise à jour intégrée et passe par la `StartupTask` du paquet au lieu de la tâche planifiée.
