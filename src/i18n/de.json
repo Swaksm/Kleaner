@@ -115,6 +115,7 @@
   "cleanup.selectSafe": "Risikofreie Elemente anhaken",
   "cleanup.selectNone": "Alle abwählen",
   "admin.badge": "Admin aktiv",
+  "admin.relaunch": "Als Admin starten",
   "analyse.fullAccess": "Vollständige Analyse: geschützte Systemordner eingeschlossen",
   "analyse.showAll": "Alle anzeigen",
   "analyse.showLess": "Weniger anzeigen",

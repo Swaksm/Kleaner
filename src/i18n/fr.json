@@ -115,6 +115,7 @@
   "cleanup.selectSafe": "Cocher les éléments sans risque",
   "cleanup.selectNone": "Tout décocher",
   "admin.badge": "Admin activé",
+  "admin.relaunch": "Passer en admin",
   "analyse.fullAccess": "Analyse complète : dossiers système protégés inclus",
   "analyse.showAll": "Tout afficher",
   "analyse.showLess": "Afficher moins",

@@ -115,6 +115,7 @@
   "cleanup.selectSafe": "Marcar los elementos sin riesgo",
   "cleanup.selectNone": "Desmarcar todo",
   "admin.badge": "Admin activado",
+  "admin.relaunch": "Ejecutar como admin",
   "analyse.fullAccess": "Análisis completo: carpetas protegidas del sistema incluidas",
   "analyse.showAll": "Mostrar todo",
   "analyse.showLess": "Mostrar menos",

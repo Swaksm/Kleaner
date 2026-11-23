@@ -115,6 +115,7 @@
   "cleanup.selectSafe": "Tick risk-free items",
   "cleanup.selectNone": "Untick all",
   "admin.badge": "Admin on",
+  "admin.relaunch": "Run as admin",
   "analyse.fullAccess": "Full scan: protected system folders included",
   "analyse.showAll": "Show all",
   "analyse.showLess": "Show less",

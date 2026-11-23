@@ -115,6 +115,7 @@
   "cleanup.selectSafe": "Marcar itens sem risco",
   "cleanup.selectNone": "Desmarcar tudo",
   "admin.badge": "Admin ativado",
+  "admin.relaunch": "Executar como admin",
   "analyse.fullAccess": "Análise completa: pastas protegidas do sistema incluídas",
   "analyse.showAll": "Mostrar tudo",
   "analyse.showLess": "Mostrar menos",

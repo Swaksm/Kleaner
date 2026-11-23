@@ -115,6 +115,7 @@
   "cleanup.selectSafe": "勾选无风险项目",
   "cleanup.selectNone": "全部取消勾选",
   "admin.badge": "管理员模式",
+  "admin.relaunch": "以管理员身份运行",
   "analyse.fullAccess": "完整扫描：包含受保护的系统文件夹",
   "analyse.showAll": "全部显示",
   "analyse.showLess": "收起",

@@ -115,6 +115,7 @@
   "cleanup.selectSafe": "Seleziona gli elementi senza rischi",
   "cleanup.selectNone": "Deseleziona tutto",
   "admin.badge": "Admin attivo",
+  "admin.relaunch": "Avvia come admin",
   "analyse.fullAccess": "Analisi completa: cartelle di sistema protette incluse",
   "analyse.showAll": "Mostra tutto",
   "analyse.showLess": "Mostra meno",

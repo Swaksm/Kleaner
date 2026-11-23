@@ -115,6 +115,7 @@
   "cleanup.selectSafe": "Отметить безопасное",
   "cleanup.selectNone": "Снять все отметки",
   "admin.badge": "Администратор",
+  "admin.relaunch": "Запустить от админа",
   "analyse.fullAccess": "Полный анализ: включая защищённые системные папки",
   "analyse.showAll": "Показать всё",
   "analyse.showLess": "Свернуть",

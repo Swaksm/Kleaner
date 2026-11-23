@@ -11,8 +11,9 @@ import { isTourPending, Tour } from "./components/Tour";
 import { applyPendingAutostart } from "./lib/autostart";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { useT, type Key } from "./i18n/useT";
-import { isElevated, onedriveRoots } from "./lib/api";
+import { isElevated, onedriveRoots, relaunchAdmin } from "./lib/api";
 import { useScanResult } from "./lib/scanStore";
+import { friendlyError } from "./lib/errors";
 import { About } from "./pages/About";
 import { Analyse } from "./pages/Analyse";
 import { Cleanup } from "./pages/Cleanup";
@@ -63,6 +64,7 @@ function App() {
   const [scanRequest, setScanRequest] = useState(import.meta.env.MODE === "demo" && new URLSearchParams(location.search).has("autoscan") ? 1 : 0);
   const [hasOneDrive, setHasOneDrive] = useState(false);
   const [elevated, setElevated] = useState(false);
+  const [adminError, setAdminError] = useState<string | null>(null);
   const [moreOpen, setMoreOpen] = useState(savedMoreOpen);
   const [quickClean, setQuickClean] = useState(false);
   const [kept, setKept] = useState<Set<Page>>(new Set());
@@ -171,11 +173,17 @@ function App() {
           <span className="brand-logo" aria-hidden />
           Kleaner
         </div>
-        {elevated && (
-          <div className="brand-badge">
+        <div className="brand-badge">
+          {elevated ? (
             <StatusPill status="ok">{t("admin.badge")}</StatusPill>
-          </div>
-        )}
+          ) : (
+            // Toujours visible : la relance en admin était cachée dans Nettoyage et Paramètres.
+            <button className="btn btn-small" title={t("admin.why")} onClick={() => relaunchAdmin().catch((e) => setAdminError(friendlyError(String(e))))}>
+              {t("admin.relaunch")}
+            </button>
+          )}
+          {adminError && <p className="danger small">{adminError}</p>}
+        </div>
         {/* Nettoyage : l'action principale, mise en avant comme un bouton. */}
         {MAIN.map((p) => item(p, p === "cleanup" ? "nav-item nav-cta" : "nav-item"))}
         <button className="nav-item nav-group" data-tour="nav-more" aria-expanded={moreOpen} onClick={toggleMore}>
