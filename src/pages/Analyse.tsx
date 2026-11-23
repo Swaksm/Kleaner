@@ -331,9 +331,11 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
               <VerdictPill e={explanations.get(i.path)} onOpen={setExplaining} />
               <span className="muted small">{formatDay(i.modified, lang)}</span>
               <span className="num end">{formatBytes(i.size, lang)}</span>
-              <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
-                {t("analyse.open")}
-              </button>
+              <span className="row-actions">
+                <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
+                  {t("analyse.open")}
+                </button>
+              </span>
             </li>
           ))}
         </ul>
@@ -342,8 +344,8 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
       </Card>
 
       <Card title={t("analyse.topDirs")}>
-        <ul className="items grid-6">
-          <SortHeader cells={[...headerCells(t("sort.folder")), null]} value={dirSort} onChange={setDirSort} />
+        <ul className="items grid-5">
+          <SortHeader cells={headerCells(t("sort.folder"))} value={dirSort} onChange={setDirSort} />
           {dirs.slice(0, showAll ? undefined : 50).map((i) => (
             <li key={i.path}>
               <span className="path" title={i.path}>
@@ -352,17 +354,17 @@ export function Analyse({ onGoCleanup, scanRequest }: { onGoCleanup: () => void;
               <VerdictPill e={explanations.get(i.path)} onOpen={setExplaining} />
               <span className="muted small">{formatDay(i.modified, lang)}</span>
               <span className="num end">{formatBytes(i.size, lang)}</span>
-              <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
-                {t("analyse.open")}
-              </button>
-              {/* Dossiers personnels seulement ; Rust vérifie tout le reste (emplacement, liens, programmes, place). */}
-              {explanations.get(i.path)?.verdict === "personal" && MOVABLE.test(i.path) ? (
-                <button className="btn btn-small" onClick={() => setMoving(i.path)}>
-                  {t("move.button")}
+              <span className="row-actions">
+                {/* Dossiers personnels seulement ; Rust vérifie tout le reste (emplacement, liens, programmes, place). */}
+                {explanations.get(i.path)?.verdict === "personal" && MOVABLE.test(i.path) && (
+                  <button className="btn btn-small" onClick={() => setMoving(i.path)}>
+                    {t("move.button")}
+                  </button>
+                )}
+                <button className="btn btn-small" onClick={() => revealInExplorer(i.path)}>
+                  {t("analyse.open")}
                 </button>
-              ) : (
-                <span />
-              )}
+              </span>
             </li>
           ))}
         </ul>

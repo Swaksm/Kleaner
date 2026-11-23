@@ -454,6 +454,8 @@ p { margin: 0; }
   padding: 0;
   max-height: 420px;
   overflow-y: auto;
+  /* Même largeur avec ou sans barre de défilement : les colonnes de deux listes restent alignées. */
+  scrollbar-gutter: stable;
 }
 
 .items li {
@@ -1228,11 +1230,7 @@ select {
 
 /* Verdicts */
 .items.grid-5 li {
-  grid-template-columns: minmax(0, 1fr) 110px 90px 84px 70px;
-}
-
-.items.grid-6 li {
-  grid-template-columns: minmax(0, 1fr) 110px 90px 84px 70px 86px;
+  grid-template-columns: minmax(0, 1fr) 110px 90px 84px 170px;
 }
 
 .verdict-tag {
