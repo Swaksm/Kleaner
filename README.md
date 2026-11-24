@@ -60,6 +60,17 @@ scoop install kleaner/kleaner
 
 **Windows warning (SmartScreen).** The exe is not signed yet (a certificate is expensive for a free project, and code-signing programs for open source ask for more stars first). Windows shows "Windows protected your PC": click *More info* then *Run anyway*. Some antivirus tools may react because Kleaner deletes files and can ask for admin rights. All the code is readable here, and the exe is built by GitHub Actions from it: the hash above proves you got that build.
 
+## Guides
+
+Freeing up space on Windows, step by step:
+
+- [Free up disk space on Windows 11 without breaking anything](https://swaks.org/guides/free-up-space-windows-11.html)
+- [WinSxS, Temp, $WINDOWS.~BT: what can you delete?](https://swaks.org/guides/winsxs-temp-windows-bt.html)
+- [A free, open-source alternative to CCleaner](https://swaks.org/guides/ccleaner-alternative.html)
+- [How to delete Windows.old safely](https://swaks.org/guides/delete-windows-old.html)
+- [hiberfil.sys: what it is and how to remove it](https://swaks.org/guides/hiberfil-sys.html)
+- [AppData folder too big: what you can delete](https://swaks.org/guides/appdata-too-big.html)
+
 ## What Kleaner never does
 
 - Act without your confirmation.
