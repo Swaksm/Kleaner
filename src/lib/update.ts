@@ -5,6 +5,8 @@ const API = "https://api.github.com/repos/Swaksm/Kleaner/releases?per_page=10";
 const KEY = "updateCheck";
 /** Page de téléchargement : installateur ou version portable de la dernière version, en quelques clics. */
 export const DOWNLOAD_PAGE = "https://swaks.org/kleaner/";
+// Montrée là où la vérification des mises à jour est proposée (seul accès réseau de Kleaner)
+export const PRIVACY_PAGE = "https://swaks.org/kleaner/privacy/";
 
 export type Update = { version: string; url: string };
 

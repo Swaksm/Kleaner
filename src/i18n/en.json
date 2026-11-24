@@ -369,6 +369,7 @@
   "update.title": "Updates",
   "update.auto": "Check for a new version at startup",
   "update.privacy": "Off by default. When on, Kleaner reads the public list of releases on GitHub (api.github.com). Nothing about you or your PC is sent, and nothing is downloaded automatically.",
+  "update.privacyLink": "Privacy policy",
   "update.checkNow": "Check for updates",
   "update.checking": "Checking…",
   "update.upToDate": "You have the latest version.",

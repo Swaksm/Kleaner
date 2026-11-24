@@ -7,7 +7,8 @@ import { isElevated, monthlyReminder, removeKleanerData, setMonthlyReminder } fr
 import { autostartEnabled, chooseAutostart } from "../lib/autostart";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
 import { useIsStore } from "../lib/store";
-import { setUpdateCheck, updateCheckEnabled } from "../lib/update";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { PRIVACY_PAGE, setUpdateCheck, updateCheckEnabled } from "../lib/update";
 
 export function Settings({ onTour }: { onTour: () => void }) {
   const { t, lang } = useT();
@@ -91,7 +92,10 @@ export function Settings({ onTour }: { onTour: () => void }) {
             />
             {t("update.auto")}
           </label>
-          <p className="muted small">{t("update.privacy")}</p>
+          <p className="muted small">
+              {t("update.privacy")}{" "}
+              <button className="link" onClick={() => openUrl(PRIVACY_PAGE)}>{t("update.privacyLink")}</button>
+            </p>
         </Card>
       )}
 

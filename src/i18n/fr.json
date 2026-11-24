@@ -369,6 +369,7 @@
   "update.title": "Mises à jour",
   "update.auto": "Vérifier s’il y a une nouvelle version au démarrage",
   "update.privacy": "Désactivé par défaut. Activé, Kleaner lit la liste publique des versions sur GitHub (api.github.com). Rien sur toi ou ton PC n’est envoyé, et rien n’est téléchargé automatiquement.",
+  "update.privacyLink": "Politique de confidentialité",
   "update.checkNow": "Vérifier les mises à jour",
   "update.checking": "Vérification…",
   "update.upToDate": "Tu as la dernière version.",

@@ -26,25 +26,21 @@ jobs:
           workspaces: src-tauri
       - run: npm ci
       - run: cargo test --manifest-path src-tauri/Cargo.toml
-      # Exe portable + installateur NSIS (Program Files, désinstallable depuis Windows).
-      # L'installateur embarque l'exe avant signature : à revoir quand SignPath sera actif.
-      - run: npm run tauri build -- --bundles nsis
+      # 1. L'exe seul, sans installateur : il est signé AVANT d'être mis dans l'installateur,
+      #    sinon l'installateur installerait un exe non signé.
+      - run: npm run tauri build -- --no-bundle
         env:
           # Version affichée et comparée aux releases (sinon celle de tauri.conf.json pour toutes les rc).
           VITE_APP_VERSION: ${{ github.ref_name }}
-      - shell: pwsh
-        run: |
-          Copy-Item src-tauri/target/release/kleaner.exe kleaner.exe
-          Copy-Item (Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1).FullName kleaner-setup.exe
 
       - name: Upload unsigned exe for signing
         if: env.SIGNING == 'true'
-        id: unsigned
+        id: unsigned-exe
         uses: actions/upload-artifact@v4
         with:
-          name: kleaner-unsigned
-          path: kleaner.exe
-      - name: Sign with SignPath
+          name: kleaner-exe-unsigned
+          path: src-tauri/target/release/kleaner.exe
+      - name: Sign exe with SignPath
         if: env.SIGNING == 'true'
         uses: signpath/github-action-submit-signing-request@v1
         with:
@@ -53,16 +49,54 @@ jobs:
           project-slug: kleaner
           signing-policy-slug: release-signing
           artifact-configuration-slug: portable-exe
-          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          github-artifact-id: ${{ steps.unsigned-exe.outputs.artifact-id }}
           wait-for-completion: true
-          output-artifact-directory: signed
-      - name: Use signed exe
+          output-artifact-directory: signed-exe
+      - name: Put signed exe back for the installer
         if: env.SIGNING == 'true'
         shell: pwsh
         run: |
-          Copy-Item signed/kleaner.exe kleaner.exe -Force
-          $sig = Get-AuthenticodeSignature kleaner.exe
-          if ($sig.Status -ne 'Valid') { throw "Signature invalide : $($sig.Status)" }
+          $sig = Get-AuthenticodeSignature signed-exe/kleaner.exe
+          if ($sig.Status -ne 'Valid') { throw "Signature de l'exe invalide : $($sig.Status)" }
+          Copy-Item signed-exe/kleaner.exe src-tauri/target/release/kleaner.exe -Force
+
+      # 2. Installateur NSIS (Program Files, désinstallable depuis Windows) autour de l'exe déjà signé.
+      #    « tauri bundle » ne recompile pas : il emballe l'exe présent dans target/release.
+      - run: npm run tauri bundle -- --bundles nsis
+      - shell: pwsh
+        run: |
+          Copy-Item src-tauri/target/release/kleaner.exe kleaner.exe
+          Copy-Item (Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1).FullName kleaner-setup.exe
+
+      # 3. L'installateur lui-même est signé à son tour.
+      - name: Upload unsigned installer for signing
+        if: env.SIGNING == 'true'
+        id: unsigned-setup
+        uses: actions/upload-artifact@v4
+        with:
+          name: kleaner-setup-unsigned
+          path: kleaner-setup.exe
+      - name: Sign installer with SignPath
+        if: env.SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: kleaner
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.unsigned-setup.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-setup
+      - name: Use signed installer
+        if: env.SIGNING == 'true'
+        shell: pwsh
+        run: |
+          Copy-Item signed-setup/kleaner-setup.exe kleaner-setup.exe -Force
+          foreach ($f in 'kleaner.exe', 'kleaner-setup.exe') {
+            $sig = Get-AuthenticodeSignature $f
+            if ($sig.Status -ne 'Valid') { throw "Signature invalide pour $f : $($sig.Status)" }
+          }
 
       - name: SHA-256
         shell: pwsh

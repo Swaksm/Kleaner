@@ -3,7 +3,8 @@ import { LANGS, setLang, useT } from "../i18n/useT";
 import { chooseAutostart } from "../lib/autostart";
 import { applyThemeChoice, savedThemeChoice, type ThemeChoice } from "../lib/theme";
 import { useIsStore } from "../lib/store";
-import { setUpdateCheck, updateCheckEnabled } from "../lib/update";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { PRIVACY_PAGE, setUpdateCheck, updateCheckEnabled } from "../lib/update";
 import { Flag } from "./LangMenu";
 import { requestTour } from "./Tour";
 
@@ -75,7 +76,10 @@ export function Setup({ elevated, onDone }: { elevated: boolean; onDone: () => v
               <input type="checkbox" checked={update} onChange={(e) => setUpdate(e.target.checked)} />
               {t("update.auto")}
             </label>
-            <p className="muted small">{t("update.privacy")}</p>
+            <p className="muted small">
+              {t("update.privacy")}{" "}
+              <button className="link" onClick={() => openUrl(PRIVACY_PAGE)}>{t("update.privacyLink")}</button>
+            </p>
           </>
         )}
 

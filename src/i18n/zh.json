@@ -369,6 +369,7 @@
   "update.title": "更新",
   "update.auto": "启动时检查新版本",
   "update.privacy": "默认关闭。开启后，Kleaner 会读取 GitHub 上公开的版本列表（api.github.com）。不会发送任何关于你或你电脑的信息，也不会自动下载任何内容。",
+  "update.privacyLink": "隐私政策",
   "update.checkNow": "检查更新",
   "update.checking": "正在检查…",
   "update.upToDate": "你使用的是最新版本。",

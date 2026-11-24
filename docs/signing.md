@@ -14,11 +14,18 @@ Un exe signé affiche « Éditeur : … » au lieu de « Éditeur inconnu ». La
    - Projet avec le slug `kleaner`
    - Politique de signature `release-signing`
    - Configuration d'artefact `portable-exe` qui signe le fichier `kleaner.exe` à la racine de l'artefact (Authenticode)
+   - Configuration d'artefact `installer` qui signe le fichier `kleaner-setup.exe` à la racine de l'artefact (Authenticode)
+   - Dans les deux : nom de produit `Kleaner` et version imposés (restrictions de métadonnées, exigées par SignPath Foundation)
    - Lier le dépôt GitHub comme *Trusted Build System*
 4. Dans GitHub → Settings → Secrets and variables → Actions :
    - Secret `SIGNPATH_API_TOKEN` : jeton d'un utilisateur CI SignPath ayant le rôle *Submitter*
    - Variable `SIGNPATH_ORGANIZATION_ID` : l'identifiant de l'organisation SignPath
-5. Pousser un tag (`v0.1.0-rc6`) : le job envoie l'exe à SignPath, attend la signature, vérifie qu'elle est valide (`Get-AuthenticodeSignature`) puis publie.
+5. Pousser un tag (`v1.4.0`) : le job signe en deux temps, puis publie.
+   1. `tauri build --no-bundle` produit l'exe seul ; il part chez SignPath et revient signé.
+   2. `tauri bundle --bundles nsis` construit l'installateur autour de cet exe signé (sans recompiler) ; l'installateur part à son tour chez SignPath.
+   3. Les deux signatures sont vérifiées (`Get-AuthenticodeSignature`) avant la publication.
+
+   Chaque signature demande une approbation manuelle dans SignPath (règle de SignPath Foundation) : deux approbations par release.
 
 Si les slugs choisis dans SignPath sont différents, les changer dans `.github/workflows/release.yml`.
 
