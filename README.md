@@ -90,6 +90,13 @@ Freeing up space on Windows, step by step:
 
 *Settings → Remove Kleaner* erases `%LOCALAPPDATA%\Kleaner` and `%LOCALAPPDATA%\com.swaksm.kleaner`. Then delete `kleaner.exe` (portable). With the installer, the Windows uninstaller opens right after. If you turned on *Start with Windows*, turn it off first in Settings.
 
+## Code signing policy
+
+- **Builds.** Every release file (`kleaner.exe`, `kleaner-setup.exe`) is built by GitHub Actions from the tagged source code of this repository ([.github/workflows/release.yml](.github/workflows/release.yml)), with its SHA-256 hash published next to it. Nothing is built or uploaded by hand.
+- **Roles.** Committer and reviewer: [Matthieu Izac (Swaksm)](https://github.com/Swaksm), the only maintainer; changes from other contributors go through a pull request he reviews. Approver: Matthieu Izac, who approves each release.
+- **Privacy.** This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. Its only network access is the optional update check (off by default), which reads the public list of releases on GitHub. [Privacy policy](https://swaks.org/kleaner/privacy/).
+- **Signature.** Releases are not code-signed yet: see the SmartScreen warning above.
+
 ## Development
 
 ```bash

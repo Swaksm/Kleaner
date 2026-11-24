@@ -32,6 +32,20 @@ const dev = fence("bash", [
 ]);
 const shots = fence("bash", ["npm run demo:build", "npm run demo:shots"]);
 
+// Guides publiés sur swaks.org (même ordre et mêmes titres que _build/guides.json du dépôt portfolio)
+const GUIDES = [
+  ["free-up-space-windows-11", "Free up disk space on Windows 11 without breaking anything", "Libérer de l'espace disque sur Windows 11 sans rien casser"],
+  ["winsxs-temp-windows-bt", "WinSxS, Temp, $WINDOWS.~BT: what can you delete?", "WinSxS, Temp, $WINDOWS.~BT : que peut-on supprimer ?"],
+  ["ccleaner-alternative", "A free, open-source alternative to CCleaner", "Une alternative gratuite et open source à CCleaner"],
+  ["delete-windows-old", "How to delete Windows.old safely", "Supprimer Windows.old sans risque"],
+  ["hiberfil-sys", "hiberfil.sys: what it is and how to remove it", "hiberfil.sys : à quoi il sert et comment le retirer"],
+  ["appdata-too-big", "AppData folder too big: what you can delete", "Dossier AppData trop gros : que peut-on supprimer ?"],
+];
+const guides = (l) =>
+  GUIDES.map(([slug, en, fr]) => `- [${l === "fr" ? fr : en}](https://swaks.org${l === "fr" ? "/fr" : ""}/guides/${slug}.html)`).join("\n");
+const RELEASE_WORKFLOW = "[.github/workflows/release.yml](.github/workflows/release.yml)";
+const PRIVACY = "https://swaks.org/kleaner/privacy/";
+
 const badges =
   "[![Release](https://img.shields.io/github/v/release/Swaksm/Kleaner?include_prereleases&label=release)](https://github.com/Swaksm/Kleaner/releases) " +
   "[![License: MIT](https://img.shields.io/github/license/Swaksm/Kleaner)](LICENSE) " +
@@ -105,6 +119,12 @@ const en = [
   "",
   "**Windows warning (SmartScreen).** The exe is not signed yet (a certificate is expensive for a free project, and code-signing programs for open source ask for more stars first). Windows shows \"Windows protected your PC\": click *More info* then *Run anyway*. Some antivirus tools may react because Kleaner deletes files and can ask for admin rights. All the code is readable here, and the exe is built by GitHub Actions from it: the hash above proves you got that build.",
   "",
+  "## Guides",
+  "",
+  "Freeing up space on Windows, step by step:",
+  "",
+  guides("en"),
+  "",
   "## What Kleaner never does",
   "",
   "- Act without your confirmation.",
@@ -123,6 +143,13 @@ const en = [
   "## Removing Kleaner",
   "",
   "*Settings → Remove Kleaner* erases " + code("%LOCALAPPDATA%\\Kleaner") + " and " + code("%LOCALAPPDATA%\\com.swaksm.kleaner") + ". Then delete " + code("kleaner.exe") + " (portable). With the installer, the Windows uninstaller opens right after. If you turned on *Start with Windows*, turn it off first in Settings.",
+  "",
+  "## Code signing policy",
+  "",
+  "- **Builds.** Every release file (" + code("kleaner.exe") + ", " + code("kleaner-setup.exe") + ") is built by GitHub Actions from the tagged source code of this repository (" + RELEASE_WORKFLOW + "), with its SHA-256 hash published next to it. Nothing is built or uploaded by hand.",
+  "- **Roles.** Committer and reviewer: [Matthieu Izac (Swaksm)](https://github.com/Swaksm), the only maintainer; changes from other contributors go through a pull request he reviews. Approver: Matthieu Izac, who approves each release.",
+  "- **Privacy.** This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. Its only network access is the optional update check (off by default), which reads the public list of releases on GitHub. [Privacy policy](" + PRIVACY + ").",
+  "- **Signature.** Releases are not code-signed yet: see the SmartScreen warning above.",
   "",
   "## Development",
   "",
@@ -195,6 +222,12 @@ const fr = [
   "",
   "**Avertissement Windows (SmartScreen).** L'exe n'est pas encore signé (un certificat coûte cher pour un projet gratuit, et les programmes de signature pour l'open source demandent d'abord plus d'étoiles). Windows affiche « Windows a protégé votre ordinateur » : clique sur *Informations complémentaires* puis *Exécuter quand même*. Certains antivirus peuvent réagir parce que Kleaner supprime des fichiers et peut demander les droits admin. Tout le code est lisible ici, et l'exe est construit par GitHub Actions à partir de ce code : l'empreinte ci-dessus prouve que tu as bien cette version.",
   "",
+  "## Guides",
+  "",
+  "Libérer de l'espace sous Windows, pas à pas :",
+  "",
+  guides("fr"),
+  "",
   "## Ce que Kleaner ne fait jamais",
   "",
   "- Agir sans ta confirmation.",
@@ -213,6 +246,13 @@ const fr = [
   "## Retirer Kleaner",
   "",
   "*Paramètres → Retirer Kleaner* efface " + code("%LOCALAPPDATA%\\Kleaner") + " et " + code("%LOCALAPPDATA%\\com.swaksm.kleaner") + ". Supprime ensuite " + code("kleaner.exe") + " (portable). Avec l'installateur, le désinstalleur de Windows s'ouvre juste après. Si tu as activé le démarrage avec Windows, coupe-le d'abord dans les Paramètres.",
+  "",
+  "## Politique de signature du code",
+  "",
+  "- **Construction.** Chaque fichier de release (" + code("kleaner.exe") + ", " + code("kleaner-setup.exe") + ") est construit par GitHub Actions à partir du code source tagué de ce dépôt (" + RELEASE_WORKFLOW + "), avec son empreinte SHA-256 publiée à côté. Rien n'est construit ni envoyé à la main.",
+  "- **Rôles.** Committer et relecteur : [Matthieu Izac (Swaksm)](https://github.com/Swaksm), seul mainteneur ; les changements d'autres contributeurs passent par une pull request qu'il relit. Approbateur : Matthieu Izac, qui approuve chaque release.",
+  "- **Confidentialité.** Ce programme ne transmet aucune information à d'autres systèmes en réseau, sauf demande expresse de l'utilisateur ou de la personne qui l'installe ou l'utilise. Son seul accès réseau est la vérification de mise à jour facultative (désactivée par défaut), qui lit la liste publique des versions sur GitHub. [Politique de confidentialité](" + PRIVACY + ").",
+  "- **Signature.** Les releases ne sont pas encore signées : voir l'avertissement SmartScreen plus haut.",
   "",
   "## Développement",
   "",

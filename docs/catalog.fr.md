@@ -36,14 +36,14 @@ Tout ce que le catalogue intégré de Kleaner peut supprimer définitivement (46
 | Ancienne version de Windows | Les dossiers Windows.old, $Windows.~BT et $Windows.~WS laissés après une mise à jour majeure. | Irréversible : tu ne pourras plus revenir à la version précédente de Windows. | oui |
 | Anciens composants Windows (WinSxS) | Anciennes versions de composants remplacées par des mises à jour. | Les mises à jour déjà installées ne pourront plus être désinstallées. | oui |
 | Hibernation | Le fichier hiberfil.sys, de la taille d’une bonne partie de la RAM. | Hibernation et démarrage rapide désactivés. Réactivable avec powercfg /hibernate on. | oui |
-| Anciens points de restauration | Tous les points de restauration système sauf le plus récent. | Tu ne pourras plus revenir à un état plus ancien que le dernier point. | oui |
+| Anciens points de restauration | Tous les points de restauration système sauf le plus récent de chaque disque. | Tu ne pourras plus revenir à un état plus ancien que le dernier point. | oui |
 | Compresser Windows (CompactOS) | Les fichiers système de Windows, compressés sur place par l’outil officiel de Windows (compact /CompactOS:always). | Windows peut être un peu plus lent sur un vieux PC. Annulable avec compact /CompactOS:never. | oui |
 | Vivaldi : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
 | Chromium : cache | Copies locales des pages, scripts et shaders déjà chargés. | Tu restes connecté. Sites un peu plus lents au premier chargement. |  |
 | Steam : cache web et shaders | Pages de la boutique déjà vues et shaders compilés pour tes jeux. | Les jeux peuvent saccader un peu au premier lancement. |  |
 | Epic Games Launcher : cache web | Pages et images de la boutique déjà chargées par le launcher. | Tu restes connecté. La boutique charge un peu plus lentement une fois. |  |
 | Adobe : cache média | Fichiers d’aperçu audio et vidéo créés par Premiere Pro, After Effects et Media Encoder. | Les projets mettent plus de temps à s’ouvrir la première fois. |  |
-| Maven : cache | Paquets et résultats de build déjà téléchargés par Maven. | Le prochain install ou build retélécharge ce qui manque. |  |
+| Maven : cache | Paquets et résultats de build déjà téléchargés par Maven. | Le prochain build retélécharge les dépendances. Les bibliothèques installées à la main (mvn install) partent aussi : jamais coché d’office. |  |
 | Go : cache | Paquets et résultats de build déjà téléchargés par Go. | Le prochain install ou build retélécharge ce qui manque. |  |
 | Bun : cache | Paquets et résultats de build déjà téléchargés par Bun. | Le prochain install ou build retélécharge ce qui manque. |  |
 | Composer : cache | Paquets et résultats de build déjà téléchargés par Composer. | Le prochain install ou build retélécharge ce qui manque. |  |

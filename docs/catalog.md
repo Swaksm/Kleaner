@@ -36,14 +36,14 @@ Everything Kleaner's built-in catalog can permanently delete (46 items). Items f
 | Previous Windows version | The Windows.old, $Windows.~BT and $Windows.~WS folders left after a major update. | Irreversible: you will no longer be able to roll back to the previous Windows version. | yes |
 | Old Windows components (WinSxS) | Old component versions replaced by updates. | Already installed updates can no longer be uninstalled. | yes |
 | Hibernation | The hiberfil.sys file, sized like a large part of your RAM. | Hibernation and fast startup turned off. Turn back on with powercfg /hibernate on. | yes |
-| Old restore points | All system restore points except the most recent one. | You can no longer go back further than the latest point. | yes |
+| Old restore points | All system restore points except the most recent one on each drive. | You can no longer go back further than the latest point. | yes |
 | Compress Windows (CompactOS) | Windows system files, compressed in place by Windows' own tool (compact /CompactOS:always). | Windows may be slightly slower on an old PC. Undo with compact /CompactOS:never. | yes |
 | Vivaldi: cache | Local copies of pages, scripts and shaders already loaded. | You stay logged in. Sites load a little slower the first time. |  |
 | Chromium: cache | Local copies of pages, scripts and shaders already loaded. | You stay logged in. Sites load a little slower the first time. |  |
 | Steam: web and shader cache | Store pages already viewed and shaders compiled for your games. | Games may stutter a little the first time they start. |  |
 | Epic Games Launcher: web cache | Store pages and images already loaded by the launcher. | You stay logged in. The store loads a little slower once. |  |
 | Adobe: media cache | Audio and video preview files built by Premiere Pro, After Effects and Media Encoder. | Projects take longer to open the first time (re-conforming). |  |
-| Maven: cache | Packages and build outputs already downloaded by Maven. | The next install or build downloads what is missing again. |  |
+| Maven: cache | Packages and build outputs already downloaded by Maven. | The next build downloads dependencies again. Libraries installed by hand (mvn install) are lost too: never ticked automatically. |  |
 | Go: cache | Packages and build outputs already downloaded by Go. | The next install or build downloads what is missing again. |  |
 | Bun: cache | Packages and build outputs already downloaded by Bun. | The next install or build downloads what is missing again. |  |
 | Composer: cache | Packages and build outputs already downloaded by Composer. | The next install or build downloads what is missing again. |  |

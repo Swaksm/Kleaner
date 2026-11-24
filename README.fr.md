@@ -90,6 +90,13 @@ Libérer de l'espace sous Windows, pas à pas :
 
 *Paramètres → Retirer Kleaner* efface `%LOCALAPPDATA%\Kleaner` et `%LOCALAPPDATA%\com.swaksm.kleaner`. Supprime ensuite `kleaner.exe` (portable). Avec l'installateur, le désinstalleur de Windows s'ouvre juste après. Si tu as activé le démarrage avec Windows, coupe-le d'abord dans les Paramètres.
 
+## Politique de signature du code
+
+- **Construction.** Chaque fichier de release (`kleaner.exe`, `kleaner-setup.exe`) est construit par GitHub Actions à partir du code source tagué de ce dépôt ([.github/workflows/release.yml](.github/workflows/release.yml)), avec son empreinte SHA-256 publiée à côté. Rien n'est construit ni envoyé à la main.
+- **Rôles.** Committer et relecteur : [Matthieu Izac (Swaksm)](https://github.com/Swaksm), seul mainteneur ; les changements d'autres contributeurs passent par une pull request qu'il relit. Approbateur : Matthieu Izac, qui approuve chaque release.
+- **Confidentialité.** Ce programme ne transmet aucune information à d'autres systèmes en réseau, sauf demande expresse de l'utilisateur ou de la personne qui l'installe ou l'utilise. Son seul accès réseau est la vérification de mise à jour facultative (désactivée par défaut), qui lit la liste publique des versions sur GitHub. [Politique de confidentialité](https://swaks.org/kleaner/privacy/).
+- **Signature.** Les releases ne sont pas encore signées : voir l'avertissement SmartScreen plus haut.
+
 ## Développement
 
 ```bash
