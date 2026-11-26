@@ -78,7 +78,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 - **Doublons** : jamais les .dll, .exe ou bases de données (MySQL, Flutter et Riot en double sont normaux).
 - **Restes** : WSL, les pilotes (Realtek…) et les outils en ligne de commande (pnpm, gh, uv…) sont exclus. Android (SDK, `.android`) est proposé sans Android Studio mais avec un avertissement (Flutter s'en sert) : on avertit, on n'empêche pas.
 - **Analyse** : pas de suppression depuis les listes de gros fichiers (verdict + « Ouvrir » seulement).
-- **Version** : `tauri.conf.json`, `Cargo.toml` et `package.json` portent la version stable (1.3.1) ; pour une rc, la vraie version (tag) arrive par `VITE_APP_VERSION` au build de la release (`appVersion()` côté interface, `app_version()` côté Rust). Sans elle, les rc se croiraient à jour.
+- **Version** : `tauri.conf.json`, `Cargo.toml` et `package.json` portent la version stable (1.3.2) ; pour une rc, la vraie version (tag) arrive par `VITE_APP_VERSION` au build de la release (`appVersion()` côté interface, `app_version()` côté Rust). Sans elle, les rc se croiraient à jour.
 - **winget** coupe les identifiants longs par « … » dans son tableau : ils sont ignorés (inutilisables avec `--id --exact`).
 - **Erreurs** : Rust renvoie de l'anglais (aussi écrit au journal) ; `lib/errors.ts` traduit les plus courantes.
 
