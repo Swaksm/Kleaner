@@ -102,7 +102,12 @@ fn path_ok(path: &str, only: &[String]) -> bool {
     if *root == "%USERPROFILE%" && !comps[0].starts_with('.') {
         return false;
     }
-    if (*root == "%LOCALAPPDATA%" || *root == "%APPDATA%") && SYSTEM_FIRST.contains(&lower(comps[0]).as_str()) {
+    let first = lower(comps[0]);
+    if (*root == "%LOCALAPPDATA%" || *root == "%APPDATA%") && SYSTEM_FIRST.iter().any(|s| crate::catalog::wildcard(&first, s)) {
+        return false;
+    }
+    // Premier dossier qui commence par un joker (« *\Cache ») : il viserait les dossiers de tous les programmes.
+    if first.starts_with(['*', '?']) {
         return false;
     }
     if denied(rest) || only.iter().any(|p| denied(p)) {
@@ -320,6 +325,9 @@ mod tests {
         assert!(!entry_ok(&e("w2-a", r"%USERPROFILE%\Documents\Cache", &[])));
         assert!(!entry_ok(&e("w2-a", r"%USERPROFILE%\Desktop\x\Cache", &[])));
         assert!(!entry_ok(&e("w2-a", r"%LOCALAPPDATA%\Microsoft\Windows\INetCache", &[])), "Windows : catalogue intégré");
+        assert!(!entry_ok(&e("w2-a", r"%LOCALAPPDATA%\Micro*\Windows\INetCache", &[])), "joker vers un dossier de Windows");
+        assert!(!entry_ok(&e("w2-a", r"%APPDATA%\*\Cache", &[])), "joker au début : tous les programmes");
+        assert!(entry_ok(&e("w2-a", r"%LOCALAPPDATA%\DxO*\DataCache", &[])), "joker après un vrai nom : accepté");
         assert!(!entry_ok(&e("w2-a", r"%SystemRoot%\Temp\x\Cache", &[])));
         assert!(!entry_ok(&e("w2-a", r"%LOCALAPPDATA%\Vendor\..\Other\Cache", &[])));
         assert!(!entry_ok(&e("w2-a", r"%LOCALAPPDATA%\Vendor\Catalog", &[])), "« log » dans « catalog » ne compte pas");

@@ -376,6 +376,20 @@ mod tests {
     }
 
     #[test]
+    fn read_only_files_move_and_come_back() {
+        let s = Sandbox::new("readonly");
+        let (src, dst, log) = (s.0.join("Ro"), s.0.join("D/Ro"), s.0.join("log"));
+        fill(&src);
+        assert!(std::process::Command::new("attrib").arg("+r").arg(src.join("one.txt")).status().unwrap().success());
+        let stop = AtomicBool::new(false);
+        transfer(&src, &dst, "move", &log, &stop, &|_, _| {}).unwrap();
+        assert!(!src.exists(), "original en lecture seule retiré quand même");
+        assert!(fs::metadata(dst.join("one.txt")).unwrap().permissions().readonly(), "attribut gardé");
+        transfer(&dst, &src, "move-back", &log, &stop, &|_, _| {}).unwrap();
+        assert!(!dst.exists() && fs::read(src.join("one.txt")).unwrap() == b"hello");
+    }
+
+    #[test]
     fn cancel_leaves_the_original_untouched() {
         let s = Sandbox::new("cancel");
         let (src, dst, log) = (s.0.join("Big"), s.0.join("D/Big"), s.0.join("log"));

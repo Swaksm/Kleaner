@@ -33,16 +33,16 @@ pub fn download(version: &str, dir: &Path) -> Result<PathBuf, String> {
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     let file = dir.join(format!("kleaner-setup-{version}.exe"));
     let base = format!("{RELEASES}/v{version}/kleaner-setup.exe");
-    let path = file.display().to_string().replace('\'', "''");
+    let path = crate::system::ps_quote(&file.display().to_string());
     // Empreinte publiée par release.yml : « <sha256>  kleaner-setup.exe ». Fichier supprimé si elle ne correspond pas.
     let script = format!(
         "$ErrorActionPreference = 'Stop';
-        Invoke-WebRequest -UseBasicParsing -Uri '{base}' -OutFile '{path}';
+        Invoke-WebRequest -UseBasicParsing -Uri '{base}' -OutFile {path};
         $sum = (Invoke-WebRequest -UseBasicParsing -Uri '{base}.sha256').Content;
         if ($sum -is [byte[]]) {{ $sum = [Text.Encoding]::ASCII.GetString($sum) }}
         $want = ($sum.Trim() -split '\\s+')[0].ToLower();
-        $got = (Get-FileHash -LiteralPath '{path}' -Algorithm SHA256).Hash.ToLower();
-        if ($want -ne $got) {{ Remove-Item -LiteralPath '{path}' -Force; throw \"SHA-256 mismatch\" }}
+        $got = (Get-FileHash -LiteralPath {path} -Algorithm SHA256).Hash.ToLower();
+        if ($want -ne $got) {{ Remove-Item -LiteralPath {path} -Force; throw \"SHA-256 mismatch\" }}
         'OK'"
     );
     let (out, err, ok) = ps_run(&script)?;

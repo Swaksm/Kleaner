@@ -5,16 +5,11 @@
 
 use crate::journal;
 use crate::store;
-use crate::system::ps_run;
+use crate::system::{ps_quote as quote, ps_run};
 use std::path::Path;
 
 pub const MINIMIZED_ARG: &str = "--minimized";
 const TASK: &str = "Kleaner";
-
-/// Chaîne entre apostrophes pour PowerShell.
-fn quote(s: &str) -> String {
-    format!("'{}'", s.replace('\'', "''"))
-}
 
 /// Script qui crée (ou remplace) la tâche pour l'utilisateur courant.
 /// `admin` : droits admin sans invite, seulement pour l'exe installé dans Program Files (qu'un admin seul peut remplacer).

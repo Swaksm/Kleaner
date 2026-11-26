@@ -11,6 +11,21 @@ use std::process::Command;
 /// Lance un programme sans ouvrir de fenêtre de console.
 pub const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
+/// Texte entre apostrophes pour un script PowerShell. PowerShell ferme aussi la chaîne sur ‘ ’ ‚ ‛ :
+/// elles sont doublées comme ' (un nom d'utilisateur « D’Artagnan » ou un nom de tâche ne sort jamais de la chaîne).
+pub(crate) fn ps_quote(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('\'');
+    for c in s.chars() {
+        if matches!(c, '\'' | '\u{2018}' | '\u{2019}' | '\u{201A}' | '\u{201B}') {
+            out.push(c);
+        }
+        out.push(c);
+    }
+    out.push('\'');
+    out
+}
+
 /// Lance un script PowerShell : (sortie standard, erreurs, réussite).
 pub(crate) fn ps_run(script: &str) -> Result<(String, String, bool), String> {
     let script = format!("$ProgressPreference='SilentlyContinue'; [Console]::OutputEncoding=[Text.Encoding]::UTF8; {script}");
@@ -354,6 +369,15 @@ pub fn upgrade_apps(ids: &[String], journal_dir: &Path) -> Result<(u64, String),
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Le vrai PowerShell relit exactement le texte, même avec des apostrophes typographiques.
+    #[test]
+    fn ps_quote_survives_every_apostrophe() {
+        let tricky = "D’Artagnan's ‘task’ ‚x‛; Write-Output pwned; '";
+        let (out, err, ok) = ps_run(&format!("Write-Output {}", ps_quote(tricky))).unwrap();
+        assert!(ok, "{err}");
+        assert_eq!(out, tricky);
+    }
 
     #[test]
     fn winget_table_english() {

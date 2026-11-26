@@ -163,7 +163,7 @@ pub fn get(id: &str) -> Option<&'static Cleaner> {
 }
 
 /// `*` et `?`, insensible à la casse.
-fn wildcard(pattern: &str, name: &str) -> bool {
+pub(crate) fn wildcard(pattern: &str, name: &str) -> bool {
     let (p, n): (Vec<char>, Vec<char>) = (pattern.to_lowercase().chars().collect(), name.to_lowercase().chars().collect());
     let (mut pi, mut ni, mut star, mut mark) = (0, 0, None, 0);
     while ni < n.len() {

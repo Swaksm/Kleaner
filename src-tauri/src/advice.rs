@@ -104,6 +104,10 @@ pub fn find() -> Vec<Advice> {
     let now = now();
     // shortcut: Téléchargements déplacé ailleurs (Propriétés → Emplacement) n'est pas suivi, comme dans mover.rs.
     let mut out = std::env::var_os("USERPROFILE").map(|h| downloads_in(&PathBuf::from(h).join("Downloads"), now)).unwrap_or_default();
+    // L'exe portable de Kleaner lui-même, souvent lancé depuis Téléchargements : ce n'est pas un installeur.
+    if let Ok(me) = std::env::current_exe() {
+        out.retain(|a| !a.path.eq_ignore_ascii_case(&me.display().to_string()));
+    }
     if let Some(root) = steam_root() {
         let mut libs = vec![root.clone()];
         if let Ok(text) = std::fs::read_to_string(root.join(r"steamapps\libraryfolders.vdf")) {

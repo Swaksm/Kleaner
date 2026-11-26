@@ -76,7 +76,7 @@ pub fn find() -> Result<Vec<BrokenShortcut>, String> {
     if folders.is_empty() {
         return Ok(Vec::new());
     }
-    let list = folders.iter().map(|(p, ..)| format!("'{}'", p.display().to_string().replace('\'', "''"))).collect::<Vec<_>>().join(",");
+    let list = folders.iter().map(|(p, ..)| crate::system::ps_quote(&p.display().to_string())).collect::<Vec<_>>().join(",");
     let rows: Vec<Row> = ps_json(&format!(
         r#"$sh = New-Object -ComObject WScript.Shell;
         ConvertTo-Json -Compress -InputObject @(Get-ChildItem -LiteralPath {list} -Recurse -Filter *.lnk -Force -ErrorAction SilentlyContinue |

@@ -291,12 +291,8 @@ pub fn set_enabled(id: &str, enabled: bool, journal_dir: &Path) -> Result<(), St
         }
         ["task", path, name] => {
             let verb = if enabled { "Enable" } else { "Disable" };
-            let q = |s: &str| s.replace('\'', "''");
-            let (_, err, ok) = ps_run(&format!(
-                "{verb}-ScheduledTask -TaskPath '{}' -TaskName '{}' -ErrorAction Stop | Out-Null",
-                q(path),
-                q(name)
-            ))?;
+            let q = crate::system::ps_quote;
+            let (_, err, ok) = ps_run(&format!("{verb}-ScheduledTask -TaskPath {} -TaskName {} -ErrorAction Stop | Out-Null", q(path), q(name)))?;
             if ok { Ok(()) } else { Err(if err.is_empty() { "Task not changed (admin rights may be needed)".into() } else { err }) }
         }
         _ => Err("This item can only be changed in Windows".into()),

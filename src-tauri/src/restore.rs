@@ -34,6 +34,12 @@ fn parse(ok: bool, output: &str) -> Outcome {
     }
 }
 
+/// Ligne d'erreur lisible pour le journal : le message de Checkpoint-Computer, pas « + FullyQualifiedErrorId … ».
+fn summary(detail: &str) -> String {
+    let lines: Vec<&str> = detail.lines().map(str::trim).filter(|l| !l.is_empty()).collect();
+    lines.iter().find(|l| l.starts_with("Checkpoint-Computer")).or(lines.last()).map_or("no restore point".into(), |l| l.to_string())
+}
+
 /// Admin requis (comme les nettoyages lourds). Journalisé.
 pub fn create(journal_dir: &Path) -> Outcome {
     let (ok, output) = crate::catalog::commands::powershell(SCRIPT);
@@ -41,7 +47,7 @@ pub fn create(journal_dir: &Path) -> Outcome {
     let mut j = journal::Entry::new("restore-point");
     j.output = Some(output);
     if let Outcome::Failed { detail } = &outcome {
-        j.error = Some(detail.lines().last().unwrap_or("no restore point").into());
+        j.error = Some(summary(detail));
     }
     let _ = journal::append(journal_dir, &j);
     outcome
@@ -58,5 +64,13 @@ mod tests {
         assert!(matches!(parse(true, "> powershell\nnone"), Outcome::Failed { .. }), "Windows n'a rien créé");
         assert!(matches!(parse(false, "> powershell\ncreated"), Outcome::Failed { .. }), "code de sortie en échec");
         assert!(matches!(parse(true, "recent pas-un-nombre"), Outcome::Failed { .. }));
+    }
+
+    #[test]
+    fn journal_keeps_the_readable_error_line() {
+        let out = "> powershell\nCheckpoint-Computer : Impossible d'exécuter cette commande : le service est désactivé.\nAu caractère Ligne:1 : 373\n    + FullyQualifiedErrorId : ServiceDisabled";
+        assert!(summary(out).starts_with("Checkpoint-Computer : Impossible"));
+        assert_eq!(summary("> powershell\nnone"), "none");
+        assert_eq!(summary(""), "no restore point");
     }
 }
