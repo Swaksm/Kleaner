@@ -93,9 +93,9 @@ export function Settings({ onTour }: { onTour: () => void }) {
             {t("update.auto")}
           </label>
           <p className="muted small">
-              {t("update.privacy")}{" "}
-              <button className="link" onClick={() => openUrl(PRIVACY_PAGE)}>{t("update.privacyLink")}</button>
-            </p>
+            {t("update.privacy")}{" "}
+            <button className="link" onClick={() => openUrl(PRIVACY_PAGE)}>{t("update.privacyLink")}</button>
+          </p>
         </Card>
       )}
 

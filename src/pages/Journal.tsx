@@ -104,8 +104,9 @@ export function Journal() {
           <p>{t("journal.empty")}</p>
         </Card>
       )}
-      {days.map(({ day, entries }) => (
-        <Card key={day} title={day}>
+      {days.map(({ day, entries }, d) => (
+        // Index dans la clé : un jour peut revenir si l'horloge a reculé.
+        <Card key={`${day}-${d}`} title={day}>
           <ul className="journal">
             {entries.map((e, i) => {
               // Clé propre à la ligne : deux actions de la même seconde ne partagent pas leur bouton.
@@ -155,7 +156,8 @@ export function Journal() {
                       </span>
                     </summary>
                     <div className="journal-detail">
-                      {KNOWN.includes(kind) && <p>{t(`journal.desc.${kind}` as Key)}</p>}
+                      {/* La description dit ce qui a été fait : pas pour une action qui a échoué. */}
+                      {KNOWN.includes(kind) && !e.error && <p>{t(`journal.desc.${kind}` as Key)}</p>}
                       {e.error && <p className="danger">{e.error}</p>}
                       {e.paths.length > 0 && (
                         <ul className="paths">
