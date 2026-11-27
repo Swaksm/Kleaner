@@ -261,21 +261,10 @@ impl Walk<'_> {
         name_ok && age_ok
     }
 
-    fn remove_file(&self, p: &Path, m: &Metadata) -> bool {
-        if guard::check_delete(p, self.roots).is_err() {
-            return false;
-        }
-        if fs::remove_file(p).is_ok() {
-            return true;
-        }
-        // Fichier en lecture seule (fréquent dans les caches de paquets) : on retire l'attribut.
-        let mut perms = m.permissions();
-        if !perms.readonly() {
-            return false;
-        }
-        #[allow(clippy::permissions_set_readonly_false)]
-        perms.set_readonly(false);
-        fs::set_permissions(p, perms).is_ok() && fs::remove_file(p).is_ok()
+    /// Garde vérifiée sur le fichier ouvert, puis suppression de ce même fichier (lecture seule comprise) :
+    /// rien ne peut changer entre la vérification et la suppression (voir `guard::delete_inside`).
+    fn remove_file(&self, p: &Path) -> bool {
+        guard::delete_inside(p, self.roots, false)
     }
 
     /// Nettoie le contenu de `dir`. Renvoie `true` si le dossier est vide ensuite.
@@ -304,12 +293,12 @@ impl Walk<'_> {
                 // un installeur en cours peut venir de le créer.
                 let old_enough = self.cutoff.is_none_or(|c| m.modified().is_ok_and(|t| t < c));
                 let removable = sub_empty && old_enough && self.entry.only.is_empty() && !self.dry_run;
-                if !(removable && guard::check_delete(&p, self.roots).is_ok() && fs::remove_dir(&p).is_ok()) {
+                if !(removable && guard::delete_inside(&p, self.roots, true)) {
                     empty = false;
                 }
             } else if !self.wanted(&p, &m) {
                 empty = false;
-            } else if self.dry_run || self.remove_file(&p, &m) {
+            } else if self.dry_run || self.remove_file(&p) {
                 if let Some(l) = &mut self.listed {
                     l.push((p.display().to_string(), m.len()));
                 }
@@ -397,9 +386,7 @@ pub fn delete_project_dirs(dirs: &[PathBuf], journal_dir: &Path) -> Result<Clean
     // Le dossier lui-même, une fois vide (la garde exige d'être strictement sous une racine : son parent).
     for d in dirs {
         let parent: Vec<PathBuf> = d.parent().map(Path::to_path_buf).into_iter().collect();
-        if guard::check_delete(d, &parent).is_ok() {
-            let _ = fs::remove_dir(d);
-        }
+        guard::delete_inside(d, &parent, true);
     }
     let mut j = journal::Entry::new("clean:project-artifacts");
     j.paths = dirs.iter().map(|d| d.display().to_string()).collect();
@@ -612,9 +599,10 @@ pub(crate) mod commands {
             }
             "memory-dump" => {
                 if let (Some(file), Some(root)) = (env_path("SystemRoot", "MEMORY.DMP"), std::env::var_os("SystemRoot")) {
-                    let res = guard::check_delete(&file, &[PathBuf::from(root)])
+                    let roots = [PathBuf::from(root)];
+                    let res = guard::check_delete(&file, &roots)
                         .map_err(|e| e.to_string())
-                        .and_then(|f| std::fs::remove_file(f).map_err(|e| e.to_string()));
+                        .and_then(|_| if guard::delete_inside(&file, &roots, false) { Ok(()) } else { Err("could not delete (in use?)".to_string()) });
                     steps.push((res.is_ok(), format!("delete {}: {res:?}", file.display())));
                 }
             }
@@ -1030,5 +1018,49 @@ mod tests {
             let r = estimate(c);
             println!("{:<28} {:>10.1} Mo  {:>7} fichiers", c.id, r.bytes as f64 / 1048576.0, r.files);
         }
+    }
+
+    /// Ancienne et nouvelle décision de suppression sur tous les fichiers que les nettoyages viseraient. Ne supprime rien.
+    /// `cargo test --release catalog::tests::old_and_new_deletion_agree -- --ignored --nocapture`
+    #[test]
+    #[ignore]
+    fn old_and_new_deletion_agree() {
+        let elevated = crate::elevation::is_elevated();
+        let (mut files, mut same, mut locked) = (0u64, 0u64, 0u64);
+        let (mut t_old, mut t_new) = (std::time::Duration::ZERO, std::time::Duration::ZERO);
+        let mut diff: Vec<String> = Vec::new();
+        for c in all().iter().filter(|c| elevated || !c.admin) {
+            let roots: Vec<PathBuf> = c.paths.iter().flat_map(|p| resolve(p)).collect();
+            let (_, list) = walk_roots(c, &roots, true, true);
+            for (p, _) in list {
+                let p = PathBuf::from(p);
+                files += 1;
+                let t = std::time::Instant::now();
+                let old = guard::check_delete(&p, &roots).is_ok();
+                t_old += t.elapsed();
+                let t = std::time::Instant::now();
+                let new = guard::would_delete(&p, &roots, false);
+                t_new += t.elapsed();
+                if old == new {
+                    same += 1;
+                } else if old && {
+                    // Ouvert par un programme sans partage de suppression : l'ancienne méthode échouait aussi au moment
+                    // de supprimer (DeleteFileW demande le même accès DELETE).
+                    use std::os::windows::fs::OpenOptionsExt;
+                    const DELETE: u32 = 0x0001_0000;
+                    fs::OpenOptions::new().access_mode(DELETE).share_mode(7).custom_flags(0x0020_0000).open(&p).is_err_and(|e| e.raw_os_error() == Some(32))
+                } {
+                    locked += 1;
+                } else {
+                    diff.push(format!("{} | ancien={old} nouveau={new} | {}", c.id, p.display()));
+                }
+            }
+        }
+        println!("{files} fichiers, {same} décisions identiques, {locked} verrouillés, {} écarts", diff.len());
+        println!("temps : ancien {:?}, nouveau {:?}", t_old, t_new);
+        for d in diff.iter().take(40) {
+            println!("  {d}");
+        }
+        assert!(diff.is_empty(), "écarts entre l'ancienne et la nouvelle décision");
     }
 }

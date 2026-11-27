@@ -199,6 +199,213 @@ pub fn move_back(original: &Path, moved: &Path, journal_dir: &Path, cancel: &Ato
     Ok(report)
 }
 
+/// Un déplacement tourne : son dossier « .kleaner-moving » n'est pas un reste d'interruption.
+static MOVING: AtomicBool = AtomicBool::new(false);
+
+struct MovingFlag;
+
+impl MovingFlag {
+    fn set() -> Self {
+        MOVING.store(true, Relaxed);
+        MovingFlag
+    }
+}
+
+impl Drop for MovingFlag {
+    fn drop(&mut self) {
+        MOVING.store(false, Relaxed);
+    }
+}
+
+/// Déplacement (ou retour) que Kleaner n'a pas pu finir : arrêt brutal, coupure, plantage.
+/// L'original porte encore le nom « <nom>.kleaner-moving » ; la copie est peut-être partielle.
+#[derive(Serialize, Clone, Debug, PartialEq)]
+pub struct Interrupted {
+    /// « move » ou « move-back ».
+    pub action: String,
+    /// Où le dossier était avant (et où il retourne si on annule).
+    pub original: String,
+    /// L'original renommé.
+    pub parked: String,
+    /// La copie, à l'arrivée.
+    pub copy: String,
+    pub ts: u64,
+}
+
+/// `p` existe et est strictement sous une des `roots` (garde : sans lien), ou n'existe pas du tout.
+fn absent_or_inside(p: &Path, roots: &[PathBuf]) -> bool {
+    fs::symlink_metadata(p).is_err() || guard::check_move(p, roots).is_ok()
+}
+
+fn same_place(a: &Path, b: &Path) -> bool {
+    a.as_os_str().eq_ignore_ascii_case(b.as_os_str())
+}
+
+/// Les trois chemins d'une ligne « -start » du journal (fichier modifiable) ressemblent-ils à un vrai déplacement ?
+/// Mêmes limites que le déplacement lui-même : dossiers personnels d'un côté, « <disque>:\Kleaner moved » de l'autre.
+fn plausible(action: &str, from: &Path, parked: &Path, to: &Path, personal: &[PathBuf], moved: &[PathBuf]) -> bool {
+    let name_ok = from.file_name().is_some_and(|n| parked.file_name().is_some_and(|p| p.eq_ignore_ascii_case(format!("{}.kleaner-moving", n.to_string_lossy()))));
+    let parent_ok = from.parent().zip(parked.parent()).is_some_and(|(a, b)| same_place(a, b));
+    let (here, there) = if action == "move" { (personal, moved) } else { (moved, personal) };
+    name_ok && parent_ok && guard::check_move(parked, here).is_ok() && absent_or_inside(to, there)
+}
+
+/// Racines « Kleaner moved » possibles pour un chemin : celle de son disque.
+fn moved_root_of(p: &Path) -> Vec<PathBuf> {
+    drive_letter(&p.display().to_string()).map(|c| PathBuf::from(format!("{c}:\\")).join(FOLDER)).into_iter().collect()
+}
+
+/// Déplacements interrompus : une ligne « move-start » ou « move-back-start » dont l'original renommé existe encore.
+/// `entries` : le journal, le plus récent d'abord. Rien pendant qu'un déplacement tourne.
+pub fn interrupted(entries: &[journal::Entry], home: &Path) -> Vec<Interrupted> {
+    if MOVING.load(Relaxed) {
+        return Vec::new();
+    }
+    interrupted_in(entries, &personal_roots(home), None)
+}
+
+fn interrupted_in(entries: &[journal::Entry], personal: &[PathBuf], moved: Option<&[PathBuf]>) -> Vec<Interrupted> {
+    let mut out: Vec<Interrupted> = Vec::new();
+    for e in entries {
+        let Some(action) = e.action.strip_suffix("-start").filter(|a| *a == "move" || *a == "move-back") else { continue };
+        let [from, parked, to] = &e.paths[..] else { continue };
+        let (f, p, t) = (Path::new(from), Path::new(parked), Path::new(to));
+        if out.iter().any(|i| same_place(Path::new(&i.parked), p)) || !fs::symlink_metadata(p).is_ok_and(|m| m.is_dir()) {
+            continue;
+        }
+        let side = if action == "move" { t } else { p };
+        let moved_roots = moved.map_or_else(|| moved_root_of(side), <[PathBuf]>::to_vec);
+        if plausible(action, f, p, t, personal, &moved_roots) {
+            out.push(Interrupted { action: action.into(), original: from.clone(), parked: parked.clone(), copy: to.clone(), ts: e.ts });
+        }
+    }
+    out
+}
+
+/// Fichiers d'un dossier : chemin relatif → taille. Mêmes refus que le déplacement (liens, fichiers système…).
+fn files_of(root: &Path) -> Result<(Vec<PathBuf>, std::collections::HashMap<PathBuf, u64>), String> {
+    if fs::symlink_metadata(root).is_err() {
+        return Ok((Vec::new(), Default::default()));
+    }
+    let items = walk(root)?;
+    let dirs = items.iter().filter(|i| i.dir).map(|i| i.rel.clone()).collect();
+    Ok((dirs, items.into_iter().filter(|i| !i.dir).map(|i| (i.rel, i.size)).collect()))
+}
+
+fn hash(p: &Path) -> Result<blake3::Hash, String> {
+    let mut h = blake3::Hasher::new();
+    h.update_reader(File::open(p).map_err(|e| format!("{} : {e}", plain(p)))?).map_err(|e| format!("{} : {e}", plain(p)))?;
+    Ok(h.finalize())
+}
+
+/// Empreinte des `len` premiers octets de `p`.
+fn hash_prefix(p: &Path, len: u64) -> Result<blake3::Hash, String> {
+    let mut h = blake3::Hasher::new();
+    h.update_reader(File::open(p).map_err(|e| format!("{} : {e}", plain(p)))?.take(len)).map_err(|e| format!("{} : {e}", plain(p)))?;
+    Ok(h.finalize())
+}
+
+/// Chaque fichier de `a` existe dans `b` avec le même contenu (blake3). `truncated_ok` : un fichier de `a` peut aussi
+/// être le début exact de celui de `b` (dernier fichier en cours de copie au moment de l'arrêt).
+fn contained(
+    a_root: &Path,
+    a: &std::collections::HashMap<PathBuf, u64>,
+    b_root: &Path,
+    b: &std::collections::HashMap<PathBuf, u64>,
+    truncated_ok: bool,
+) -> Result<bool, String> {
+    for (rel, &size) in a {
+        let Some(&other) = b.get(rel) else { return Ok(false) };
+        let same = if size == other {
+            hash(&a_root.join(rel))? == hash(&b_root.join(rel))?
+        } else {
+            truncated_ok && size < other && hash(&a_root.join(rel))? == hash_prefix(&b_root.join(rel), size)?
+        };
+        if !same {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+/// Retire un dossier dont chaque fichier a une copie identique ailleurs (vérifié juste avant). Lecture seule levée.
+fn remove_verified(root: &Path, dirs: &[PathBuf], files: &std::collections::HashMap<PathBuf, u64>) -> Result<(), String> {
+    for rel in files.keys() {
+        let p = root.join(rel);
+        set_attributes(&p, 0);
+        fs::remove_file(&p).map_err(|e| format!("{} : {e}", plain(&p)))?;
+    }
+    // Les plus profonds d'abord.
+    let mut dirs = dirs.to_vec();
+    dirs.sort_by_key(|d| std::cmp::Reverse(d.components().count()));
+    for d in dirs {
+        let _ = fs::remove_dir(root.join(d));
+    }
+    if fs::symlink_metadata(root).is_ok() {
+        fs::remove_dir(root).map_err(|e| format!("{} : {e}", plain(root)))?;
+    }
+    Ok(())
+}
+
+/// Répare un déplacement interrompu, sans jamais supprimer un fichier qui n'a pas de copie identique ailleurs :
+/// - la copie ne contient que des fichiers identiques à l'original (copie partielle ou pas encore commencée) :
+///   la copie est retirée et l'original reprend son nom (« restored ») ;
+/// - l'original ne contient que des fichiers identiques à la copie (le retrait de l'original était en cours) :
+///   le déplacement est terminé (« finished ») et écrit au journal, donc annulable depuis le Journal ;
+/// - sinon rien n'est touché.
+pub fn recover(i: &Interrupted, journal_dir: &Path) -> Result<&'static str, String> {
+    if MOVING.load(Relaxed) {
+        return Err("Refused: a move is running".into());
+    }
+    recover_now(i, journal_dir)
+}
+
+fn recover_now(i: &Interrupted, journal_dir: &Path) -> Result<&'static str, String> {
+    let (from, parked, copy) = (Path::new(&i.original), Path::new(&i.parked), Path::new(&i.copy));
+    if fs::symlink_metadata(from).is_ok() {
+        return Err(format!("Refused: {} already exists", i.original));
+    }
+    let (p_dirs, p) = files_of(parked)?;
+    let (c_dirs, c) = files_of(copy)?;
+    let mut j;
+    let outcome = if contained(copy, &c, parked, &p, true)? {
+        remove_verified(copy, &c_dirs, &c)?;
+        fs::rename(parked, from).map_err(|e| format!("{} : {e}", plain(parked)))?;
+        if i.action == "move" {
+            // Dossiers « Kleaner moved\Videos » devenus vides.
+            for parent in copy.ancestors().skip(1) {
+                if fs::remove_dir(parent).is_err() || parent.file_name().is_some_and(|n| n == FOLDER) {
+                    break;
+                }
+            }
+        }
+        j = journal::Entry::new("move-recover");
+        j.paths = vec![i.original.clone(), i.copy.clone()];
+        j.files = p.len() as u64;
+        j.bytes = p.values().sum();
+        "restored"
+    } else if contained(parked, &p, copy, &c, false)? {
+        // Dossiers vides de l'original absents de la copie : recréés avant le retrait.
+        for d in &p_dirs {
+            fs::create_dir_all(copy.join(d)).map_err(|e| format!("{} : {e}", plain(&copy.join(d))))?;
+        }
+        remove_verified(parked, &p_dirs, &p)?;
+        j = journal::Entry::new(i.action.as_str());
+        j.paths = vec![i.original.clone(), i.copy.clone()];
+        j.files = c.len() as u64;
+        j.bytes = c.values().sum();
+        j.output = Some("Completed after an interruption".into());
+        "finished"
+    } else {
+        return Err(format!(
+            "The two folders differ, nothing was changed. Original: {} — copy: {}. Compare them and keep what you need.",
+            i.parked, i.copy
+        ));
+    };
+    journal::append(journal_dir, &j).map_err(|e| format!("Log: {e}"))?;
+    Ok(outcome)
+}
+
 /// Copie vérifiée de `from` vers `to` (qui ne doit pas exister), puis retrait de `from`. Journalisé.
 fn transfer(
     from: &Path,
@@ -208,6 +415,7 @@ fn transfer(
     cancel: &AtomicBool,
     progress: &dyn Fn(u64, u64),
 ) -> Result<ActionReport, String> {
+    let _moving = MovingFlag::set();
     let name = from.file_name().ok_or("Invalid path")?.to_string_lossy().to_string();
     let parked = from.with_file_name(format!("{name}.kleaner-moving"));
     if fs::symlink_metadata(&parked).is_ok() {
@@ -334,6 +542,12 @@ mod tests {
             fs::create_dir_all(&dir).unwrap();
             Self(dir)
         }
+
+        fn dir_of(&self, rel: &str) -> PathBuf {
+            let p = self.0.join(rel);
+            fs::create_dir_all(&p).unwrap();
+            p
+        }
     }
 
     impl Drop for Sandbox {
@@ -373,6 +587,97 @@ mod tests {
         transfer(&dst, &src, "move-back", &log, &stop, &|_, _| {}).unwrap();
         assert_eq!(fs::read(src.join("one.txt")).unwrap(), b"hello");
         assert!(src.join("a/b/three").is_file() && !dst.exists());
+    }
+
+    /// Arrêt en pleine copie : original renommé, copie partielle avec un dernier fichier tronqué.
+    fn interrupted_copy(s: &Sandbox) -> (PathBuf, PathBuf, PathBuf, Interrupted) {
+        let (src, parked, dst) = (s.0.join("Videos/Rushes"), s.0.join("Videos/Rushes.kleaner-moving"), s.0.join("D/Kleaner moved/Videos/Rushes"));
+        fill(&src);
+        fs::rename(&src, &parked).unwrap();
+        fs::create_dir_all(dst.join("a")).unwrap();
+        fs::write(dst.join("one.txt"), b"hello").unwrap();
+        fs::write(dst.join("a/two.bin"), vec![7u8; 1000]).unwrap(); // 1000 octets sur 3 Mo
+        let i = Interrupted { action: "move".into(), original: plain(&src), parked: plain(&parked), copy: plain(&dst), ts: 1 };
+        (src, parked, dst, i)
+    }
+
+    #[test]
+    fn interrupted_copy_puts_the_original_back() {
+        let s = Sandbox::new("recover-copy");
+        let (src, parked, dst, i) = interrupted_copy(&s);
+        assert_eq!(recover_now(&i, &s.0.join("log")).unwrap(), "restored");
+        assert!(!parked.exists() && !dst.exists(), "copie partielle retirée");
+        assert!(!s.0.join("D/Kleaner moved").exists(), "dossiers vides de « Kleaner moved » retirés");
+        assert_eq!(fs::read(src.join("a/two.bin")).unwrap(), vec![7u8; 3 << 20], "original complet, à sa place");
+        assert_eq!(fs::read(src.join("one.txt")).unwrap(), b"hello");
+        assert_eq!(journal::read_last(&s.0.join("log"), 1).unwrap()[0].action, "move-recover");
+    }
+
+    #[test]
+    fn interrupted_removal_finishes_the_move() {
+        let s = Sandbox::new("recover-remove");
+        let (src, parked, dst) = (s.0.join("Videos/Rushes"), s.0.join("Videos/Rushes.kleaner-moving"), s.0.join("D/Kleaner moved/Videos/Rushes"));
+        fill(&dst);
+        // Retrait de l'original en cours : il ne reste qu'un fichier et un dossier vide.
+        fs::create_dir_all(parked.join("a/b")).unwrap();
+        fs::write(parked.join("one.txt"), b"hello").unwrap();
+        let i = Interrupted { action: "move".into(), original: plain(&src), parked: plain(&parked), copy: plain(&dst), ts: 1 };
+        assert_eq!(recover_now(&i, &s.0.join("log")).unwrap(), "finished");
+        assert!(!parked.exists() && !src.exists());
+        assert_eq!(fs::read(dst.join("a/two.bin")).unwrap(), vec![7u8; 3 << 20], "copie intacte");
+        let e = &journal::read_last(&s.0.join("log"), 1).unwrap()[0];
+        assert_eq!((e.action.as_str(), e.paths.clone()), ("move", vec![plain(&src), plain(&dst)]), "annulable depuis le Journal");
+    }
+
+    #[test]
+    fn differing_folders_are_never_touched() {
+        let s = Sandbox::new("recover-differ");
+        let (src, parked, dst, i) = interrupted_copy(&s);
+        fs::write(dst.join("one.txt"), b"HELLO").unwrap(); // même taille, autre contenu
+        assert!(recover_now(&i, &s.0.join("log")).unwrap_err().contains("differ"));
+        fs::write(dst.join("one.txt"), b"hello").unwrap();
+        fs::write(dst.join("a/two.bin"), vec![8u8; 1000]).unwrap(); // tronqué, mais pas le début de l'original
+        assert!(recover_now(&i, &s.0.join("log")).is_err());
+        fs::write(dst.join("extra.txt"), b"only here").unwrap();
+        assert!(recover_now(&i, &s.0.join("log")).is_err());
+        assert!(parked.join("a/two.bin").is_file() && dst.join("extra.txt").is_file() && !src.exists(), "rien n'a bougé");
+    }
+
+    #[test]
+    fn taken_original_name_is_refused() {
+        let s = Sandbox::new("recover-taken");
+        let (src, parked, _, i) = interrupted_copy(&s);
+        fs::create_dir_all(&src).unwrap();
+        assert!(recover_now(&i, &s.0.join("log")).unwrap_err().contains("already exists"));
+        assert!(parked.join("one.txt").is_file());
+    }
+
+    #[test]
+    fn interrupted_moves_are_found_only_where_kleaner_moves() {
+        let s = Sandbox::new("recover-find");
+        let (src, parked, dst, _) = interrupted_copy(&s);
+        let personal = [fs::canonicalize(s.0.join("Videos")).unwrap()];
+        let moved = [fs::canonicalize(s.0.join("D/Kleaner moved")).unwrap()];
+        let start = |from: &Path, parked: &Path, to: &Path| {
+            let mut e = journal::Entry::new("move-start");
+            e.paths = vec![plain(from), plain(parked), plain(to)];
+            e
+        };
+        // Une ligne inventée qui viserait un autre dossier : jamais retenue.
+        let other = s.dir_of("Elsewhere/X.kleaner-moving");
+        let entries = vec![
+            start(&s.0.join("Elsewhere/X"), &other, &dst),
+            start(&src, &parked, &dst),
+            start(&s.0.join("Videos/Gone"), &s.0.join("Videos/Gone.kleaner-moving"), &dst),
+            // Nom qui ne correspond pas à l'original.
+            start(&src, &s.dir_of("Videos/Wrong.kleaner-moving"), &dst),
+        ];
+        let found = interrupted_in(&entries, &personal, Some(&moved));
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].parked, plain(&parked));
+        let mut back = start(&dst, &parked, &src);
+        back.action = "move-back-start".into();
+        assert!(interrupted_in(&[back], &personal, Some(&moved)).is_empty(), "retour : l'original renommé doit être dans « Kleaner moved »");
     }
 
     #[test]

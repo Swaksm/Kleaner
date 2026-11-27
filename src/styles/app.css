@@ -1626,6 +1626,16 @@ select {
   margin: 0 0 8px;
 }
 
+.journal-interrupted {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.journal-interrupted .path {
+  word-break: break-all;
+}
+
 .journal-output {
   margin: 0 0 8px;
   padding: 8px 12px;

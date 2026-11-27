@@ -4,16 +4,20 @@ import { Card } from "../components/Card";
 import { StatusPill } from "../components/StatusPill";
 import { useT, type Key } from "../i18n/useT";
 import {
+  interruptedMoves,
   listCleaners,
   moveBack,
   readJournal,
+  recoverMove,
   restoreGhost,
   restoreTrashed,
   revealInExplorer,
+  type InterruptedMove,
   type Text,
   type JournalEntry,
   type JournalView,
 } from "../lib/api";
+import { friendlyError } from "../lib/errors";
 import { formatBytes } from "../lib/format";
 
 /** Actions qu'on peut annuler : Corbeille, entrée fantôme sauvegardée, dossier déplacé vers un autre disque. */
@@ -23,7 +27,7 @@ const RESTORABLE = ["trash", "trash-leftovers", "ghost-remove", "move"];
 const KNOWN = [
   "trash", "trash-leftovers", "restore", "report", "autostart-on", "autostart-off", "autostart-limited", "clean",
   "remove-app", "move", "move-back", "move-start", "move-back-start", "cloud-free-up", "ghost-remove", "ghost-restore",
-  "uninstall", "restore-point", "startup-enable", "startup-disable", "app-upgrade", "update",
+  "uninstall", "restore-point", "startup-enable", "startup-disable", "app-upgrade", "update", "move-recover",
 ];
 
 /** « clean:browser-chrome-cache » → « clean » ; une action inconnue (journal d'une autre version) reste telle quelle. */
@@ -35,9 +39,22 @@ export function Journal() {
   const [error, setError] = useState<string | null>(null);
   const [restored, setRestored] = useState<Map<string, string>>(new Map());
   const [names, setNames] = useState<Map<string, Text>>(new Map());
+  const [interrupted, setInterrupted] = useState<InterruptedMove[]>([]);
+  const [repairs, setRepairs] = useState<Map<string, { ok: boolean; text: string }>>(new Map());
 
   function load() {
     readJournal().then(setView, (e) => setError(String(e)));
+    interruptedMoves().then(setInterrupted, () => {});
+  }
+
+  async function repair(i: InterruptedMove) {
+    try {
+      const r = await recoverMove(i.parked);
+      setRepairs((m) => new Map(m).set(i.parked, { ok: true, text: t(r === "restored" ? "journal.interrupted.restored" : "journal.interrupted.finished") }));
+      load();
+    } catch (err) {
+      setRepairs((m) => new Map(m).set(i.parked, { ok: false, text: friendlyError(String(err)) }));
+    }
   }
 
   useEffect(load, []);
@@ -99,6 +116,35 @@ export function Journal() {
         <BugReportButton />
       </div>
       {error && <StatusPill status="danger">{error}</StatusPill>}
+      {interrupted.length > 0 && (
+        <Card title={t("journal.interrupted.title")}>
+          <p>{t("journal.interrupted.text")}</p>
+          {interrupted.map((i) => (
+            <div key={i.parked} className="journal-interrupted">
+              <p className="small">
+                {t("journal.interrupted.original")} : <span className="path">{i.parked}</span>
+                <br />
+                {t("journal.interrupted.copy")} : <span className="path">{i.copy}</span>
+              </p>
+              <div className="row">
+                <button className="btn btn-primary" disabled={repairs.get(i.parked)?.ok} onClick={() => repair(i)}>
+                  {t("journal.interrupted.repair")}
+                </button>
+                {repairs.has(i.parked) && (
+                  <StatusPill status={repairs.get(i.parked)!.ok ? "ok" : "danger"}>{repairs.get(i.parked)!.text}</StatusPill>
+                )}
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
+      {/* Réparé : la liste se vide au rechargement, le message reste visible. */}
+      {interrupted.length === 0 &&
+        [...repairs.values()].filter((r) => r.ok).map((r, n) => (
+          <StatusPill key={n} status="ok">
+            {r.text}
+          </StatusPill>
+        ))}
       {view?.entries.length === 0 && (
         <Card>
           <p>{t("journal.empty")}</p>

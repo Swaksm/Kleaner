@@ -20,6 +20,7 @@ const KNOWN: [RegExp, Key][] = [
   [/not enough free space/, "error.noSpace"],
   [/^Refused: .* already exists$/, "error.exists"],
   [/^Cancelled$/, "error.cancelled"],
+  [/^The two folders differ, nothing was changed/, "error.foldersDiffer"],
 ];
 
 export function friendlyError(message: string): string {

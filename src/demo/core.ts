@@ -4,6 +4,9 @@ import { emit } from "./event";
 
 export const convertFileSrc = (path: string) => path;
 
+// Demo : le déplacement interrompu disparaît une fois réparé.
+let recovered = false;
+
 export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Promise<T> {
   const ok = (v: unknown) => Promise.resolve(v as T);
   switch (cmd) {
@@ -63,6 +66,16 @@ export function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Prom
       return ok([51_800_000_000, 1_790_000_000]);
     case "set_startup":
       return ok(undefined);
+    // `?interrupted` : un déplacement interrompu à réparer dans le Journal.
+    case "interrupted_moves":
+      return ok(
+        new URLSearchParams(location.search).has("interrupted") && !recovered
+          ? [{ action: "move", original: "C:\\Users\\alex\\Videos\\Rushes", parked: "C:\\Users\\alex\\Videos\\Rushes.kleaner-moving", copy: "D:\\Kleaner moved\\Videos\\Rushes", ts: 1_795_400_000 }]
+          : [],
+      );
+    case "recover_move":
+      recovered = true;
+      return ok("restored");
     case "read_journal":
       return ok({ path: "C:\\Users\\alex\\AppData\\Local\\Kleaner\\journal.log", entries: demoJournal() });
     case "plan_move": {

@@ -181,6 +181,8 @@ struct ScanState {
     advice_games: Arc<Mutex<Vec<u32>>>,
     /// Applis préinstallées de la dernière liste (nom complet du paquet).
     preinstalled: Arc<Mutex<Vec<String>>>,
+    /// Déplacements interrompus de la dernière recherche (original renommé).
+    interrupted: Arc<Mutex<Vec<String>>>,
 }
 
 #[derive(Serialize, Clone)]
@@ -647,6 +649,36 @@ async fn move_back(app: tauri::AppHandle, original: String, moved: String, state
     .map_err(|e| e.to_string())?
 }
 
+/// Déplacements que Kleaner n'a pas pu finir (arrêt brutal, coupure). Lecture seule.
+#[tauri::command]
+async fn interrupted_moves(state: State<'_, ScanState>) -> Result<Vec<mover::Interrupted>, String> {
+    let home = home()?;
+    let list = tauri::async_runtime::spawn_blocking(move || {
+        journal::read_last(&journal::data_dir(), usize::MAX).map(|entries| mover::interrupted(&entries, &home))
+    })
+    .await
+    .map_err(|e| e.to_string())?
+    .map_err(|e| e.to_string())?;
+    *state.interrupted.lock().unwrap() = list.iter().map(|i| i.parked.clone()).collect();
+    Ok(list)
+}
+
+/// Répare un déplacement interrompu de la dernière liste : original remis, ou déplacement terminé (voir `mover::recover`).
+#[tauri::command]
+async fn recover_move(parked: String, state: State<'_, ScanState>) -> Result<String, String> {
+    check_known(std::slice::from_ref(&parked), &state.interrupted.lock().unwrap())?;
+    let home = home()?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let dir = journal::data_dir();
+        // Relu au moment d'agir : le journal et le disque ont pu changer depuis la liste.
+        let entries = journal::read_last(&dir, usize::MAX).map_err(|e| e.to_string())?;
+        let item = mover::interrupted(&entries, &home).into_iter().find(|i| i.parked == parked).ok_or("Refused: this move is no longer interrupted")?;
+        mover::recover(&item, &dir).map(str::to_string)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 /// Remet à leur place des éléments que Kleaner a envoyés à la Corbeille.
 #[tauri::command]
 async fn restore_trashed(paths: Vec<String>) -> Result<actions::ActionReport, String> {
@@ -966,6 +998,8 @@ pub fn run() {
             move_folder,
             cancel_move,
             move_back,
+            interrupted_moves,
+            recover_move,
             trash_leftovers,
             restore_trashed,
             bug_report,

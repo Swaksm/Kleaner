@@ -195,6 +195,11 @@ export const planMove = (path: string) => call<MovePlan>("plan_move", { path });
 export const moveFolder = (path: string, root: string) => call<[ActionReport, string]>("move_folder", { path, root });
 export const cancelMove = () => call<void>("cancel_move");
 export const moveBack = (original: string, moved: string) => busy<ActionReport>("move_back", { original, moved });
+/** Déplacement que Kleaner n'a pas pu finir : l'original porte encore le nom « …kleaner-moving ». */
+export type InterruptedMove = { action: "move" | "move-back"; original: string; parked: string; copy: string; ts: number };
+export const interruptedMoves = () => call<InterruptedMove[]>("interrupted_moves");
+/** « restored » : original remis à sa place ; « finished » : déplacement terminé. */
+export const recoverMove = (parked: string) => busy<"restored" | "finished">("recover_move", { parked });
 export const onMoveProgress = (fn: (p: { done: number; total: number }) => void) =>
   listen<{ done: number; total: number }>("move-progress", (e) => fn(e.payload));
 export const bugReport = () => call<string>("bug_report");
