@@ -84,7 +84,7 @@ Mesures sur la vraie machine : tests `#[ignore]` (`scan::tests::bench`, `catalog
 
 ## Release
 
-1. CI verte.
+1. CI verte. `CHANGELOG.md` : la section « Unreleased » devient `## [X.Y.Z] - <date>` (lien en bas du fichier), une nouvelle « Unreleased » vide au-dessus ; notes longues dans `docs/release-notes/vX.Y.Z.md` (mises sur la release par `gh release edit --notes-file`). Chaque changement visible s'ajoute à « Unreleased » au moment où il est commité.
 2. Passer la version dans `tauri.conf.json`, `src-tauri/Cargo.toml` et `package.json` pour une version stable, puis `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z` (`vX.Y.Z-rcN` pour une préversion).
 3. `release.yml` compile, signe si `SIGNPATH_API_TOKEN` existe, publie l'exe portable, l'installateur NSIS `kleaner-setup.exe` (par machine : Program Files, jamais `%LOCALAPPDATA%\Kleaner` qui est le dossier de données) et leurs SHA-256 (pré-release si le tag contient `-`).
 4. Mettre à jour `bucket/kleaner.json` (version, URL, hash). winget : `node packaging/winget/make-manifests.mjs <version>` puis soumission manuelle (`docs/distribution.md`).
